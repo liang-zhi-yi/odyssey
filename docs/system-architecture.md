@@ -453,6 +453,11 @@ Assessment Engine
 
 返回结果
 
+Note: Assessment is ASYNCHRONOUS.
+POST /assessments/run returns status PROCESSING immediately.
+Frontend polls GET /assessments/{id} every 3 seconds.
+If LLM does not respond within 60 seconds, status becomes FAILED with retry option.
+
 ---
 
 # Assessment Prompt
@@ -465,23 +470,30 @@ Quest
 
 Submission
 
-Rubric
+Rubric (full rubric embedded inline in every prompt — never referenced by ID)
 
 ---
 
-输出：
+输出 (enforced via structured JSON output, temperature = 0):
 
-Knowledge
+{
+  "knowledge":   { "score": 80, "justification": "..." },
+  "reasoning":   { "score": 70, "justification": "..." },
+  "application": { "score": 75, "justification": "..." },
+  "creation":    { "score": 50, "justification": "..." }
+}
 
-Reasoning
+Every dimension MUST include justification. No score without reasoning.
 
-Application
+---
 
-Creation
+## Consistency Safeguards
 
-Feedback
-
-Suggestions
+1. temperature = 0 for all LLM evaluation calls
+2. Structured JSON output enforcement (schema above)
+3. Full rubric embedded inline in every evaluation prompt
+4. Per-dimension justification required
+5. Retry up to 2 times if any dimension score delta > 20 between attempts; take median
 
 ---
 
@@ -499,21 +511,21 @@ Prompt Quest 03
 
 ↓
 
-AI评分
+AI评分 (with rubric inline, temperature=0, structured output)
 
 ↓
 
-Knowledge = 80
+Knowledge = 80 (justified)
 
-Reasoning = 70
+Reasoning = 70 (justified)
 
-Application = 75
+Application = 75 (justified)
 
-Creation = 50
+Creation = 50 (justified)
 
 ↓
 
-Overall = 69
+Overall = 80*0.2 + 70*0.25 + 75*0.35 + 50*0.2 = 69
 
 ---
 
@@ -527,15 +539,16 @@ Purpose
 
 Rule
 
-新能力值
+Per-dimension independent update (each dimension updates separately):
 
-=
+new_knowledge   = old_knowledge   * 0.8 + assessment_knowledge   * 0.2
+new_reasoning   = old_reasoning   * 0.8 + assessment_reasoning   * 0.2
+new_application = old_application * 0.8 + assessment_application * 0.2
+new_creation    = old_creation    * 0.8 + assessment_creation    * 0.2
 
-旧能力值 × 0.8
+Overall is then recalculated:
 
-*
-
-本次Assessment × 0.2
+overall = knowledge * 0.2 + reasoning * 0.25 + application * 0.35 + creation * 0.2
 
 ---
 
@@ -543,23 +556,30 @@ Example
 
 Prompt
 
-旧值
+旧值:
+  Knowledge   = 60
+  Reasoning   = 55
+  Application = 50
+  Creation    = 40
 
-60
-
-本次
-
-80
+本次Assessment:
+  Knowledge   = 80
+  Reasoning   = 70
+  Application = 75
+  Creation    = 50
 
 ↓
 
-新值
-
-64
+新值:
+  Knowledge   = 60 * 0.8 + 80 * 0.2 = 64
+  Reasoning   = 55 * 0.8 + 70 * 0.2 = 58
+  Application = 50 * 0.8 + 75 * 0.2 = 55
+  Creation    = 40 * 0.8 + 50 * 0.2 = 42
+  Overall     = 64*0.2 + 58*0.25 + 55*0.35 + 42*0.2 = 55
 
 ---
 
-避免能力波动过大。
+避免能力波动过大。保留维度独立增长信号。
 
 ---
 
@@ -569,9 +589,9 @@ Prompt
 
 ---
 
-检查：
+检查（多维度阈值，所有四个维度各自 >= 60）：
 
-Prompt ≥ 60
+Prompt Knowledge ≥ 60 AND Reasoning ≥ 60 AND Application ≥ 60 AND Creation ≥ 60
 
 ↓
 
@@ -579,7 +599,7 @@ Prompt Practitioner
 
 ---
 
-RAG ≥ 60
+RAG Knowledge ≥ 60 AND Reasoning ≥ 60 AND Application ≥ 60 AND Creation ≥ 60
 
 ↓
 
@@ -587,7 +607,23 @@ RAG Practitioner
 
 ---
 
-所有核心能力 ≥ 60
+Workflow Knowledge ≥ 60 AND Reasoning ≥ 60 AND Application ≥ 60 AND Creation ≥ 60
+
+↓
+
+Workflow Practitioner
+
+---
+
+LangGraph Knowledge ≥ 60 AND Reasoning ≥ 60 AND Application ≥ 60 AND Creation ≥ 60
+
+↓
+
+LangGraph Practitioner
+
+---
+
+All four skills meet multi-dimension threshold above
 
 ↓
 

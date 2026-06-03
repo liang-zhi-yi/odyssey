@@ -361,11 +361,13 @@ Prompt Practitioner Trial
 
 # Quest Lifecycle
 
-Quest 生命周期：
+Quest itself has NO status field. Quest is a template.
+All per-user progress tracking lives on QuestSubmission.
 
-AVAILABLE
+QuestSubmission record is created when user accepts a quest
+(submission_content is null until actual submission).
 
-↓
+QuestSubmission State Machine:
 
 ACCEPTED
 
@@ -383,10 +385,6 @@ ASSESSING
 
 ↓
 
-ASSESSED
-
-↓
-
 PASSED
 
 或
@@ -395,51 +393,44 @@ FAILED
 
 ---
 
-## AVAILABLE
-
-任务可接受
-
----
-
 ## ACCEPTED
 
-用户已领取
+User has accepted the quest.
+QuestSubmission record created with submission_content = null.
 
 ---
 
 ## IN_PROGRESS
 
-正在执行
+User is actively working on the quest.
 
 ---
 
 ## SUBMITTED
 
-已提交答案
+User has submitted their answer.
+submission_content and/or submission_url are now populated.
 
 ---
 
 ## ASSESSING
 
-AI正在评估
-
----
-
-## ASSESSED
-
-评估完成
+AI assessment is in progress (async).
 
 ---
 
 ## PASSED
 
-通过
+Assessment passed. Quest is complete for this user.
 
 ---
 
 ## FAILED
 
-未通过
+Assessment failed. User may retry after reviewing feedback.
+
+Note: ASSESSED state is removed. It was redundant — PASSED and FAILED
+are the only terminal states after ASSESSING.
 
 ---
 

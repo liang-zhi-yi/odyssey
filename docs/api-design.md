@@ -322,11 +322,16 @@ GET
 
 # Assessment APIs
 
-## Trigger Assessment
+## Trigger Assessment (Async)
 
 POST
 
 /assessments/run
+
+This endpoint is ASYNCHRONOUS.
+It creates an Assessment record with status PROCESSING and returns immediately.
+The frontend must poll GET /assessments/{assessment_id} every 3 seconds
+until status changes to COMPLETED or FAILED.
 
 ### Request
 
@@ -343,15 +348,24 @@ POST
 
 ---
 
-## Get Assessment Result
+## Get Assessment Status / Result
 
 GET
 
 /assessments/{assessment_id}
 
-### Response
+### Response (while processing)
 
 {
+"assessment_id": "assessment_1",
+"status": "PROCESSING"
+}
+
+### Response (completed)
+
+{
+"assessment_id": "assessment_1",
+"status": "COMPLETED",
 "knowledge": 75,
 "reasoning": 70,
 "application": 80,
@@ -360,6 +374,21 @@ GET
 "feedback": "...",
 "suggestions": "..."
 }
+
+### Response (failed)
+
+{
+"assessment_id": "assessment_1",
+"status": "FAILED",
+"error": "LLM_TIMEOUT",
+"retry_url": "/assessments/run"
+}
+
+### Timeout rule
+
+If the LLM does not respond within 60 seconds, the assessment transitions
+to status FAILED with error code LLM_TIMEOUT. The user may retry by calling
+POST /assessments/run again with the same submission_id.
 
 ---
 

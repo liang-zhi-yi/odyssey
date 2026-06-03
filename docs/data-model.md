@@ -330,6 +330,10 @@ order = 2
 
 用户选择的成长路径
 
+MVP constraint: single path only.
+One ACTIVE UserPath per user at any time.
+Enforced via unique constraint: UNIQUE(user_id) WHERE status = 'ACTIVE'.
+
 ## Fields
 
 id
@@ -453,6 +457,14 @@ PRACTITIONER
 ENGINEER
 
 ARCHITECT
+
+Rank is auto-calculated whenever overall_score updates.
+Rules:
+  0–20:   NOVICE
+  21–40:  BEGINNER
+  41–60:  PRACTITIONER
+  61–80:  ENGINEER
+  81–100: ARCHITECT
 
 ---
 
@@ -608,13 +620,23 @@ status
 
 Enum
 
+ACCEPTED
+
+IN_PROGRESS
+
 SUBMITTED
 
-ASSESSED
+ASSESSING
 
 PASSED
 
 FAILED
+
+Note: QuestSubmission record is created when user accepts a quest.
+submission_content is null until the user actually submits.
+Quest itself has no status field — it is a template. All per-user tracking lives on QuestSubmission.
+State machine: ACCEPTED → IN_PROGRESS → SUBMITTED → ASSESSING → PASSED | FAILED
+ASSESSED is removed (redundant with PASSED/FAILED).
 
 ---
 
@@ -858,6 +880,10 @@ Datetime
 
 用户能力证明
 
+Project is user-created manually.
+It can optionally link to a passed QuestSubmission via quest_submission_id FK.
+This allows proven work to serve as capability evidence in Passport.
+
 ## Fields
 
 id
@@ -899,6 +925,15 @@ String
 related_skill_id
 
 FK
+
+---
+
+quest_submission_id
+
+FK (nullable)
+
+References QuestSubmission.id. Must reference a submission with status PASSED.
+Allows linking a project to proven quest work as evidence.
 
 ---
 

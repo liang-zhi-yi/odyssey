@@ -283,6 +283,28 @@
     Workflow Beginner
     Score: 33
 ---
+# LLM Scoring Consistency Safeguards
+
+All LLM evaluation calls MUST enforce:
+
+1. temperature = 0 — zero randomness for deterministic output
+2. Structured JSON output enforcement — response must conform to the schema below
+3. Explicit rubric embedded in every evaluation prompt — the full rubric for the target skill/dimension is included inline in the prompt, not referenced by ID
+4. Per-dimension justification required — every dimension score must include reasoning text; the schema rejects responses with missing justifications
+5. Consistency retry protocol — run the evaluation up to 3 times total. If any dimension score delta > 20 between attempts, retry. Take the median score across all attempts.
+
+Required JSON schema for LLM response:
+
+{
+  "knowledge":   { "score": 0-100, "justification": "..." },
+  "reasoning":   { "score": 0-100, "justification": "..." },
+  "application": { "score": 0-100, "justification": "..." },
+  "creation":    { "score": 0-100, "justification": "..." }
+}
+
+Any response not conforming to this schema is rejected and retried.
+
+---
 # Milestone Trial
 ### 每个等级突破时触发试炼。
 ### 例如：

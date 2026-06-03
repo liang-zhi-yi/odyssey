@@ -711,63 +711,78 @@ overall_score
 
 knowledge × 0.2
 
-*
++
 
-reasoning × 0.3
+reasoning × 0.25
 
-*
++
 
-application × 0.3
+application × 0.35
 
-*
++
 
 creation × 0.2
 
 ---
 
-Reasoning 与 Application 权重最高。
+Application 权重最高 (0.35)。
 
 因为：
 
-真正成长来自理解与实践。
+知道概念不等于会用。
+Odyssey 重视实践能力。
+Reasoning 次之 (0.25)。
 
 ---
 
 # Credential Thresholds
 
-Prompt Practitioner
-
-Prompt ≥ 60
-
----
-
-RAG Practitioner
-
-RAG ≥ 60
+Credential requires multi-dimension threshold.
+ALL four dimensions of the skill must each >= 60.
 
 ---
 
-Workflow Practitioner
+Prompt Practitioner:
 
-Workflow ≥ 60
-
----
-
-LangGraph Practitioner
-
-LangGraph ≥ 60
+  Prompt Knowledge    >= 60
+  AND Prompt Reasoning    >= 60
+  AND Prompt Application  >= 60
+  AND Prompt Creation     >= 60
 
 ---
 
-Agent Engineer
+RAG Practitioner:
 
-Prompt ≥ 60
+  RAG Knowledge    >= 60
+  AND RAG Reasoning    >= 60
+  AND RAG Application  >= 60
+  AND RAG Creation     >= 60
 
-RAG ≥ 60
+---
 
-Workflow ≥ 60
+Workflow Practitioner:
 
-LangGraph ≥ 60
+  Workflow Knowledge    >= 60
+  AND Workflow Reasoning    >= 60
+  AND Workflow Application  >= 60
+  AND Workflow Creation     >= 60
+
+---
+
+LangGraph Practitioner:
+
+  LangGraph Knowledge    >= 60
+  AND LangGraph Reasoning    >= 60
+  AND LangGraph Application  >= 60
+  AND LangGraph Creation     >= 60
+
+---
+
+Agent Engineer:
+
+  ALL four core skills (Prompt, RAG, Workflow, LangGraph)
+  must each meet the multi-dimension threshold above.
+  i.e., every dimension of every skill >= 60.
 
 ---
 
