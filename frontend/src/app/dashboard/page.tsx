@@ -96,12 +96,12 @@ export default function DashboardPage() {
             actionHref="/quests"
           />
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
             {userSkills.map((skill) => (
               <div
                 key={skill.skill_id}
                 onClick={() => setSelectedSkillId(skill.skill_id)}
-                className="cursor-pointer"
+                className="cursor-pointer card-hover"
               >
                 <SkillCard skill={skill} />
               </div>

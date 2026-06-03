@@ -127,12 +127,12 @@ export default function SkillsPage() {
             />
           ) : (
             /* Show skill cards grid */
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 animate-stagger">
               {userSkills.map((skill) => (
                 <div
                   key={skill.skill_id}
                   onClick={() => setSelectedSkill(skill)}
-                  className="cursor-pointer"
+                  className="cursor-pointer card-hover"
                 >
                   <SkillCard skill={skill} />
                 </div>

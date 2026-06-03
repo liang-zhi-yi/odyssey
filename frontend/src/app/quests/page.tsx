@@ -151,9 +151,9 @@ export default function QuestsPage() {
             description={skillFilter || difficultyFilter ? "尝试调整筛选条件" : "敬请期待更多Quest"}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
             {quests.map((quest: QuestListItem) => (
-              <div key={quest.id} className="relative">
+              <div key={quest.id} className="relative card-hover">
                 {acceptedQuestIds.has(quest.id) && (
                   <span className="absolute -top-1 -right-1 z-10 rounded-full bg-success px-2 py-0.5 text-[10px] font-medium text-success-foreground shadow-sm">
                     {SUBMISSION_STATUS_LABELS[

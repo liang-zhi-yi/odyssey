@@ -48,3 +48,183 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ─── Page Entry Animations ─────────────────────────────── */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ─── Utility Animation Classes ─────────────────────────── */
+
+.animate-fade-in {
+  animation: fade-in 400ms ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 450ms ease-out forwards;
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 350ms ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 350ms ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 400ms ease-out forwards;
+}
+
+/* Stagger children: apply to parent grid/flex container */
+.animate-stagger > * {
+  opacity: 0;
+  animation: fade-in-up 400ms ease-out forwards;
+}
+
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.animate-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.animate-stagger > *:nth-child(8) { animation-delay: 420ms; }
+.animate-stagger > *:nth-child(9) { animation-delay: 480ms; }
+.animate-stagger > *:nth-child(10) { animation-delay: 540ms; }
+.animate-stagger > *:nth-child(11) { animation-delay: 600ms; }
+.animate-stagger > *:nth-child(12) { animation-delay: 660ms; }
+
+/* ─── Interactive Micro-interactions ────────────────────── */
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -2px oklch(0 0 0 / 0.08);
+}
+
+/* Button press feedback */
+.btn-press {
+  transition: transform 100ms ease-out, opacity 100ms ease-out;
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Skeleton shimmer effect */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.97 0 0) 25%,
+    oklch(0.94 0 0) 37%,
+    oklch(0.97 0 0) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.2 0 0) 25%,
+    oklch(0.25 0 0) 37%,
+    oklch(0.2 0 0) 63%
+  );
+  background-size: 200% 100%;
+}
+
+/* Focus ring for accessibility */
+.focus-ring:focus-visible {
+  outline: 2px solid oklch(0.55 0.2 260);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Smooth page enter */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 300ms ease-out;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

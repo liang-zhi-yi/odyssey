@@ -2,18 +2,36 @@
 
 import type { SkillGrowthPoint } from "@/types/progress";
 
-interface ProgressTimelineProps {
+interface SkillDataset {
+  name: string;
   points: SkillGrowthPoint[];
+  color?: string;
+}
+
+interface ProgressTimelineProps {
+  /** Single skill mode (backward-compatible) */
+  points?: SkillGrowthPoint[];
+  /** Multi-skill comparison mode */
+  datasets?: SkillDataset[];
   skillName?: string;
   isLoading: boolean;
 }
 
+const DEFAULT_COLORS = [
+  "oklch(0.55 0.2 260)",   // Indigo/Primary
+  "oklch(0.65 0.2 180)",   // Teal/Accent
+  "oklch(0.6 0.18 145)",   // Green/Success
+  "oklch(0.7 0.15 85)",    // Amber/Warning
+  "oklch(0.55 0.2 20)",    // Red/Destructive
+];
+
 /**
  * Growth curve chart showing score progression over time.
- * Renders an SVG line chart from SkillGrowthPoint data.
+ * Supports single-skill (points prop) and multi-skill comparison (datasets prop).
  */
 export function ProgressTimeline({
   points,
+  datasets,
   skillName,
   isLoading,
 }: ProgressTimelineProps) {
@@ -26,7 +44,14 @@ export function ProgressTimeline({
     );
   }
 
-  if (points.length === 0) {
+  // Normalize to datasets array
+  const allDatasets: SkillDataset[] = datasets
+    ? datasets
+    : points && points.length > 0
+    ? [{ name: skillName || "Skill", points, color: DEFAULT_COLORS[0] }]
+    : [];
+
+  if (allDatasets.length === 0 || allDatasets.every((ds) => ds.points.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <p className="text-sm text-muted-foreground">暂无成长数据</p>
@@ -38,25 +63,19 @@ export function ProgressTimeline({
   }
 
   const w = 600;
-  const h = 200;
+  const h = 220;
   const pad = { top: 20, right: 20, bottom: 30, left: 40 };
   const chartW = w - pad.left - pad.right;
   const chartH = h - pad.top - pad.bottom;
 
-  const scores = points.map((p) => p.score);
-  const minScore = Math.max(0, Math.min(...scores) - 10);
-  const maxScore = Math.min(100, Math.max(...scores) + 10);
+  // Compute global min/max across all datasets
+  const allScores = allDatasets.flatMap((ds) => ds.points.map((p) => p.score));
+  const minScore = Math.max(0, Math.min(...allScores) - 10);
+  const maxScore = Math.min(100, Math.max(...allScores) + 10);
   const scoreRange = maxScore - minScore || 1;
 
-  const xScale = (i: number) => pad.left + (i / Math.max(points.length - 1, 1)) * chartW;
   const yScale = (score: number) =>
     pad.top + chartH - ((score - minScore) / scoreRange) * chartH;
-
-  const linePath = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${xScale(i)},${yScale(p.score)}`)
-    .join(" ");
-
-  const areaPath = `${linePath} L${xScale(points.length - 1)},${pad.top + chartH} L${xScale(0)},${pad.top + chartH} Z`;
 
   // Y-axis ticks
   const yTicks = 4;
@@ -64,11 +83,35 @@ export function ProgressTimeline({
     Math.round(minScore + (scoreRange * i) / yTicks)
   );
 
+  const hasMultiple = allDatasets.length > 1 && allDatasets.every((ds) => ds.points.length > 0);
+
   return (
     <div>
-      {skillName && (
+      {/* Header with legend */}
+      {hasMultiple && (
+        <div className="flex flex-wrap items-center gap-4 mb-3">
+          <span className="text-sm font-semibold">成长曲线对比</span>
+          <div className="flex flex-wrap gap-3">
+            {allDatasets.map((ds, i) => {
+              const color = ds.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+              return (
+                <div key={ds.name} className="flex items-center gap-1.5 text-xs">
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-muted-foreground">{ds.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {!hasMultiple && skillName && (
         <h4 className="text-sm font-semibold mb-3">{skillName} 成长曲线</h4>
       )}
+
       <div className="overflow-x-auto">
         <svg
           viewBox={`0 0 ${w} ${h}`}
@@ -76,6 +119,36 @@ export function ProgressTimeline({
           role="img"
           aria-label={`Growth chart${skillName ? ` for ${skillName}` : ""}`}
         >
+          <style>
+            {`
+              @keyframes line-draw {
+                from { stroke-dashoffset: var(--line-len); }
+                to { stroke-dashoffset: 0; }
+              }
+              @keyframes area-fade {
+                from { opacity: 0; }
+                to { opacity: 0.1; }
+              }
+              @keyframes dot-appear {
+                from { r: 0; opacity: 0; }
+                to { opacity: 1; }
+              }
+              .growth-line {
+                animation: line-draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                stroke-dasharray: var(--line-len);
+                stroke-dashoffset: var(--line-len);
+              }
+              .growth-area {
+                animation: area-fade 0.8s ease-out 0.4s forwards;
+                opacity: 0;
+              }
+              .growth-dot {
+                animation: dot-appear 0.3s ease-out forwards;
+                opacity: 0;
+              }
+            `}
+          </style>
+
           {/* Grid lines */}
           {yLabels.map((val, i) => (
             <g key={`grid-${i}`}>
@@ -98,46 +171,92 @@ export function ProgressTimeline({
             </g>
           ))}
 
-          {/* Area fill */}
-          <path d={areaPath} fill="oklch(0.55 0.2 260 / 0.1)" />
+          {/* Draw each dataset's area + line + dots */}
+          {allDatasets.map((ds, dsIdx) => {
+            const color = ds.color || DEFAULT_COLORS[dsIdx % DEFAULT_COLORS.length];
+            const pts = ds.points;
 
-          {/* Line */}
-          <path
-            d={linePath}
-            fill="none"
-            stroke="oklch(0.55 0.2 260)"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+            if (pts.length === 0) return null;
 
-          {/* Data points */}
-          {points.map((p, i) => (
-            <g key={`pt-${i}`}>
-              <circle
-                cx={xScale(i)}
-                cy={yScale(p.score)}
-                r={3}
-                fill="oklch(0.55 0.2 260)"
-                stroke="white"
-                strokeWidth={2}
-              />
-              {/* Date label every few points */}
-              {i % Math.ceil(points.length / 5) === 0 && (
-                <text
-                  x={xScale(i)}
-                  y={h - 6}
-                  textAnchor="middle"
-                  className="fill-muted-foreground text-[9px]"
-                >
-                  {new Date(p.date).toLocaleDateString("zh-CN", {
-                    month: "numeric",
-                    day: "numeric",
-                  })}
-                </text>
-              )}
-            </g>
-          ))}
+            const xScale = (i: number) =>
+              pad.left + (i / Math.max(pts.length - 1, 1)) * chartW;
+
+            const linePath = pts
+              .map((p, i) => `${i === 0 ? "M" : "L"}${xScale(i)},${yScale(p.score)}`)
+              .join(" ");
+
+            const areaPath = `${linePath} L${xScale(pts.length - 1)},${pad.top + chartH} L${xScale(0)},${pad.top + chartH} Z`;
+
+            // Estimate line length for dash animation
+            const lineLen = pts.length > 1
+              ? pts.reduce((sum, p, i) => {
+                  if (i === 0) return 0;
+                  const dx = xScale(i) - xScale(i - 1);
+                  const dy = yScale(p.score) - yScale(pts[i - 1].score);
+                  return sum + Math.sqrt(dx * dx + dy * dy);
+                }, 0)
+              : 100;
+
+            return (
+              <g key={ds.name}>
+                {/* Area fill */}
+                <path
+                  className="growth-area"
+                  d={areaPath}
+                  fill={color}
+                  style={{ animationDelay: `${0.4 + dsIdx * 0.15}s` }}
+                />
+
+                {/* Line */}
+                <path
+                  className="growth-line"
+                  d={linePath}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    ["--line-len" as string]: lineLen,
+                    animationDelay: `${dsIdx * 0.2}s`,
+                  } as React.CSSProperties}
+                />
+
+                {/* Data points */}
+                {pts.map((p, i) => (
+                  <g key={`pt-${ds.name}-${i}`}>
+                    <circle
+                      className="growth-dot"
+                      cx={xScale(i)}
+                      cy={yScale(p.score)}
+                      r={3}
+                      fill={color}
+                      stroke="white"
+                      strokeWidth={2}
+                      style={{
+                        animationDelay: `${0.6 + dsIdx * 0.15 + i * 0.05}s`,
+                      }}
+                    />
+                    {/* Date labels only for first dataset every ~5th point */}
+                    {dsIdx === 0 &&
+                      i % Math.ceil(pts.length / 5) === 0 && (
+                        <text
+                          x={xScale(i)}
+                          y={h - 6}
+                          textAnchor="middle"
+                          className="fill-muted-foreground text-[9px]"
+                        >
+                          {new Date(p.date).toLocaleDateString("zh-CN", {
+                            month: "numeric",
+                            day: "numeric",
+                          })}
+                        </text>
+                      )}
+                  </g>
+                ))}
+              </g>
+            );
+          })}
         </svg>
       </div>
     </div>

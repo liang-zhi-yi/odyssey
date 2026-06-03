@@ -19,6 +19,7 @@ const DIMENSIONS: (keyof DimensionScores)[] = [
  * SVG-based 4-dimension radar chart for capability visualization.
  * Each axis represents one of: Knowledge, Reasoning, Application, Creation.
  * Scores are expected to be in 0–100 range.
+ * Features animated polygon fill-in and staggered data-point reveal.
  */
 export function RadarChart({ scores, size = 200, showLabels = true }: RadarChartProps) {
   const cx = size / 2;
@@ -35,6 +36,37 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
       role="img"
       aria-label="Capability radar chart"
     >
+      <style>
+        {`
+          @keyframes radar-fill-in {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.08); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          @keyframes radar-dot-pop {
+            0% { r: 0; opacity: 0; }
+            70% { r: 5; opacity: 0.8; }
+            100% { r: 4; opacity: 1; }
+          }
+          @keyframes radar-score-fade {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
+          .radar-polygon {
+            transform-origin: ${cx}px ${cy}px;
+            animation: radar-fill-in 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .radar-dot {
+            opacity: 0;
+            animation: radar-dot-pop 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .radar-score-label {
+            opacity: 0;
+            animation: radar-score-fade 300ms ease-out forwards;
+          }
+        `}
+      </style>
+
       {/* Grid rings */}
       {Array.from({ length: levels }, (_, i) => {
         const r = (radius * (i + 1)) / levels;
@@ -69,8 +101,9 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
         );
       })}
 
-      {/* Score data polygon */}
+      {/* Score data polygon with animation */}
       <polygon
+        className="radar-polygon"
         points={DIMENSIONS.map((_, i) => {
           const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
           const r = (scores[DIMENSIONS[i]] / 100) * radius;
@@ -81,20 +114,21 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
         strokeWidth={2}
       />
 
-      {/* Data points */}
-      {DIMENSIONS.map((dim) => {
-        const i = DIMENSIONS.indexOf(dim);
+      {/* Data points with staggered animation */}
+      {DIMENSIONS.map((dim, i) => {
         const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
         const r = (scores[dim] / 100) * radius;
         return (
           <circle
             key={`dot-${dim}`}
+            className="radar-dot"
             cx={cx + r * Math.cos(angle)}
             cy={cy + r * Math.sin(angle)}
             r={4}
             fill="oklch(0.55 0.2 260)"
             stroke="white"
             strokeWidth={2}
+            style={{ animationDelay: `${500 + i * 100}ms` }}
           />
         );
       })}
@@ -120,7 +154,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
           );
         })}
 
-      {/* Score values at points */}
+      {/* Score values at points with staggered animation */}
       {DIMENSIONS.map((dim, i) => {
         const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
         const r = (scores[dim] / 100) * radius;
@@ -129,11 +163,12 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
         return (
           <text
             key={`score-${dim}`}
+            className="radar-score-label fill-foreground text-[10px] font-bold"
             x={x}
             y={y}
             textAnchor="middle"
             dominantBaseline="middle"
-            className="fill-foreground text-[10px] font-bold"
+            style={{ animationDelay: `${600 + i * 100}ms` }}
           >
             {scores[dim]}
           </text>

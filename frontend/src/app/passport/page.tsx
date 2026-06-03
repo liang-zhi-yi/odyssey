@@ -3,8 +3,10 @@
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
 import { passportService } from "@/services/passport.service";
+import { skillService } from "@/services/skill.service";
 import { PassportCard } from "@/app/components/PassportCard";
 import { Loading } from "@/app/components/Loading";
+import type { DimensionScores } from "@/types/assessment";
 
 export default function PassportPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -15,6 +17,31 @@ export default function PassportPage() {
   } = useSWR(isAuthenticated ? "passport" : null, () =>
     passportService.getPassport()
   );
+
+  // Fetch user skills for radar aggregate
+  const { data: userSkills = [] } = useSWR(
+    isAuthenticated ? "user-skills" : null,
+    () => skillService.listUserSkills()
+  );
+
+  // Compute aggregate dimension scores for radar
+  const aggregateScores: DimensionScores | null =
+    userSkills.length > 0
+      ? {
+          knowledge: Math.round(
+            userSkills.reduce((s, us) => s + us.knowledge, 0) / userSkills.length
+          ),
+          reasoning: Math.round(
+            userSkills.reduce((s, us) => s + us.reasoning, 0) / userSkills.length
+          ),
+          application: Math.round(
+            userSkills.reduce((s, us) => s + us.application, 0) / userSkills.length
+          ),
+          creation: Math.round(
+            userSkills.reduce((s, us) => s + us.creation, 0) / userSkills.length
+          ),
+        }
+      : null;
 
   if (authLoading) {
     return <Loading text="Loading..." />;
@@ -33,7 +60,11 @@ export default function PassportPage() {
         </p>
       </div>
 
-      <PassportCard passport={passport || null} isLoading={passportLoading} />
+      <PassportCard
+        passport={passport || null}
+        aggregateScores={aggregateScores}
+        isLoading={passportLoading}
+      />
     </div>
   );
 }
