@@ -1,16 +1,25 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { submissionService } from "@/services/submission.service";
 import { Loading } from "@/app/components/Loading";
+import { ErrorState } from "@/app/components/ErrorState";
 import { SUBMISSION_STATUS_LABELS, type SubmissionStatus } from "@/types/quest";
 
 export default function SubmissionPage() {
   const { id: submissionId } = useParams<{ id: string }>();
+  const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const {
     data: submission,
@@ -21,12 +30,8 @@ export default function SubmissionPage() {
     () => submissionService.getSubmission(submissionId)
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   if (isLoading) {
@@ -40,12 +45,10 @@ export default function SubmissionPage() {
   if (error || !submission) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-          <p className="text-sm font-medium text-destructive">加载失败</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {error instanceof Error ? error.message : "Submission not found"}
-          </p>
-        </div>
+        <ErrorState
+          message="加载失败"
+          detail={error instanceof Error ? error.message : "Submission not found"}
+        />
       </div>
     );
   }

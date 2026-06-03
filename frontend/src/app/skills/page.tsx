@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { skillService } from "@/services/skill.service";
 import { SkillCard } from "@/app/components/SkillCard";
@@ -9,13 +10,21 @@ import { ScoreCard } from "@/app/components/ScoreCard";
 import { RadarChart } from "@/app/components/RadarChart";
 import { Loading } from "@/app/components/Loading";
 import { EmptyState } from "@/app/components/EmptyState";
-import type { UserSkill } from "@/types/skill";
-import type { Skill } from "@/types/skill";
+import type { UserSkill, Skill } from "@/types/skill";
 import type { DimensionScores } from "@/types/assessment";
+import { computeAggregateScores } from "@/lib/scores";
+import { ErrorState } from "@/app/components/ErrorState";
 
 export default function SkillsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [selectedSkill, setSelectedSkill] = useState<UserSkill | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch all defined skills
   const { data: allSkills = [] } = useSWR(
@@ -32,12 +41,8 @@ export default function SkillsPage() {
     skillService.listUserSkills()
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   const userSkillMap = new Map(userSkills.map((us) => [us.skill_id, us]));
@@ -50,22 +55,7 @@ export default function SkillsPage() {
         application: selectedSkill.application,
         creation: selectedSkill.creation,
       }
-    : userSkills.length > 0
-    ? {
-        knowledge: Math.round(
-          userSkills.reduce((s, us) => s + us.knowledge, 0) / userSkills.length
-        ),
-        reasoning: Math.round(
-          userSkills.reduce((s, us) => s + us.reasoning, 0) / userSkills.length
-        ),
-        application: Math.round(
-          userSkills.reduce((s, us) => s + us.application, 0) / userSkills.length
-        ),
-        creation: Math.round(
-          userSkills.reduce((s, us) => s + us.creation, 0) / userSkills.length
-        ),
-      }
-    : { knowledge: 0, reasoning: 0, application: 0, creation: 0 };
+    : computeAggregateScores(userSkills);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
@@ -99,11 +89,9 @@ export default function SkillsPage() {
         {/* Score cards or skill list */}
         <div className="lg:col-span-2">
           {isLoading ? (
-            <Loading text="Loading skills..." />
+            <Loading variant="skeleton-cards" cardCount={6} />
           ) : error ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              加载技能失败
-            </div>
+            <ErrorState message="加载技能失败" />
           ) : userSkills.length === 0 ? (
             <EmptyState
               title="暂无技能数据"
@@ -132,6 +120,15 @@ export default function SkillsPage() {
                 <div
                   key={skill.skill_id}
                   onClick={() => setSelectedSkill(skill)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedSkill(skill);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`查看 ${skill.skill_name || skill.skill_id} 详情`}
                   className="cursor-pointer card-hover"
                 >
                   <SkillCard skill={skill} />
@@ -160,6 +157,15 @@ export default function SkillsPage() {
                   onClick={() => {
                     if (userSkill) setSelectedSkill(userSkill);
                   }}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && userSkill) {
+                      e.preventDefault();
+                      setSelectedSkill(userSkill);
+                    }
+                  }}
+                  tabIndex={userSkill ? 0 : undefined}
+                  role={userSkill ? "button" : undefined}
+                  aria-label={userSkill ? `查看 ${skill.name} 详情` : undefined}
                 >
                   <p className="font-medium truncate">{skill.name}</p>
                   {userSkill ? (

@@ -6,6 +6,7 @@ import {
   QUEST_TYPE_LABELS,
 } from "@/types/quest";
 import { Loading } from "./Loading";
+import { ErrorState } from "./ErrorState";
 
 interface QuestDetailProps {
   quest: QuestDetailType | null;
@@ -33,12 +34,7 @@ export function QuestDetail({
   }
 
   if (error) {
-    return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-        <p className="text-sm font-medium text-destructive">加载失败</p>
-        <p className="text-xs text-muted-foreground mt-1">{error}</p>
-      </div>
-    );
+    return <ErrorState message="加载失败" detail={error} />;
   }
 
   if (!quest) {

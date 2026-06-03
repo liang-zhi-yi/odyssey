@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
 import { skillService } from "@/services/skill.service";
@@ -8,10 +9,18 @@ import { progressService } from "@/services/progress.service";
 import { ScoreCard } from "@/app/components/ScoreCard";
 import { ProgressTimeline } from "@/app/components/ProgressTimeline";
 import { Loading } from "@/app/components/Loading";
+import { ErrorState } from "@/app/components/ErrorState";
 
 export default function SkillDetailPage() {
   const { id: skillId } = useParams<{ id: string }>();
+  const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch skill detail
   const {
@@ -32,12 +41,8 @@ export default function SkillDetailPage() {
     () => progressService.getSkillGrowth(skillId)
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   if (skillLoading) {
@@ -51,14 +56,14 @@ export default function SkillDetailPage() {
   if (skillError || !userSkill) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-          <p className="text-sm font-medium text-destructive">加载失败</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {skillError instanceof Error
+        <ErrorState
+          message="加载失败"
+          detail={
+            skillError instanceof Error
               ? skillError.message
-              : "Skill not found"}
-          </p>
-        </div>
+              : "Skill not found"
+          }
+        />
       </div>
     );
   }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { skillService } from "@/services/skill.service";
 import { progressService } from "@/services/progress.service";
@@ -11,6 +12,7 @@ import { SkillCard } from "@/app/components/SkillCard";
 import { RecentActivity } from "@/app/components/RecentActivity";
 import { ProgressTimeline } from "@/app/components/ProgressTimeline";
 import { Loading } from "@/app/components/Loading";
+import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
 import type { UserSkill } from "@/types/skill";
 import type { ProgressLog } from "@/types/progress";
@@ -19,7 +21,14 @@ import type { SkillGrowthPoint } from "@/types/progress";
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch user skills
   const {
@@ -55,12 +64,8 @@ export default function DashboardPage() {
     () => progressService.getSkillGrowth(selectedSkillId!)
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null; // Will redirect from root page
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   return (
@@ -83,12 +88,10 @@ export default function DashboardPage() {
       <section>
         <h2 className="text-lg font-semibold mb-3">技能</h2>
         {skillsLoading ? (
-          <Loading text="Loading skills..." />
+          <Loading variant="skeleton-cards" cardCount={3} />
         ) : skillsError ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-            加载技能失败
-          </div>
-        ) : userSkills.length === 0 ? (
+            <ErrorState message="加载技能失败" />
+          ) : userSkills.length === 0 ? (
           <EmptyState
             title="暂无技能数据"
             description="接受并完成Quest后，你的技能档案将在此展示"
@@ -101,6 +104,15 @@ export default function DashboardPage() {
               <div
                 key={skill.skill_id}
                 onClick={() => setSelectedSkillId(skill.skill_id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedSkillId(skill.skill_id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`查看 ${skill.skill_name || skill.skill_id} 详情`}
                 className="cursor-pointer card-hover"
               >
                 <SkillCard skill={skill} />

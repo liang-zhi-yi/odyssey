@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,12 @@ import { ApiRequestError } from "@/lib/api";
 export default function NewProjectPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -27,12 +33,8 @@ export default function NewProjectPage() {
     () => skillService.listSkills()
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   const canSubmit = !isSubmitting && title.trim().length > 0;

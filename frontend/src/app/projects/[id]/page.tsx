@@ -1,15 +1,24 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { projectService } from "@/services/project.service";
 import { Loading } from "@/app/components/Loading";
+import { ErrorState } from "@/app/components/ErrorState";
 
 export default function ProjectDetailPage() {
   const { id: projectId } = useParams<{ id: string }>();
+  const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch all projects to find this one (backend doesn't have GET /projects/:id endpoint)
   const {
@@ -23,12 +32,8 @@ export default function ProjectDetailPage() {
 
   const project = projects.find((p) => p.id === projectId);
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   if (isLoading) {
@@ -42,12 +47,10 @@ export default function ProjectDetailPage() {
   if (error || !project) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-          <p className="text-sm font-medium text-destructive">加载失败</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {error instanceof Error ? error.message : "Project not found"}
-          </p>
-        </div>
+        <ErrorState
+          message="加载失败"
+          detail={error instanceof Error ? error.message : "Project not found"}
+        />
       </div>
     );
   }

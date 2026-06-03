@@ -1,23 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { questService } from "@/services/quest.service";
 import { skillService } from "@/services/skill.service";
 import { QuestCard } from "@/app/components/QuestCard";
 import { Loading } from "@/app/components/Loading";
+import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
-import type { QuestListItem } from "@/types/quest";
-import { DIFFICULTY_LABELS, QUEST_TYPE_LABELS } from "@/types/quest";
-import type { UserQuest } from "@/types/quest";
-import { SUBMISSION_STATUS_LABELS } from "@/types/quest";
+import { SUBMISSION_STATUS_LABELS, DIFFICULTY_LABELS, QUEST_TYPE_LABELS, type QuestListItem, type UserQuest } from "@/types/quest";
 
 export default function QuestsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"all" | "mine">("all");
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch available skills for filter
   const { data: skills = [] } = useSWR(
@@ -48,12 +54,8 @@ export default function QuestsPage() {
     () => questService.listUserQuests()
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   const acceptedQuestIds = new Set(userQuests.map((uq: UserQuest) => uq.quest_id));
@@ -140,11 +142,9 @@ export default function QuestsPage() {
       {/* Quest list */}
       {activeTab === "all" ? (
         questsLoading ? (
-          <Loading text="Loading quests..." />
+          <Loading variant="skeleton-cards" cardCount={6} />
         ) : questsError ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-            加载Quest失败
-          </div>
+          <ErrorState message="加载Quest失败" />
         ) : quests.length === 0 ? (
           <EmptyState
             title="暂无匹配的Quest"

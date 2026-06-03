@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,12 @@ export default function QuestDetailPage() {
   const { id: questId } = useParams<{ id: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const [isAccepting, setIsAccepting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,12 +109,8 @@ export default function QuestDetailPage() {
     [router]
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   return (

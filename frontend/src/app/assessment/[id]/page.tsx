@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { usePolling } from "@/hooks/usePolling";
 import { assessmentService } from "@/services/assessment.service";
@@ -11,7 +11,14 @@ import type { AssessmentResult, AssessmentCompleted } from "@/types/assessment";
 
 export default function AssessmentPage() {
   const { id: assessmentId } = useParams<{ id: string }>();
+  const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const fetcher = useCallback(
     () => assessmentService.getAssessment(assessmentId),
@@ -29,12 +36,8 @@ export default function AssessmentPage() {
       },
     });
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   // Extract completed result if available

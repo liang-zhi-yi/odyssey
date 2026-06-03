@@ -2,14 +2,24 @@
 
 import useSWR from "swr";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { projectService } from "@/services/project.service";
 import { ProjectCard } from "@/app/components/ProjectCard";
 import { Loading } from "@/app/components/Loading";
+import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
 
 export default function ProjectsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const {
     data: projects = [],
@@ -19,12 +29,8 @@ export default function ProjectsPage() {
     projectService.listProjects()
   );
 
-  if (authLoading) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+  if (authLoading || !isAuthenticated) {
+    return <Loading text="验证中..." />;
   }
 
   return (
@@ -47,9 +53,7 @@ export default function ProjectsPage() {
       {isLoading ? (
         <Loading text="Loading projects..." />
       ) : error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          加载项目失败
-        </div>
+        <ErrorState message="加载项目失败" />
       ) : projects.length === 0 ? (
         <EmptyState
           title="暂无项目"
