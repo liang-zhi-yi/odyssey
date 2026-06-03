@@ -1,7 +1,7 @@
 """Submissions business logic — submit quest work, retrieve submission status."""
 
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -68,7 +68,7 @@ def submit_quest(
     submission.submission_content = content
     submission.submission_url = "\n".join(urls) if urls else None
     submission.status = SubmissionStatus.SUBMITTED
-    submission.submitted_at = datetime.utcnow()
+    submission.submitted_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(submission)

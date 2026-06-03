@@ -4,7 +4,7 @@ Progress logger — records a snapshot of capability change after each assessmen
 Creates a ProgressLog row capturing: previous_score, new_score, score_delta, reason.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -44,7 +44,7 @@ def log_progress(
         new_score=new_overall,
         score_delta=delta,
         reason=reason,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
     db.add(log_entry)
     db.flush()

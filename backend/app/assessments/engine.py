@@ -12,7 +12,7 @@ Flow:
   8. Update QuestSubmission status (PASSED/FAILED)
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -176,7 +176,7 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
     assessment.overall_score = overall_assessment
     assessment.feedback = _build_feedback(result, quest.title)
     assessment.improvement_suggestions = _build_suggestions(result)
-    assessment.assessed_at = datetime.utcnow()
+    assessment.assessed_at = datetime.now(timezone.utc)
 
     # ── 9. Update submission status ─────────────────────────────────
     submission.status = SubmissionStatus.PASSED if passed else SubmissionStatus.FAILED
