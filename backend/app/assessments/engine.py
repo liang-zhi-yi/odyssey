@@ -31,6 +31,7 @@ from app.skills.models import UserSkill
 from app.assessments.skill_updater import apply_assessment_to_user_skill
 from app.assessments.progress_logger import log_progress
 from app.credentials.checker import check_and_award_credentials
+from app.badges.engine import check_and_award_badges
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +196,17 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
     except Exception as exc:
         logger.warning("Credential check failed (non-fatal): %s", exc)
 
+    # ── 7c. Check badges ──────────────────────────────────────────
+    try:
+        new_badges = check_and_award_badges(
+            db=db,
+            user_id=submission.user_id,
+        )
+        if new_badges:
+            logger.info("Badges awarded: %s", new_badges)
+    except Exception as exc:
+        logger.warning("Badge check failed (non-fatal): %s", exc)
+
     # ── 8. Update Assessment record ─────────────────────────────────
     passed = overall_assessment >= PASS_THRESHOLD
 
@@ -206,6 +218,11 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
     assessment.overall_score = overall_assessment
     assessment.feedback = _build_feedback(result, quest.title)
     assessment.improvement_suggestions = _build_suggestions(result)
+    # Store per-dimension justifications for explainability
+    assessment.justifications = {
+        dim: result[dim]["justification"]
+        for dim in ["knowledge", "reasoning", "application", "creation"]
+    }
     assessment.assessed_at = datetime.now(timezone.utc)
 
     # ── 9. Update submission status ─────────────────────────────────

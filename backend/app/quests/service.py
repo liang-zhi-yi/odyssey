@@ -124,7 +124,7 @@ def get_user_quests(db: Session, user_id: str) -> list[dict]:
 
     # Get all user's submissions with quest titles, ordered newest first
     rows = (
-        db.query(QuestSubmission, Quest.title)
+        db.query(QuestSubmission, Quest.title, Quest.title_en)
         .join(Quest, QuestSubmission.quest_id == Quest.id)
         .filter(QuestSubmission.user_id == user_id)
         .order_by(desc(QuestSubmission.submitted_at))
@@ -134,12 +134,13 @@ def get_user_quests(db: Session, user_id: str) -> list[dict]:
     # Group by quest_id: first row is the latest submission (used for status/id),
     # count tracks total submissions per quest
     seen: dict[str, dict] = {}
-    for sub, title in rows:
+    for sub, title, title_en in rows:
         qid = str(sub.quest_id)
         if qid not in seen:
             seen[qid] = {
                 "quest_id": qid,
                 "quest_title": title,
+                "quest_title_en": title_en,
                 "status": sub.status.value,
                 "latest_submission_id": str(sub.id),
                 "submission_count": 0,

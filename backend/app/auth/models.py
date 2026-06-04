@@ -68,6 +68,9 @@ class User(Base):
     projects: Mapped[list["Project"]] = relationship(
         "Project", back_populates="user", lazy="selectin"
     )
+    user_badges: Mapped[list["UserBadge"]] = relationship(
+        "UserBadge", back_populates="user", lazy="selectin"
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

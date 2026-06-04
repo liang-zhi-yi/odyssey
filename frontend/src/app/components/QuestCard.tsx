@@ -20,8 +20,11 @@ const difficultyColors: Record<string, string> = {
  * Compact quest card for list display.
  */
 export function QuestCard({ quest }: QuestCardProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const diffColor = difficultyColors[quest.difficulty] || "bg-secondary text-muted-foreground";
+
+  const displayTitle =
+    locale === "en" && quest.title_en ? quest.title_en : quest.title;
 
   return (
     <Link
@@ -29,7 +32,7 @@ export function QuestCard({ quest }: QuestCardProps) {
       className="block rounded-xl border border-border bg-background p-4 transition-all hover:shadow-md hover:border-primary/30"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h4 className="font-semibold text-sm leading-snug line-clamp-2">{quest.title}</h4>
+        <h4 className="font-semibold text-sm leading-snug line-clamp-2">{displayTitle}</h4>
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${diffColor}`}>
           {t(`quests.difficulty.${quest.difficulty}`) || DIFFICULTY_LABELS[quest.difficulty] || quest.difficulty}
         </span>

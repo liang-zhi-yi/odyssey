@@ -18,7 +18,7 @@ def get_all_paths(db: Session) -> list[Path]:
 def get_active_user_path(db: Session, user_id: str) -> dict | None:
     """Return the user's current active path with progress, or None."""
     row = (
-        db.query(UserPath, Path.name)
+        db.query(UserPath, Path.name, Path.name_en)
         .join(Path, UserPath.path_id == Path.id)
         .filter(UserPath.user_id == user_id, UserPath.status == UserPathStatus.ACTIVE)
         .first()
@@ -26,12 +26,13 @@ def get_active_user_path(db: Session, user_id: str) -> dict | None:
     if row is None:
         return None
 
-    up, path_name = row
+    up, path_name, path_name_en = row
     # progress = average overall_score across skills in this path
     progress = _compute_path_progress(db, user_id, up.path_id)
     return {
         "path_id": str(up.path_id),
         "name": path_name,
+        "name_en": path_name_en,
         "progress": progress,
     }
 
@@ -53,14 +54,18 @@ def get_path_nodes(db: Session, path_id: str) -> dict | None:
             "stage_order": ps.stage_order,
             "skill_id": str(ps.skill_id),
             "skill_name": ps.skill.name,
+            "skill_name_en": ps.skill.name_en,
             "skill_description": ps.skill.description,
+            "skill_description_en": ps.skill.description_en,
             "required_score": ps.required_score,
         })
 
     return {
         "path_id": str(path.id),
         "path_name": path.name,
+        "path_name_en": path.name_en,
         "path_description": path.description,
+        "path_description_en": path.description_en,
         "nodes": nodes,
     }
 
@@ -99,7 +104,9 @@ def get_next_path_node(db: Session, user_id: str) -> dict | None:
                 "stage_order": ps.stage_order,
                 "skill_id": str(ps.skill_id),
                 "skill_name": ps.skill.name,
+                "skill_name_en": ps.skill.name_en,
                 "skill_description": ps.skill.description,
+                "skill_description_en": ps.skill.description_en,
                 "required_score": ps.required_score,
                 "current_score": current_score,
                 "path_id": str(up_row.path_id),

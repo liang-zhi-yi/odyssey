@@ -14,7 +14,7 @@ import type { GrowthPath, UserPath } from "@/types/path";
 
 export default function PathsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [selectError, setSelectError] = useState<string | null>(null);
@@ -129,7 +129,9 @@ export default function PathsPage() {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="font-semibold text-sm">{p.name}</h3>
+                    <h3 className="font-semibold text-sm">
+                      {locale === "en" && p.name_en ? p.name_en : p.name}
+                    </h3>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {p.is_official && (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
@@ -146,7 +148,9 @@ export default function PathsPage() {
 
                   {p.description && (
                     <p className="text-xs text-muted-foreground line-clamp-2 mb-4">
-                      {p.description}
+                      {locale === "en" && p.description_en
+                        ? p.description_en
+                        : p.description}
                     </p>
                   )}
 
@@ -175,11 +179,14 @@ export default function PathsPage() {
 
 /** Card displaying the currently active path with progress bar */
 function CurrentPathCard({ path }: { path: UserPath }) {
+  const { t, locale } = useLocale();
+  const displayName =
+    locale === "en" && path.name_en ? path.name_en : path.name;
   const progressPct = Math.min(100, Math.max(0, Math.round(path.progress * 100)));
   return (
     <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">{path.name}</h3>
+        <h3 className="font-semibold">{displayName}</h3>
         <span className="text-sm font-bold text-primary tabular-nums">
           {progressPct}%
         </span>

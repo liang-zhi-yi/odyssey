@@ -21,6 +21,7 @@ from app.credentials.router import router as credentials_router
 from app.passport.router import router as passport_router
 from app.projects.router import router as projects_router
 from app.settings.router import router as settings_router
+from app.badges.router import router as badges_router
 
 app = FastAPI(
     title="Odyssey API",
@@ -56,3 +57,4 @@ app.include_router(credentials_router, prefix=API_PREFIX)
 app.include_router(passport_router, prefix=API_PREFIX)
 app.include_router(projects_router, prefix=API_PREFIX)
 app.include_router(settings_router, prefix=API_PREFIX)
+app.include_router(badges_router, prefix=API_PREFIX)

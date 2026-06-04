@@ -25,7 +25,13 @@ class Quest(Base):
     title: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
+    title_en: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
     description: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+    description_en: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     skill_id: Mapped[uuid.UUID] = mapped_column(

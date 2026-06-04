@@ -46,7 +46,10 @@ export function ScoreCard({ title, overall, scores, rank, size = 160 }: ScoreCar
         <div className="flex-1 space-y-1.5 min-w-0">
           {DIMENSIONS.map((dim) => (
             <div key={dim} className="flex items-center gap-1.5 text-xs">
-              <span className="w-10 shrink-0 text-muted-foreground">
+              <span
+                className="w-[4.5rem] shrink-0 text-muted-foreground truncate"
+                title={t(`skills.dimensions.${dim}`) || DIMENSION_LABELS[dim]}
+              >
                 {t(`skills.dimensions.${dim}`) || DIMENSION_LABELS[dim]}
               </span>
               <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">

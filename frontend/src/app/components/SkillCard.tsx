@@ -2,18 +2,21 @@
 
 import Link from "next/link";
 import type { UserSkill } from "@/types/skill";
+import type { SkillGrowthPoint } from "@/types/progress";
 import { RANK_LABELS } from "@/types/skill";
 import { useLocale } from "@/hooks/useLocale";
+import { Sparkline } from "@/app/components/Sparkline";
 
 interface SkillCardProps {
   skill: UserSkill;
+  trend?: SkillGrowthPoint[];
 }
 
 /**
  * Card displaying a single skill with dimension bars and rank badge.
  * Links to the skill detail page.
  */
-export function SkillCard({ skill }: SkillCardProps) {
+export function SkillCard({ skill, trend }: SkillCardProps) {
   const { t } = useLocale();
 
   const dimensions = [
@@ -43,19 +46,29 @@ export function SkillCard({ skill }: SkillCardProps) {
       <div className="space-y-1.5">
         {dimensions.map((d) => (
           <div key={d.key} className="flex items-center gap-1.5 text-xs">
-            <span className="w-8 shrink-0 text-muted-foreground">{t(`skills.dimensions.${d.key}`)}</span>
+            <span className="w-[4.5rem] shrink-0 text-muted-foreground truncate" title={t(`skills.dimensions.${d.key}`)}>
+              {t(`skills.dimensions.${d.key}`)}
+            </span>
             <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all"
                 style={{ width: `${d.value}%` }}
               />
             </div>
-            <span className="w-6 text-right font-mono text-muted-foreground tabular-nums">
+            <span className="w-7 text-right font-mono text-muted-foreground tabular-nums">
               {d.value}
             </span>
           </div>
         ))}
       </div>
+
+      {/* 30d trend sparkline */}
+      {trend && trend.length >= 2 && (
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground">{t("skills.trend")}</span>
+          <Sparkline points={trend} className="ml-auto" />
+        </div>
+      )}
 
       {/* Overall */}
       <div className="mt-3 flex items-center gap-2 border-t border-border pt-2">

@@ -338,9 +338,9 @@ export default function QuestDetailPage() {
                     <p className="text-sm font-medium">
                       {t("quests.attempt", { count: submissionHistory.length - idx })}
                     </p>
-                    {item.content_preview && (
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {item.content_preview}
+                    {item.content && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                        {item.content}
                       </p>
                     )}
                   </div>

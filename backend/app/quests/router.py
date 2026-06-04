@@ -31,6 +31,7 @@ def list_quests(
         QuestListResponse(
             id=str(q.id),
             title=q.title,
+            title_en=q.title_en,
             skill_id=str(q.skill_id),
             skill_name=q.skill.name,
             difficulty=q.difficulty.value,
@@ -52,6 +53,7 @@ def list_recommended_quests(
         QuestListResponse(
             id=str(q.id),
             title=q.title,
+            title_en=q.title_en,
             skill_id=str(q.skill_id),
             skill_name=q.skill.name,
             difficulty=q.difficulty.value,
@@ -82,6 +84,7 @@ def list_path_node_quests(
         QuestListResponse(
             id=str(q.id),
             title=q.title,
+            title_en=q.title_en,
             skill_id=str(q.skill_id),
             skill_name=q.skill.name,
             difficulty=q.difficulty.value,
@@ -99,7 +102,9 @@ def get_quest_detail(quest_id: str, db: Session = Depends(get_db)):
     return QuestDetailResponse(
         id=str(q.id),
         title=q.title,
+        title_en=q.title_en,
         description=q.description,
+        description_en=q.description_en,
         skill_id=str(q.skill_id),
         skill_name=q.skill.name,
         difficulty=q.difficulty.value,

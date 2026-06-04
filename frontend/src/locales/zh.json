@@ -6,7 +6,9 @@
     "projects": "项目",
     "paths": "路径",
     "credentials": "证书",
+    "badges": "徽章",
     "passport": "护照",
+    "history": "历史",
     "settings": "设置",
     "logout": "退出登录",
     "login": "登录",
@@ -74,8 +76,11 @@
     "skillsSection": "技能",
     "recentActivity": "最近动态",
     "growthChart": "成长曲线",
+    "pathGrowth": "路径综合能力成长曲线",
     "selectSkillChart": "选择技能查看成长曲线",
+    "selectPathChart": "选择学习路径查看成长曲线",
     "clickSkillHint": "点击上方技能卡片查看对应的成长曲线",
+    "clickPathHint": "从上方下拉菜单中选择一个学习路径，查看相关技能的成长曲线",
     "overallScore": "综合评分",
     "skillsCount": "技能数量",
     "activePath": "当前路径",
@@ -126,6 +131,8 @@
     "browseQuests": "浏览 Quests",
     "viewSkillDetail": "查看 {name} 详情",
     "overall": "综合",
+    "trend": "30天趋势",
+    "noTrendData": "数据不足",
     "noGrowthData": "暂无成长数据",
     "noGrowthDesc": "完成Quest评估后将生成成长曲线",
     "growthComparison": "成长曲线对比",
@@ -195,6 +202,8 @@
     "attempt": "第{count}次提交",
     "confirmAbandon": "确定要放弃此Quest吗？此操作可以撤销（重新接受即可）。",
     "abandoned": "已放弃此任务",
+    "viewHistory": "提交记录",
+    "noHistory": "暂无历史提交记录",
     "backToList": "返回任务列表",
     "submitWork": "提交你的成果",
     "content": "提交内容",
@@ -224,7 +233,9 @@
     "dimensionDetails": "维度详情",
     "weight": "权重 {percent}%",
     "elapsed": "已用时 {seconds}s",
-    "maxWait": "最长等待 60s"
+    "maxWait": "最长等待 60s",
+    "justification": "AI 评估说明",
+    "viewJustification": "查看评估说明"
   },
   "projects": {
     "title": "项目作品",
@@ -401,5 +412,34 @@
     "notFound": "提交记录不存在",
     "backToQuest": "← 返回 Quest",
     "backOneLevel": "返回上一级"
+  },
+  "history": {
+    "title": "能力历史",
+    "subtitle": "追踪你的成长历程",
+    "filterSkill": "技能",
+    "filterDateRange": "日期范围",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "noEvents": "暂无记录",
+    "noEventsDesc": "完成任务后，你的成长记录将显示在这里",
+    "timelineChart": "成长趋势",
+    "eventList": "活动记录"
+  },
+  "badges": {
+    "title": "成就徽章",
+    "subtitle": "通过真实的成长获得的徽章",
+    "allBadges": "全部徽章",
+    "myBadges": "我的徽章",
+    "earned": "已获得",
+    "locked": "未解锁",
+    "progress": "进度",
+    "noBadges": "暂无徽章",
+    "noBadgesDesc": "完成任务和评估以解锁成就徽章",
+    "browseQuests": "浏览任务",
+    "categories": {
+      "milestone": "里程碑",
+      "mastery": "精通",
+      "ranking": "等级"
+    }
   }
 }

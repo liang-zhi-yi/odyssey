@@ -16,15 +16,13 @@ import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
 import type { UserSkill } from "@/types/skill";
-import type { ProgressLog } from "@/types/progress";
-import type { UserPath } from "@/types/path";
-import type { SkillGrowthPoint } from "@/types/progress";
+import type { UserPath, GrowthPath, PathGrowthResponse } from "@/types/path";
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
-  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+  const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -41,6 +39,18 @@ export default function DashboardPage() {
     skillService.listUserSkills()
   );
 
+  // Fetch trends for sparklines (only when userSkills are loaded)
+  const skillIds = userSkills.map(s => s.skill_id);
+  const { data: trendsData } = useSWR(
+    skillIds.length > 0 ? `skill-trends-${skillIds.join("-")}` : null,
+    async () => {
+      const results = await Promise.all(
+        skillIds.map(id => skillService.getSkillTrend(id, 30).catch(() => []))
+      );
+      return Object.fromEntries(skillIds.map((id, i) => [id, results[i]]));
+    }
+  );
+
   // Fetch current path
   const {
     data: currentPath,
@@ -48,6 +58,21 @@ export default function DashboardPage() {
   } = useSWR(isAuthenticated ? "current-path" : null, () =>
     pathService.getCurrentPath().catch(() => null)
   );
+
+  // Fetch available paths
+  const {
+    data: allPaths = [],
+    isLoading: allPathsLoading,
+  } = useSWR(isAuthenticated ? "all-paths" : null, () =>
+    pathService.listPaths()
+  );
+
+  // Auto-select current path when it loads
+  useEffect(() => {
+    if (currentPath?.path_id && !selectedPathId) {
+      setSelectedPathId(currentPath.path_id);
+    }
+  }, [currentPath, selectedPathId]);
 
   // Fetch recent progress logs
   const {
@@ -57,14 +82,29 @@ export default function DashboardPage() {
     progressService.listProgressLogs({ limit: 10 })
   );
 
-  // Fetch growth data for selected skill
+  // Fetch path growth data for selected path
   const {
-    data: growthPoints = [],
-    isLoading: growthLoading,
+    data: pathGrowth,
+    isLoading: pathGrowthLoading,
   } = useSWR(
-    selectedSkillId ? `skill-growth-${selectedSkillId}` : null,
-    () => progressService.getSkillGrowth(selectedSkillId!)
+    selectedPathId ? `path-growth-${selectedPathId}` : null,
+    () => progressService.getPathGrowth(selectedPathId!)
   );
+
+  // Resolve display name based on locale
+  const resolveName = (zh: string, en: string | null | undefined) =>
+    locale === "en" && en ? en : zh;
+
+  // Build datasets from path growth response
+  const pathDatasets = pathGrowth?.skills
+    .filter((s) => s.points.length > 0)
+    .map((s, i) => ({
+      name: s.skill_name,
+      points: s.points,
+    })) || [];
+
+  // Selected path info
+  const selectedPath = allPaths.find((p) => p.id === selectedPathId);
 
   if (authLoading || !isAuthenticated) {
     return <Loading text={t("auth.validating")} />;
@@ -103,22 +143,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
             {userSkills.map((skill) => (
-              <div
-                key={skill.skill_id}
-                onClick={() => setSelectedSkillId(skill.skill_id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setSelectedSkillId(skill.skill_id);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={t("skills.viewSkillDetail", { name: skill.skill_name || skill.skill_id })}
-                className="cursor-pointer card-hover"
-              >
-                <SkillCard skill={skill} />
-              </div>
+              <SkillCard key={skill.skill_id} skill={skill} trend={trendsData?.[skill.skill_id] || []} />
             ))}
           </div>
         )}
@@ -133,27 +158,43 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Growth chart */}
+        {/* Path Growth Curve */}
         <section>
-          <h2 className="text-lg font-semibold mb-3">
-            {selectedSkillId ? t("dashboard.growthChart") : t("dashboard.selectSkillChart")}
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">
+              {selectedPathId ? t("dashboard.pathGrowth") : t("dashboard.selectPathChart")}
+            </h2>
+
+            {/* Path switcher */}
+            {allPaths.length > 0 && (
+              <select
+                value={selectedPathId || ""}
+                onChange={(e) => setSelectedPathId(e.target.value || null)}
+                className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">{t("dashboard.selectPath")}</option>
+                {allPaths.map((p: GrowthPath) => (
+                  <option key={p.id} value={p.id}>
+                    {resolveName(p.name, p.name_en)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <div className="rounded-xl border border-border bg-background p-4">
-            {selectedSkillId ? (
-              <ProgressTimeline
-                points={growthPoints}
-                skillName={
-                  userSkills.find((s) => s.skill_id === selectedSkillId)
-                    ?.skill_name || selectedSkillId
-                }
-                isLoading={growthLoading}
-              />
-            ) : (
+            {!selectedPathId ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {t("dashboard.clickSkillHint")}
+                  {t("dashboard.clickPathHint")}
                 </p>
               </div>
+            ) : (
+              <ProgressTimeline
+                datasets={pathDatasets}
+                skillName={pathGrowth?.path_name}
+                isLoading={pathGrowthLoading || allPathsLoading}
+              />
             )}
           </div>
         </section>

@@ -28,6 +28,7 @@ export interface AssessmentCompleted {
   overall: number;
   feedback: string | null;
   suggestions: string | null;
+  justifications: Record<string, string> | null;
 }
 
 /** Returned when assessment FAILED */

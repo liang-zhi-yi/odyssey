@@ -6,7 +6,9 @@ from pydantic import BaseModel
 class SkillResponse(BaseModel):
     id: str
     name: str
+    name_en: str | None = None
     description: str | None = None
+    description_en: str | None = None
     category: str
 
     model_config = {"from_attributes": True}

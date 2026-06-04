@@ -25,7 +25,13 @@ class Skill(Base):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False, unique=True, index=True
     )
+    name_en: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
     description: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+    description_en: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     category: Mapped[str] = mapped_column(

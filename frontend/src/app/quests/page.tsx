@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
 import { skillService } from "@/services/skill.service";
 import { pathService } from "@/services/path.service";
+import { submissionService } from "@/services/submission.service";
 import { QuestCard } from "@/app/components/QuestCard";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -19,6 +20,7 @@ import {
   type QuestListItem,
   type UserQuest,
 } from "@/types/quest";
+import type { SubmissionHistoryItem } from "@/types/submission";
 
 type TabId = "all" | "recommended" | "path-node" | "mine";
 
@@ -31,11 +33,18 @@ const TAB_KEYS: { id: TabId; key: string }[] = [
 
 export default function QuestsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabId>("all");
+
+  // My Quests management state
+  const [abandoningQuestId, setAbandoningQuestId] = useState<string | null>(null);
+  const [confirmAbandonQuestId, setConfirmAbandonQuestId] = useState<string | null>(null);
+  const [expandedHistoryQuestId, setExpandedHistoryQuestId] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<Record<string, SubmissionHistoryItem[]>>({});
+  const [loadingHistory, setLoadingHistory] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -120,6 +129,42 @@ export default function QuestsPage() {
 
   const nextNode = pathNodes?.nodes[0] ?? null;
 
+  // ── Handlers for My Quests management ──────────────────
+  const handleAbandon = async (questId: string) => {
+    setAbandoningQuestId(questId);
+    try {
+      await questService.abandonQuest(questId);
+      await Promise.all([
+        mutate("user-quests"),
+        mutate("recommended-quests"),
+      ]);
+      setConfirmAbandonQuestId(null);
+    } finally {
+      setAbandoningQuestId(null);
+    }
+  };
+
+  const handleToggleHistory = async (questId: string) => {
+    if (expandedHistoryQuestId === questId) {
+      setExpandedHistoryQuestId(null);
+      return;
+    }
+    setExpandedHistoryQuestId(questId);
+    if (!historyData[questId]) {
+      setLoadingHistory(questId);
+      try {
+        const data = await submissionService.getSubmissionHistory(questId);
+        setHistoryData((prev) => ({ ...prev, [questId]: data }));
+      } finally {
+        setLoadingHistory(null);
+      }
+    }
+  };
+
+  // Resolve display name based on locale
+  const resolveLocalizedTitle = (uq: UserQuest) =>
+    locale === "en" && uq.quest_title_en ? uq.quest_title_en : uq.quest_title;
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <div>
@@ -168,9 +213,9 @@ export default function QuestsPage() {
             className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
             <option value="">{t("quests.filter.allDifficulties")}</option>
-            {Object.entries(DIFFICULTY_LABELS).map(([key, label]) => (
+            {Object.entries(DIFFICULTY_LABELS).map(([key]) => (
               <option key={key} value={key}>
-                {label}
+                {t(`quests.difficulty.${key}` as any)}
               </option>
             ))}
           </select>
@@ -292,10 +337,14 @@ export default function QuestsPage() {
               {pathNodes && pathNodes.nodes.length > 0 && (
                 <div className="rounded-xl border border-border bg-background p-5">
                   <h3 className="text-sm font-semibold mb-1">
-                    {pathNodes.path_name}
+                    {locale === "en" && pathNodes.path_name_en
+                      ? pathNodes.path_name_en
+                      : pathNodes.path_name}
                   </h3>
                   <p className="text-xs text-muted-foreground mb-4">
-                    {pathNodes.path_description}
+                    {locale === "en" && pathNodes.path_description_en
+                      ? pathNodes.path_description_en
+                      : pathNodes.path_description}
                   </p>
 
                   {/* Node progression */}
@@ -342,7 +391,11 @@ export default function QuestsPage() {
                             <span className="block text-[10px] opacity-60">
                               {t("quests.stage")} {node.stage_order}
                             </span>
-                            <span>{node.skill_name}</span>
+                            <span>
+                              {locale === "en" && node.skill_name_en
+                                ? node.skill_name_en
+                                : node.skill_name}
+                            </span>
                           </div>
                         </div>
                       );
@@ -355,10 +408,15 @@ export default function QuestsPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xs font-medium text-primary">
-                            {t("quests.currentStage")}：{nextNode.skill_name}
+                            {t("quests.currentStage")}：
+                            {locale === "en" && nextNode.skill_name_en
+                              ? nextNode.skill_name_en
+                              : nextNode.skill_name}
                           </span>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {nextNode.skill_description}
+                            {locale === "en" && nextNode.skill_description_en
+                              ? nextNode.skill_description_en
+                              : nextNode.skill_description}
                           </p>
                         </div>
                         <span className="text-xs text-muted-foreground">
@@ -414,30 +472,218 @@ export default function QuestsPage() {
           />
         ) : (
           <div className="space-y-2">
-            {userQuests.map((uq: UserQuest) => (
-              <a
-                key={uq.quest_id}
-                href={`/quests/${uq.quest_id}`}
-                className="flex items-center justify-between rounded-xl border border-border bg-background p-4 transition-all hover:shadow-md hover:border-primary/30"
-              >
-                <div>
-                  <h4 className="font-semibold text-sm">{uq.quest_title}</h4>
+            {userQuests.map((uq: UserQuest) => {
+              const canAbandon =
+                uq.status === "ACCEPTED" || uq.status === "IN_PROGRESS";
+              const isExpanded = expandedHistoryQuestId === uq.quest_id;
+              const questHistory = historyData[uq.quest_id];
+
+              return (
+                <div key={uq.quest_id}>
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-background p-4 transition-all hover:shadow-md hover:border-primary/30">
+                    {/* Quest title + link */}
+                    <a
+                      href={`/quests/${uq.quest_id}`}
+                      className="flex-1 min-w-0 mr-4"
+                    >
+                      <h4 className="font-semibold text-sm truncate">
+                        {resolveLocalizedTitle(uq)}
+                      </h4>
+                      <span className="text-xs text-muted-foreground">
+                        {t("quests.attempt", { count: uq.submission_count })}
+                      </span>
+                    </a>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Status badge */}
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          uq.status === "PASSED"
+                            ? "bg-success/10 text-success"
+                            : uq.status === "FAILED"
+                            ? "bg-destructive/10 text-destructive"
+                            : uq.status === "ASSESSING"
+                            ? "bg-warning/10 text-warning"
+                            : uq.status === "ABANDONED"
+                            ? "bg-muted/30 text-muted-foreground"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {t(`quests.status.${uq.status}` as any)}
+                      </span>
+
+                      {/* History button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleToggleHistory(uq.quest_id);
+                        }}
+                        className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                        title={t("quests.submissionHistory")}
+                      >
+                        {t("quests.viewHistory")}
+                      </button>
+
+                      {/* Abandon button — pushed to far right */}
+                      {canAbandon && (
+                        <div className="ml-2 pl-2 border-l border-border">
+                          {confirmAbandonQuestId === uq.quest_id ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleAbandon(uq.quest_id);
+                                }}
+                                disabled={abandoningQuestId === uq.quest_id}
+                                className="rounded-lg bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+                              >
+                                {abandoningQuestId === uq.quest_id
+                                  ? t("settings.saving")
+                                  : t("common.confirm")}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setConfirmAbandonQuestId(null);
+                                }}
+                                className="rounded-lg border border-border px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                              >
+                                {t("common.cancel")}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setConfirmAbandonQuestId(uq.quest_id);
+                              }}
+                              className="rounded-lg border border-destructive/30 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                            >
+                              {t("quests.abandon")}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expandable submission history */}
+                  {isExpanded && (
+                    <div className="mt-2 ml-4 border-l-2 border-border pl-4 py-2 space-y-3">
+                      {loadingHistory === uq.quest_id ? (
+                        <Loading text={t("common.loading")} />
+                      ) : questHistory && questHistory.length > 0 ? (
+                        questHistory.map((item, idx) => (
+                          <div
+                            key={item.submission_id}
+                            className="rounded-lg border border-border bg-secondary/20 p-3 space-y-2"
+                          >
+                            {/* Header: attempt number + status + date */}
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-semibold">
+                                {t("quests.attempt", {
+                                  count: questHistory.length - idx,
+                                })}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                {item.submitted_at && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(item.submitted_at).toLocaleDateString()}
+                                  </span>
+                                )}
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                    item.status === "PASSED"
+                                      ? "bg-success/10 text-success"
+                                      : item.status === "FAILED"
+                                      ? "bg-destructive/10 text-destructive"
+                                      : item.status === "ASSESSING"
+                                      ? "bg-warning/10 text-warning"
+                                      : "bg-secondary text-muted-foreground"
+                                  }`}
+                                >
+                                  {t(`quests.status.${item.status}` as any)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Submission content */}
+                            {item.content && (
+                              <div>
+                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                                  {t("quests.content")}
+                                </p>
+                                <p className="text-xs text-muted-foreground whitespace-pre-wrap bg-background rounded-md p-2 border border-border">
+                                  {item.content}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Assessment results */}
+                            {item.assessment && (
+                              <div className="rounded-md bg-background border border-border p-2.5 space-y-2">
+                                <p className="text-[10px] font-medium text-primary uppercase tracking-wider">
+                                  {t("assessment.title")}
+                                </p>
+                                {/* Scores */}
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                                  {[
+                                    { label: t("skills.dimensions.knowledge"), score: item.assessment.knowledge_score },
+                                    { label: t("skills.dimensions.reasoning"), score: item.assessment.reasoning_score },
+                                    { label: t("skills.dimensions.application"), score: item.assessment.application_score },
+                                    { label: t("skills.dimensions.creation"), score: item.assessment.creation_score },
+                                    { label: t("assessment.overall"), score: item.assessment.overall_score },
+                                  ].map((dim) => (
+                                    <div
+                                      key={dim.label}
+                                      className="rounded bg-secondary/50 px-2 py-1 text-center"
+                                    >
+                                      <p className="text-[9px] text-muted-foreground truncate" title={dim.label}>
+                                        {dim.label}
+                                      </p>
+                                      <p className="text-xs font-bold tabular-nums">
+                                        {dim.score ?? "—"}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                                {/* Feedback */}
+                                {item.assessment.feedback && (
+                                  <div>
+                                    <p className="text-[10px] font-medium text-muted-foreground mb-0.5">
+                                      {t("assessment.feedback")}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                      {item.assessment.feedback}
+                                    </p>
+                                  </div>
+                                )}
+                                {/* Improvement suggestions */}
+                                {item.assessment.improvement_suggestions && (
+                                  <div>
+                                    <p className="text-[10px] font-medium text-muted-foreground mb-0.5">
+                                      {t("assessment.suggestions")}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                      {item.assessment.improvement_suggestions}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground py-2">
+                          {t("quests.noHistory")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    uq.status === "PASSED"
-                      ? "bg-success/10 text-success"
-                      : uq.status === "FAILED"
-                      ? "bg-destructive/10 text-destructive"
-                      : uq.status === "ASSESSING"
-                      ? "bg-warning/10 text-warning"
-                      : "bg-secondary text-muted-foreground"
-                  }`}
-                >
-                  {SUBMISSION_STATUS_LABELS[uq.status] || uq.status}
-                </span>
-              </a>
-            ))}
+              );
+            })}
           </div>
         ))}
     </div>

@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Integer, String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import AssessmentStatus
@@ -51,6 +51,9 @@ class Assessment(Base):
     )
     improvement_suggestions: Mapped[str | None] = mapped_column(
         Text, nullable=True
+    )
+    justifications: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True
     )
     assessed_at: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True

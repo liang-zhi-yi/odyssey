@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { AssessmentCompleted } from "@/types/assessment";
 import { RadarChart } from "./RadarChart";
 import { DIMENSION_LABELS, DIMENSION_WEIGHTS } from "@/types/assessment";
@@ -31,6 +32,21 @@ export function AssessmentPolling({
   error,
 }: AssessmentPollingProps) {
   const { t } = useLocale();
+  const [expandedDimensions, setExpandedDimensions] = useState<Set<string>>(
+    new Set()
+  );
+
+  const toggleDimension = (dim: string) => {
+    setExpandedDimensions((prev) => {
+      const next = new Set(prev);
+      if (next.has(dim)) {
+        next.delete(dim);
+      } else {
+        next.add(dim);
+      }
+      return next;
+    });
+  };
 
   // Error state
   if (error && !result) {
@@ -123,6 +139,50 @@ export function AssessmentPolling({
             ))}
           </div>
         </div>
+
+        {/* AI Justifications — expandable per-dimension */}
+        {result.justifications && (
+          <div className="rounded-xl border border-border bg-background p-4">
+            <h4 className="text-sm font-semibold mb-3">
+              {t("assessment.justification")}
+            </h4>
+            <div className="space-y-1.5">
+              {DIMENSIONS.map((dim) => {
+                const justification = result.justifications?.[dim];
+                if (!justification) return null;
+                const isExpanded = expandedDimensions.has(dim);
+                return (
+                  <div key={dim} className="rounded-lg border border-border/50">
+                    <button
+                      type="button"
+                      onClick={() => toggleDimension(dim)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-secondary/30 transition-colors rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">
+                          {t(`skills.dimensions.${dim}`) || DIMENSION_LABELS[dim]}
+                        </span>
+                        <span className="font-mono text-xs font-bold tabular-nums text-muted-foreground">
+                          {result[dim]}
+                        </span>
+                      </div>
+                      <span className="text-muted-foreground text-xs transition-transform">
+                        {isExpanded ? "▾" : "▸"}
+                      </span>
+                    </button>
+                    {isExpanded && (
+                      <div className="px-3 pb-3 pt-1">
+                        <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                          {justification}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Feedback */}
         {result.feedback && (

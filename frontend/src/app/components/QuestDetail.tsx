@@ -30,7 +30,7 @@ export function QuestDetail({
   isAccepting = false,
   alreadyAccepted = false,
 }: QuestDetailProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   if (isLoading) {
     return <Loading text={t("common.loading")} />;
@@ -48,11 +48,18 @@ export function QuestDetail({
     );
   }
 
+  const displayTitle =
+    locale === "en" && quest.title_en ? quest.title_en : quest.title;
+  const displayDescription =
+    locale === "en" && quest.description_en
+      ? quest.description_en
+      : quest.description;
+
   return (
     <div className="rounded-xl border border-border bg-background p-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-        <h2 className="text-xl font-bold">{quest.title}</h2>
+        <h2 className="text-xl font-bold">{displayTitle}</h2>
         <div className="flex items-center gap-2">
           <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
             {t(`quests.difficulty.${quest.difficulty}`) || DIFFICULTY_LABELS[quest.difficulty] || quest.difficulty}
@@ -64,9 +71,9 @@ export function QuestDetail({
       </div>
 
       {/* Description */}
-      {quest.description && (
+      {displayDescription && (
         <div className="prose prose-sm max-w-none text-muted-foreground mb-6">
-          <p className="whitespace-pre-wrap">{quest.description}</p>
+          <p className="whitespace-pre-wrap">{displayDescription}</p>
         </div>
       )}
 

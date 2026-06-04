@@ -71,3 +71,5 @@ export type {
 } from "./path";
 
 export type { UserSettings, UpdateSettingsRequest } from "./settings";
+
+export type { BadgeDefinition, UserBadge } from "./badge";

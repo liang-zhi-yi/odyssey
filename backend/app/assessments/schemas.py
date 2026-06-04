@@ -22,6 +22,7 @@ class AssessmentCompletedResponse(BaseModel):
     overall: int
     feedback: str | None = None
     suggestions: str | None = None
+    justifications: dict | None = None
 
 
 class AssessmentFailedResponse(BaseModel):

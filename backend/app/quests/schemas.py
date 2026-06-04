@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class QuestListResponse(BaseModel):
     id: str
     title: str
+    title_en: str | None = None
     skill_id: str
     skill_name: str
     difficulty: str
@@ -18,7 +19,9 @@ class QuestListResponse(BaseModel):
 class QuestDetailResponse(BaseModel):
     id: str
     title: str
+    title_en: str | None = None
     description: str | None = None
+    description_en: str | None = None
     skill_id: str
     skill_name: str
     difficulty: str
@@ -35,6 +38,7 @@ class AcceptQuestResponse(BaseModel):
 class UserQuestResponse(BaseModel):
     quest_id: str
     quest_title: str
+    quest_title_en: str | None = None
     status: str
     latest_submission_id: str | None = None
     submission_count: int = 0

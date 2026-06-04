@@ -6,7 +6,9 @@
     "projects": "Projects",
     "paths": "Paths",
     "credentials": "Credentials",
+    "badges": "Badges",
     "passport": "Passport",
+    "history": "History",
     "settings": "Settings",
     "logout": "Logout",
     "login": "Login",
@@ -74,8 +76,11 @@
     "skillsSection": "Skills",
     "recentActivity": "Recent Activity",
     "growthChart": "Growth Chart",
+    "pathGrowth": "Path Comprehensive Growth Curve",
     "selectSkillChart": "Select a skill to view growth chart",
+    "selectPathChart": "Select a learning path to view growth curve",
     "clickSkillHint": "Click a skill card above to view its growth chart",
+    "clickPathHint": "Select a learning path from the dropdown above to view the growth curves of related skills",
     "overallScore": "Overall Score",
     "skillsCount": "Skills Count",
     "activePath": "Active Path",
@@ -126,6 +131,8 @@
     "browseQuests": "Browse Quests",
     "viewSkillDetail": "View {name} details",
     "overall": "Overall",
+    "trend": "30d trend",
+    "noTrendData": "Not enough data",
     "noGrowthData": "No growth data yet",
     "noGrowthDesc": "Growth curve will be generated after Quest assessments",
     "growthComparison": "Growth Comparison",
@@ -195,6 +202,8 @@
     "attempt": "Attempt #{count}",
     "confirmAbandon": "Are you sure you want to abandon this Quest? This can be undone by accepting it again.",
     "abandoned": "Quest abandoned",
+    "viewHistory": "History",
+    "noHistory": "No submission history",
     "backToList": "Back to Quest List",
     "submitWork": "Submit Your Work",
     "content": "Submission Content",
@@ -224,7 +233,9 @@
     "dimensionDetails": "Dimension Details",
     "weight": "Weight {percent}%",
     "elapsed": "Elapsed {seconds}s",
-    "maxWait": "Max wait 60s"
+    "maxWait": "Max wait 60s",
+    "justification": "AI Justification",
+    "viewJustification": "View justification"
   },
   "projects": {
     "title": "Projects",
@@ -401,5 +412,34 @@
     "notFound": "Submission not found",
     "backToQuest": "← Back to Quest",
     "backOneLevel": "Back"
+  },
+  "history": {
+    "title": "Capability History",
+    "subtitle": "Track your growth journey over time",
+    "filterSkill": "Skill",
+    "filterDateRange": "Date Range",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "noEvents": "No events found",
+    "noEventsDesc": "Complete quests to see your growth history here",
+    "timelineChart": "Growth Trend",
+    "eventList": "Activity Log"
+  },
+  "badges": {
+    "title": "Achievement Badges",
+    "subtitle": "Badges earned through real capability growth",
+    "allBadges": "All Badges",
+    "myBadges": "My Badges",
+    "earned": "Earned",
+    "locked": "Locked",
+    "progress": "Progress",
+    "noBadges": "No badges earned yet",
+    "noBadgesDesc": "Complete quests and assessments to unlock achievement badges",
+    "browseQuests": "Browse Quests",
+    "categories": {
+      "milestone": "Milestone",
+      "mastery": "Mastery",
+      "ranking": "Ranking"
+    }
   }
 }

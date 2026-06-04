@@ -13,3 +13,18 @@ export interface SkillGrowthPoint {
   date: string;
   score: number;
 }
+
+export interface TimelineEvent {
+  date: string;
+  skill_name: string;
+  event_type: string;
+  previous_score: number;
+  new_score: number;
+  delta: number;
+  reason: string;
+}
+
+export interface TimelineResponse {
+  events: TimelineEvent[];
+  total: number;
+}

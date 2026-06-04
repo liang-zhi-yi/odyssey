@@ -23,11 +23,24 @@ export interface SubmissionDetail {
   status: SubmissionStatus;
 }
 
+export interface AssessmentResult {
+  overall_score: number | null;
+  knowledge_score: number | null;
+  reasoning_score: number | null;
+  application_score: number | null;
+  creation_score: number | null;
+  feedback: string | null;
+  improvement_suggestions: string | null;
+}
+
 export interface SubmissionHistoryItem {
   submission_id: string;
   quest_id: string;
   quest_title: string;
   status: string;
-  content_preview: string | null;
+  content: string | null;
+  github_url: string | null;
+  demo_url: string | null;
+  assessment: AssessmentResult | null;
   submitted_at: string | null;
 }

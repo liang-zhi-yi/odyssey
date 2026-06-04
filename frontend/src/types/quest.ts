@@ -7,6 +7,7 @@ export type DeliverableType = "PROMPT" | "ARCHITECTURE" | "WORKFLOW" | "CODE" | 
 export interface QuestListItem {
   id: string;
   title: string;
+  title_en: string | null;
   skill_id: string;
   skill_name: string;
   difficulty: QuestDifficulty;
@@ -17,7 +18,9 @@ export interface QuestListItem {
 export interface QuestDetail {
   id: string;
   title: string;
+  title_en: string | null;
   description: string | null;
+  description_en: string | null;
   skill_id: string;
   skill_name: string;
   difficulty: QuestDifficulty;
@@ -32,6 +35,7 @@ export interface AcceptQuestResponse {
 export interface UserQuest {
   quest_id: string;
   quest_title: string;
+  quest_title_en: string | null;
   status: SubmissionStatus;
   latest_submission_id: string | null;
   submission_count: number;
@@ -58,10 +62,10 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
 };
 
 export const DIFFICULTY_LABELS: Record<QuestDifficulty, string> = {
-  LEVEL_1: "基础",
-  LEVEL_2: "进阶",
-  LEVEL_3: "项目",
-  LEVEL_4: "试炼",
+  LEVEL_1: "入门",
+  LEVEL_2: "基础",
+  LEVEL_3: "进阶",
+  LEVEL_4: "专家",
 };
 
 export const QUEST_TYPE_LABELS: Record<QuestType, string> = {

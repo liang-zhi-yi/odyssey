@@ -131,7 +131,10 @@ def get_submission_history(
     """Return all submissions for a user, optionally filtered by quest.
 
     Ordered by submitted_at descending (newest first).
+    Includes full submission content and assessment results when available.
     """
+    from app.assessments.models import Assessment
+
     query = (
         db.query(QuestSubmission, Quest.title)
         .join(Quest, QuestSubmission.quest_id == Quest.id)
@@ -143,18 +146,41 @@ def get_submission_history(
 
     rows = query.order_by(QuestSubmission.submitted_at.desc()).all()
 
-    return [
-        {
+    result: list[dict] = []
+    for sub, title in rows:
+        # Fetch assessment for this submission (1:1)
+        assessment = (
+            db.query(Assessment)
+            .filter(Assessment.submission_id == sub.id)
+            .first()
+        )
+
+        item: dict = {
             "submission_id": str(sub.id),
             "quest_id": str(sub.quest_id),
             "quest_title": title,
             "status": sub.status.value,
-            "content_preview": (
-                sub.submission_content[:200] if sub.submission_content else None
-            ),
+            "content": sub.submission_content,
+            "github_url": _extract_url(sub.submission_url, "github"),
+            "demo_url": _extract_url(sub.submission_url, "demo"),
             "submitted_at": (
                 sub.submitted_at.isoformat() if sub.submitted_at else None
             ),
         }
-        for sub, title in rows
-    ]
+
+        # Attach assessment data if available
+        if assessment:
+            item["assessment"] = {
+                "overall_score": assessment.overall_score,
+                "knowledge_score": assessment.knowledge_score,
+                "reasoning_score": assessment.reasoning_score,
+                "application_score": assessment.application_score,
+                "creation_score": assessment.creation_score,
+                "feedback": assessment.feedback,
+                "improvement_suggestions": assessment.improvement_suggestions,
+            }
+        else:
+            item["assessment"] = None
+
+        result.append(item)
+    return result

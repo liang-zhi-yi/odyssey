@@ -129,6 +129,7 @@ def get_assessment_status(db: Session, assessment_id: str, user_id: str) -> dict
             "overall": assessment.overall_score,
             "feedback": assessment.feedback,
             "suggestions": assessment.improvement_suggestions,
+            "justifications": assessment.justifications,
         }
 
     # FAILED

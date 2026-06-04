@@ -12,9 +12,11 @@ const NAV_ITEMS = [
   { href: "/dashboard", labelKey: "nav.dashboard" },
   { href: "/skills", labelKey: "nav.skills" },
   { href: "/quests", labelKey: "nav.quests" },
+  { href: "/history", labelKey: "nav.history" },
   { href: "/projects", labelKey: "nav.projects" },
   { href: "/paths", labelKey: "nav.paths" },
   { href: "/credentials", labelKey: "nav.credentials" },
+  { href: "/badges", labelKey: "nav.badges" },
   { href: "/passport", labelKey: "nav.passport" },
 ];
 

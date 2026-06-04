@@ -22,7 +22,13 @@ class Path(Base):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False, unique=True
     )
+    name_en: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
     description: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+    description_en: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     difficulty: Mapped[int] = mapped_column(

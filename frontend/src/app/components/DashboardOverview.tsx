@@ -23,7 +23,7 @@ export function DashboardOverview({
   currentPath,
   isLoading,
 }: DashboardOverviewProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   if (isLoading) {
     return <Loading text={t("common.loading")} />;
@@ -41,6 +41,13 @@ export function DashboardOverview({
       ? userSkills.reduce((best, s) => (s.overall > best.overall ? s : best))
       : null;
 
+  const pathDisplayName =
+    currentPath
+      ? locale === "en" && currentPath.name_en
+        ? currentPath.name_en
+        : currentPath.name
+      : null;
+
   const stats = [
     {
       label: t("dashboard.skillsCount"),
@@ -54,7 +61,7 @@ export function DashboardOverview({
     },
     {
       label: t("dashboard.activePath"),
-      value: currentPath?.name || t("dashboard.notSelected"),
+      value: pathDisplayName || t("dashboard.notSelected"),
       sub: currentPath ? t("paths.progress") + ` ${currentPath.progress}%` : t("dashboard.selectPath"),
     },
     {

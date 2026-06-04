@@ -8,6 +8,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
 import { progressService } from "@/services/progress.service";
 import { ScoreCard } from "@/app/components/ScoreCard";
+import { Sparkline } from "@/app/components/Sparkline";
 import { ProgressTimeline } from "@/app/components/ProgressTimeline";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -42,6 +43,14 @@ export default function SkillDetailPage() {
   } = useSWR(
     isAuthenticated && skillId ? `skill-growth-${skillId}` : null,
     () => progressService.getSkillGrowth(skillId)
+  );
+
+  // Fetch 30-day trend for sparkline
+  const {
+    data: trendPoints = [],
+  } = useSWR(
+    isAuthenticated && skillId ? `skill-trend-${skillId}` : null,
+    () => skillService.getSkillTrend(skillId, 30).catch(() => [])
   );
 
   if (authLoading || !isAuthenticated) {
@@ -98,6 +107,16 @@ export default function SkillDetailPage() {
         rank={userSkill.rank}
         size={200}
       />
+
+      {/* 30d trend sparkline */}
+      {trendPoints.length >= 2 && (
+        <section>
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-background p-4">
+            <span className="text-sm text-muted-foreground">{t("skills.trend")}</span>
+            <Sparkline points={trendPoints} width={200} height={40} className="ml-auto" />
+          </div>
+        </section>
+      )}
 
       {/* Growth curve */}
       <section>
