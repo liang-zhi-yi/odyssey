@@ -10,6 +10,7 @@ import { ScoreCard } from "@/app/components/ScoreCard";
 import { ProgressTimeline } from "@/app/components/ProgressTimeline";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
+import { BackButton } from "@/app/components/BackButton";
 
 export default function SkillDetailPage() {
   const { id: skillId } = useParams<{ id: string }>();
@@ -70,6 +71,9 @@ export default function SkillDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+      {/* Back navigation */}
+      <BackButton href="/skills" label="返回技能列表" />
+
       <div>
         <h1 className="text-2xl font-bold">
           {userSkill.skill_name || userSkill.skill_id}

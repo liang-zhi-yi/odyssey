@@ -7,6 +7,7 @@ import { usePolling } from "@/hooks/usePolling";
 import { assessmentService } from "@/services/assessment.service";
 import { AssessmentPolling } from "@/app/components/AssessmentPolling";
 import { Loading } from "@/app/components/Loading";
+import { BackButton } from "@/app/components/BackButton";
 import type { AssessmentResult, AssessmentCompleted } from "@/types/assessment";
 
 export default function AssessmentPage() {
@@ -52,6 +53,9 @@ export default function AssessmentPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+      {/* Back navigation */}
+      <BackButton label="返回上一级" />
+
       <div>
         <h1 className="text-2xl font-bold">评估结果</h1>
         <p className="mt-1 text-sm text-muted-foreground">

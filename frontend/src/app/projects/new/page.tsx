@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { projectService } from "@/services/project.service";
 import { skillService } from "@/services/skill.service";
 import { Loading } from "@/app/components/Loading";
+import { BackButton } from "@/app/components/BackButton";
 import { ApiRequestError } from "@/lib/api";
 
 export default function NewProjectPage() {
@@ -69,6 +70,9 @@ export default function NewProjectPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-6 px-4 py-6">
+      {/* Back navigation */}
+      <BackButton href="/projects" label="返回项目列表" />
+
       <div>
         <h1 className="text-2xl font-bold">新建项目</h1>
         <p className="mt-1 text-sm text-muted-foreground">

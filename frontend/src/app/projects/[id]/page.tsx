@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { projectService } from "@/services/project.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
+import { BackButton } from "@/app/components/BackButton";
 
 export default function ProjectDetailPage() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -57,6 +58,9 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+      {/* Back navigation */}
+      <BackButton href="/projects" label="返回项目列表" />
+
       <div>
         <h1 className="text-2xl font-bold">{project.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">项目详情</p>

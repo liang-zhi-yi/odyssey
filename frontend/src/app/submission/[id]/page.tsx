@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { submissionService } from "@/services/submission.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
+import { BackButton } from "@/app/components/BackButton";
 import { SUBMISSION_STATUS_LABELS, type SubmissionStatus } from "@/types/quest";
 
 export default function SubmissionPage() {
@@ -57,6 +58,9 @@ export default function SubmissionPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+      {/* Back navigation */}
+      <BackButton label="返回上一级" />
+
       <div>
         <h1 className="text-2xl font-bold">提交详情</h1>
         <p className="mt-1 text-sm text-muted-foreground">

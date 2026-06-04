@@ -10,6 +10,7 @@ import { assessmentService } from "@/services/assessment.service";
 import { QuestDetail } from "@/app/components/QuestDetail";
 import { SubmissionForm } from "@/app/components/SubmissionForm";
 import { Loading } from "@/app/components/Loading";
+import { BackButton } from "@/app/components/BackButton";
 import type { QuestDetail as QuestDetailType } from "@/types/quest";
 import type { SubmissionDetail } from "@/types/submission";
 import { ApiRequestError } from "@/lib/api";
@@ -115,6 +116,9 @@ export default function QuestDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+      {/* Back navigation */}
+      <BackButton href="/quests" label="返回任务列表" />
+
       {/* Quest detail */}
       <QuestDetail
         quest={quest || null}
