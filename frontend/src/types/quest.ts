@@ -7,6 +7,8 @@ export type DeliverableType = "PROMPT" | "ARCHITECTURE" | "WORKFLOW" | "CODE" | 
 export interface QuestListItem {
   id: string;
   title: string;
+  skill_id: string;
+  skill_name: string;
   difficulty: QuestDifficulty;
   quest_type: QuestType;
   expected_deliverable: DeliverableType;
@@ -17,6 +19,7 @@ export interface QuestDetail {
   title: string;
   description: string | null;
   skill_id: string;
+  skill_name: string;
   difficulty: QuestDifficulty;
   quest_type: QuestType;
   expected_deliverable: DeliverableType;

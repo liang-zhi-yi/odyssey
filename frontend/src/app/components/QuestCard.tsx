@@ -36,6 +36,8 @@ export function QuestCard({ quest }: QuestCardProps) {
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>{QUEST_TYPE_LABELS[quest.quest_type] || quest.quest_type}</span>
         <span>·</span>
+        <span className="truncate">{quest.skill_name}</span>
+        <span>·</span>
         <span className="truncate">{quest.expected_deliverable}</span>
       </div>
     </Link>

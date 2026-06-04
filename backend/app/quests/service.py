@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.quests.models import Quest
 from app.submissions.models import QuestSubmission
@@ -15,8 +15,8 @@ def get_quests(
     skill_id: str | None = None,
     difficulty: str | None = None,
 ) -> list[Quest]:
-    """Return quests, optionally filtered by skill and/or difficulty."""
-    q = db.query(Quest)
+    """Return quests with skill relationship loaded, optionally filtered by skill and/or difficulty."""
+    q = db.query(Quest).options(joinedload(Quest.skill))
     if skill_id:
         q = q.filter(Quest.skill_id == skill_id)
     if difficulty:
@@ -25,8 +25,13 @@ def get_quests(
 
 
 def get_quest_detail(db: Session, quest_id: str) -> Quest:
-    """Return a single quest or raise NotFoundException."""
-    quest = db.query(Quest).filter(Quest.id == quest_id).first()
+    """Return a single quest with its skill relationship loaded, or raise NotFoundException."""
+    quest = (
+        db.query(Quest)
+        .options(joinedload(Quest.skill))
+        .filter(Quest.id == quest_id)
+        .first()
+    )
     if quest is None:
         raise NotFoundException("Quest", quest_id)
     return quest

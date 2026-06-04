@@ -8,40 +8,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "oklch(1 0 0)",
-        foreground: "oklch(0.145 0 0)",
+        background: "oklch(var(--background) / <alpha-value>)",
+        foreground: "oklch(var(--foreground) / <alpha-value>)",
         primary: {
-          DEFAULT: "oklch(0.55 0.2 260)",   // Indigo
-          foreground: "oklch(0.985 0 0)",
+          DEFAULT: "oklch(var(--primary) / <alpha-value>)",
+          foreground: "oklch(var(--primary-foreground) / <alpha-value>)",
         },
         secondary: {
-          DEFAULT: "oklch(0.97 0.005 260)",
-          foreground: "oklch(0.205 0 0)",
+          DEFAULT: "oklch(var(--secondary) / <alpha-value>)",
+          foreground: "oklch(var(--secondary-foreground) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "oklch(0.97 0 0)",
-          foreground: "oklch(0.556 0 0)",
+          DEFAULT: "oklch(var(--muted) / <alpha-value>)",
+          foreground: "oklch(var(--muted-foreground) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "oklch(0.65 0.2 180)",   // Teal accent
-          foreground: "oklch(0.985 0 0)",
+          DEFAULT: "oklch(var(--accent) / <alpha-value>)",
+          foreground: "oklch(var(--accent-foreground) / <alpha-value>)",
         },
         success: {
-          DEFAULT: "oklch(0.6 0.18 145)",   // Green
-          foreground: "oklch(0.985 0 0)",
+          DEFAULT: "oklch(var(--success) / <alpha-value>)",
+          foreground: "oklch(var(--success-foreground) / <alpha-value>)",
         },
         warning: {
-          DEFAULT: "oklch(0.7 0.15 85)",    // Amber
-          foreground: "oklch(0.985 0 0)",
+          DEFAULT: "oklch(var(--warning) / <alpha-value>)",
+          foreground: "oklch(var(--warning-foreground) / <alpha-value>)",
         },
         destructive: {
-          DEFAULT: "oklch(0.55 0.2 20)",    // Red
-          foreground: "oklch(0.985 0 0)",
+          DEFAULT: "oklch(var(--destructive) / <alpha-value>)",
+          foreground: "oklch(var(--destructive-foreground) / <alpha-value>)",
         },
-        border: "oklch(0.922 0 0)",
+        border: "oklch(var(--border) / <alpha-value>)",
         card: {
-          DEFAULT: "oklch(1 0 0)",
-          foreground: "oklch(0.145 0 0)",
+          DEFAULT: "oklch(var(--card) / <alpha-value>)",
+          foreground: "oklch(var(--card-foreground) / <alpha-value>)",
         },
       },
       borderRadius: {

@@ -6,6 +6,8 @@ from pydantic import BaseModel
 class QuestListResponse(BaseModel):
     id: str
     title: str
+    skill_id: str
+    skill_name: str
     difficulty: str
     quest_type: str
     expected_deliverable: str
@@ -18,6 +20,7 @@ class QuestDetailResponse(BaseModel):
     title: str
     description: str | None = None
     skill_id: str
+    skill_name: str
     difficulty: str
     quest_type: str
     expected_deliverable: str

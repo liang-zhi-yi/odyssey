@@ -54,7 +54,7 @@ function useDarkMode() {
 }
 
 export function Navbar() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isDevMode } = useAuth();
   const pathname = usePathname();
   const { isDark, toggle } = useDarkMode();
 
@@ -67,12 +67,19 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* Logo */}
-        <Link
-          href="/"
-          className="text-lg font-bold tracking-tight text-primary transition-colors hover:opacity-80"
-        >
-          Odyssey
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="text-lg font-bold tracking-tight text-primary transition-colors hover:opacity-80"
+          >
+            Odyssey
+          </Link>
+          {isDevMode && (
+            <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-warning">
+              Dev
+            </span>
+          )}
+        </div>
 
         {isAuthenticated && (
           <>
@@ -150,6 +157,23 @@ export function Navbar() {
                 <span className="hidden text-sm text-muted-foreground lg:inline">
                   {user.username}
                 </span>
+              )}
+              {/* In dev mode, provide links to login/register for UI preview */}
+              {isDevMode && (
+                <>
+                  <Link
+                    href="/login"
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    Register
+                  </Link>
+                </>
               )}
               <button
                 onClick={logout}

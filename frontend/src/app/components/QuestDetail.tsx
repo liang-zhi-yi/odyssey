@@ -75,7 +75,7 @@ export function QuestDetail({
         </div>
         <div>
           <span className="text-muted-foreground">关联技能</span>
-          <p className="font-medium mt-0.5 font-mono text-xs">{quest.skill_id}</p>
+          <p className="font-medium mt-0.5">{quest.skill_name}</p>
         </div>
       </div>
 

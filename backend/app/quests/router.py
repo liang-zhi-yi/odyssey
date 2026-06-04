@@ -29,6 +29,8 @@ def list_quests(
         QuestListResponse(
             id=str(q.id),
             title=q.title,
+            skill_id=str(q.skill_id),
+            skill_name=q.skill.name,
             difficulty=q.difficulty.value,
             quest_type=q.quest_type.value,
             expected_deliverable=q.expected_deliverable.value,
@@ -46,6 +48,7 @@ def get_quest_detail(quest_id: str, db: Session = Depends(get_db)):
         title=q.title,
         description=q.description,
         skill_id=str(q.skill_id),
+        skill_name=q.skill.name,
         difficulty=q.difficulty.value,
         quest_type=q.quest_type.value,
         expected_deliverable=q.expected_deliverable.value,
