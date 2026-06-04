@@ -63,3 +63,44 @@ class BuildingStatus(str, enum.Enum):
     CONSTRUCTING = "CONSTRUCTING"  # Recently activated, building under construction
     STABLE = "STABLE"           # At current level, no recent change
     UPGRADING = "UPGRADING"     # Just upgraded, transient state
+
+
+class WorldEventType(str, enum.Enum):
+    """Types of world events for the event timeline."""
+    BUILDING_UPGRADE = "BUILDING_UPGRADE"       # Regular building level up
+    COMPOUND_UNLOCK = "COMPOUND_UNLOCK"         # Compound building unlocked
+    COMPOUND_UPGRADE = "COMPOUND_UPGRADE"       # Compound building level up
+    REGION_UNLOCK = "REGION_UNLOCK"             # New region unlocked (first building >= Lv.3)
+    TIER_ADVANCE = "TIER_ADVANCE"               # Civilization tier advanced
+    MILESTONE_REACHED = "MILESTONE_REACHED"     # Capability milestone achieved
+
+
+class CivilizationTier(str, enum.Enum):
+    """Civilization tiers with score thresholds.
+
+    Score formula: regular_building_levels + compound_building_levels × 2 + milestones_unlocked
+    """
+    SETTLER = "SETTLER"         # 0-4
+    VILLAGE = "VILLAGE"         # 5-9
+    TOWN = "TOWN"               # 10-14
+    CITY = "CITY"               # 15-19
+    METROPOLIS = "METROPOLIS"   # 20-24
+    CIVILIZATION = "CIVILIZATION"  # 25+
+
+
+# Tier lookup: (tier_enum, min_score, name_zh, name_en)
+TIER_RANGES: list[tuple[CivilizationTier, int, str, str]] = [
+    (CivilizationTier.SETTLER, 0, "定居者", "Settler"),
+    (CivilizationTier.VILLAGE, 5, "村落", "Village"),
+    (CivilizationTier.TOWN, 10, "城镇", "Town"),
+    (CivilizationTier.CITY, 15, "城市", "City"),
+    (CivilizationTier.METROPOLIS, 20, "大都会", "Metropolis"),
+    (CivilizationTier.CIVILIZATION, 25, "文明", "Civilization"),
+]
+
+
+class MilestoneCategory(str, enum.Enum):
+    """Categories for capability milestones."""
+    FOUNDATION = "FOUNDATION"   # Early game: first building, first upgrade
+    EXPANSION = "EXPANSION"     # Mid game: compound buildings, regions
+    MASTERY = "MASTERY"         # Late game: all buildings maxed

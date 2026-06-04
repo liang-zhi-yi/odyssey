@@ -7,7 +7,7 @@ Usage:
 """
 from sqlalchemy.orm import Session
 
-from app.seed import seed_skills, seed_paths, seed_path_skills, seed_quests, seed_credentials, seed_badges, seed_buildings
+from app.seed import seed_skills, seed_paths, seed_path_skills, seed_quests, seed_credentials, seed_badges, seed_buildings, seed_compound_buildings, seed_milestones
 
 
 def seed_all(db: Session) -> None:
@@ -26,6 +26,10 @@ def seed_all(db: Session) -> None:
     seed_badges.seed_badges(db)
     # 7. Building templates (depend on skills)
     seed_buildings.seed_buildings(db)
+    # 8. Compound building templates (Phase 4, no FK dependencies)
+    seed_compound_buildings.seed_compound_buildings(db)
+    # 9. Milestone definitions (Phase 4, no FK dependencies)
+    seed_milestones.seed_milestones(db)
 
 
 __all__ = ["seed_all"]

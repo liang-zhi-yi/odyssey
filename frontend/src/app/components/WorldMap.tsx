@@ -1,12 +1,14 @@
 "use client";
 
 import { BuildingTile } from "./BuildingTile";
-import type { UserBuilding } from "@/types/world";
+import { CompoundBuildingTile } from "./CompoundBuildingTile";
+import type { UserBuilding, UserCompoundBuilding } from "@/types/world";
 
 interface WorldMapProps {
   buildings: UserBuilding[];
+  compoundBuildings?: UserCompoundBuilding[];
   selectedBuildingId?: string;
-  onSelectBuilding: (building: UserBuilding) => void;
+  onSelectBuilding: (building: UserBuilding | UserCompoundBuilding) => void;
 }
 
 /**
@@ -21,16 +23,17 @@ interface WorldMapProps {
  */
 export function WorldMap({
   buildings,
+  compoundBuildings = [],
   selectedBuildingId,
   onSelectBuilding,
 }: WorldMapProps) {
-  const TILE_W = 130; // Tile width in px (horizontal span)
-  const TILE_H = 70;  // Tile height in px (vertical span)
+  const TILE_W = 130;
+  const TILE_H = 70;
 
-  // Calculate map bounds to center the grid
   let minX = Infinity, maxX = -Infinity;
   let minY = Infinity, maxY = -Infinity;
 
+  // Compute positions for regular buildings
   const positions = buildings.map((b) => {
     const gx = b.template?.position_x ?? 0;
     const gy = b.template?.position_y ?? 0;
@@ -40,15 +43,30 @@ export function WorldMap({
     if (sx > maxX) maxX = sx;
     if (sy < minY) minY = sy;
     if (sy > maxY) maxY = sy;
-    return { building: b, sx, sy };
+    return { building: b, sx, sy, isCompound: false };
   });
 
-  const mapWidth = maxX - minX + TILE_W + 40;
-  const mapHeight = maxY - minY + TILE_H + 40;
-  const offsetX = -minX + TILE_W / 2 + 20;
-  const offsetY = -minY + TILE_H / 2 + 20;
+  // Compute positions for compound buildings
+  const compoundPositions = compoundBuildings.map((cb) => {
+    const gx = cb.template?.position_x ?? 0;
+    const gy = cb.template?.position_y ?? 0;
+    const sx = (gx - gy) * (TILE_W / 2);
+    const sy = (gx + gy) * (TILE_H / 2);
+    if (sx < minX) minX = sx;
+    if (sx > maxX) maxX = sx;
+    if (sy < minY) minY = sy;
+    if (sy > maxY) maxY = sy;
+    return { building: cb, sx, sy, isCompound: true };
+  });
 
-  if (buildings.length === 0) {
+  const allPositions = [...positions, ...compoundPositions];
+
+  const mapWidth = maxX - minX + TILE_W + 60;
+  const mapHeight = maxY - minY + TILE_H + 60;
+  const offsetX = -minX + TILE_W / 2 + 30;
+  const offsetY = -minY + TILE_H / 2 + 30;
+
+  if (buildings.length === 0 && compoundBuildings.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 rounded-xl border border-dashed border-border bg-muted/20">
         <p className="text-sm text-muted-foreground">No buildings yet</p>
@@ -72,15 +90,15 @@ export function WorldMap({
           height={mapHeight}
         >
           {/* Connection lines between buildings */}
-          {positions.map((pos, i) => {
-            // Draw lines to nearby buildings for visual connection
+          {allPositions.map((pos, i) => {
             const lines: React.ReactNode[] = [];
-            for (let j = i + 1; j < positions.length; j++) {
-              const other = positions[j];
+            for (let j = i + 1; j < allPositions.length; j++) {
+              const other = allPositions[j];
               const dx = (pos.sx + offsetX) - (other.sx + offsetX);
               const dy = (pos.sy + offsetY) - (other.sy + offsetY);
               const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 200) {
+              if (dist < 250) {
+                const isCompoundLine = pos.isCompound || other.isCompound;
                 lines.push(
                   <line
                     key={`${i}-${j}`}
@@ -88,9 +106,9 @@ export function WorldMap({
                     y1={pos.sy + offsetY}
                     x2={other.sx + offsetX}
                     y2={other.sy + offsetY}
-                    stroke="currentColor"
-                    strokeOpacity={0.08}
-                    strokeWidth={1.5}
+                    stroke={isCompoundLine ? "#f59e0b" : "currentColor"}
+                    strokeOpacity={isCompoundLine ? 0.2 : 0.08}
+                    strokeWidth={isCompoundLine ? 2 : 1.5}
                     strokeDasharray="4 4"
                   />
                 );
@@ -101,7 +119,7 @@ export function WorldMap({
         </svg>
 
         {/* Building tiles */}
-        {positions.map(({ building, sx, sy }) => (
+        {allPositions.map(({ building, sx, sy, isCompound }) => (
           <div
             key={building.id}
             className="absolute transition-all duration-300"
@@ -111,11 +129,19 @@ export function WorldMap({
               transform: "translate(-50%, -50%)",
             }}
           >
-            <BuildingTile
-              building={building}
-              isSelected={selectedBuildingId === building.id}
-              onClick={() => onSelectBuilding(building)}
-            />
+            {isCompound ? (
+              <CompoundBuildingTile
+                building={building as UserCompoundBuilding}
+                isSelected={selectedBuildingId === building.id}
+                onClick={() => onSelectBuilding(building as UserCompoundBuilding)}
+              />
+            ) : (
+              <BuildingTile
+                building={building as UserBuilding}
+                isSelected={selectedBuildingId === building.id}
+                onClick={() => onSelectBuilding(building)}
+              />
+            )}
           </div>
         ))}
       </div>

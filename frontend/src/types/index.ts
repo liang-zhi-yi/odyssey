@@ -82,5 +82,23 @@ export type {
   BuildingTemplate,
   BuildingDetail,
   BuildingStatus,
+  BuildingType,
+  WorldEventType,
+  CivilizationTierValue,
+  MilestoneCategory,
+  CompoundBuildingTemplate,
+  UserCompoundBuilding,
+  SourceSkillScore,
+  CompoundBuildingDetail,
+  WorldEvent,
+  MilestoneDefinition,
+  UserMilestone,
+  TechTreeNode,
+  TechTreeData,
 } from "./world";
-export { LEVEL_LABELS, BUILDING_STATUS_LABELS } from "./world";
+export {
+  LEVEL_LABELS,
+  BUILDING_STATUS_LABELS,
+  CIVILIZATION_TIER_LABELS,
+  EVENT_TYPE_LABELS,
+} from "./world";

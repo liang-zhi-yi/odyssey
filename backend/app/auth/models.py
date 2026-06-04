@@ -77,6 +77,15 @@ class User(Base):
     world: Mapped["World | None"] = relationship(
         "World", back_populates="user", uselist=False, lazy="selectin"
     )
+    user_compound_buildings: Mapped[list["UserCompoundBuilding"]] = relationship(
+        "UserCompoundBuilding", back_populates="user", lazy="selectin"
+    )
+    world_events: Mapped[list["WorldEvent"]] = relationship(
+        "WorldEvent", back_populates="user", lazy="selectin"
+    )
+    user_milestones: Mapped[list["UserMilestone"]] = relationship(
+        "UserMilestone", back_populates="user", lazy="selectin"
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
