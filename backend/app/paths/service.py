@@ -2,10 +2,10 @@
 
 from uuid import UUID
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
-from app.paths.models import Path, UserPath
-from app.skills.models import UserSkill
+from app.paths.models import Path, PathSkill, UserPath
+from app.skills.models import Skill, UserSkill
 from app.core.enums import UserPathStatus
 from app.core.exceptions import ConflictException, NotFoundException
 
@@ -36,6 +36,78 @@ def get_active_user_path(db: Session, user_id: str) -> dict | None:
     }
 
 
+def get_path_nodes(db: Session, path_id: str) -> dict | None:
+    """Return a path with all its skill nodes (stages) in order."""
+    path = (
+        db.query(Path)
+        .options(joinedload(Path.path_skills).joinedload(PathSkill.skill))
+        .filter(Path.id == path_id)
+        .first()
+    )
+    if path is None:
+        raise NotFoundException("Path", path_id)
+
+    nodes = []
+    for ps in sorted(path.path_skills, key=lambda x: x.stage_order):
+        nodes.append({
+            "stage_order": ps.stage_order,
+            "skill_id": str(ps.skill_id),
+            "skill_name": ps.skill.name,
+            "skill_description": ps.skill.description,
+            "required_score": ps.required_score,
+        })
+
+    return {
+        "path_id": str(path.id),
+        "path_name": path.name,
+        "path_description": path.description,
+        "nodes": nodes,
+    }
+
+
+def get_next_path_node(db: Session, user_id: str) -> dict | None:
+    """Return the first incomplete path node for the user, or None if all done."""
+    up_row = (
+        db.query(UserPath)
+        .filter(UserPath.user_id == user_id, UserPath.status == UserPathStatus.ACTIVE)
+        .first()
+    )
+    if up_row is None:
+        return None
+
+    # Get all path skills in order
+    path_skills = (
+        db.query(PathSkill)
+        .options(joinedload(PathSkill.skill))
+        .filter(PathSkill.path_id == up_row.path_id)
+        .order_by(PathSkill.stage_order)
+        .all()
+    )
+
+    for ps in path_skills:
+        us = (
+            db.query(UserSkill)
+            .filter(
+                UserSkill.user_id == user_id,
+                UserSkill.skill_id == ps.skill_id,
+            )
+            .first()
+        )
+        current_score = us.overall_score if us else 0
+        if current_score < ps.required_score:
+            return {
+                "stage_order": ps.stage_order,
+                "skill_id": str(ps.skill_id),
+                "skill_name": ps.skill.name,
+                "skill_description": ps.skill.description,
+                "required_score": ps.required_score,
+                "current_score": current_score,
+                "path_id": str(up_row.path_id),
+            }
+
+    return None  # All nodes complete
+
+
 def select_path(db: Session, user_id: str, path_id: str) -> UserPath:
     """Assign a path to the user. MVP: only one ACTIVE path is allowed."""
     # Validate path exists
@@ -64,8 +136,6 @@ def select_path(db: Session, user_id: str, path_id: str) -> UserPath:
 
 def _compute_path_progress(db: Session, user_id: str, path_id: str) -> int:
     """Return the average overall_score across skills linked to this path."""
-    from app.paths.models import PathSkill
-
     skill_id_rows = (
         db.query(PathSkill.skill_id)
         .filter(PathSkill.path_id == path_id)

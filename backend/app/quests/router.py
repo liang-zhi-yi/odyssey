@@ -10,6 +10,7 @@ from app.quests.schemas import (
     UserQuestResponse,
 )
 from app.quests import service
+from app.paths import service as path_service
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.auth.models import User
@@ -25,6 +26,57 @@ def list_quests(
 ):
     """Return quests, optionally filtered by skill or difficulty."""
     quests = service.get_quests(db, skill_id=skill_id, difficulty=difficulty)
+    return [
+        QuestListResponse(
+            id=str(q.id),
+            title=q.title,
+            skill_id=str(q.skill_id),
+            skill_name=q.skill.name,
+            difficulty=q.difficulty.value,
+            quest_type=q.quest_type.value,
+            expected_deliverable=q.expected_deliverable.value,
+        )
+        for q in quests
+    ]
+
+
+@router.get("/quests/recommended", response_model=list[QuestListResponse])
+def list_recommended_quests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return daily recommended quests — not yet accepted by the user."""
+    quests = service.get_recommended_quests(db, str(current_user.id))
+    return [
+        QuestListResponse(
+            id=str(q.id),
+            title=q.title,
+            skill_id=str(q.skill_id),
+            skill_name=q.skill.name,
+            difficulty=q.difficulty.value,
+            quest_type=q.quest_type.value,
+            expected_deliverable=q.expected_deliverable.value,
+        )
+        for q in quests
+    ]
+
+
+@router.get("/quests/path-node", response_model=list[QuestListResponse])
+def list_path_node_quests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return quests for the user's current path node (first incomplete skill stage).
+
+    If the user has no active path, returns an empty list.
+    If the user has completed all path nodes, returns quests for the final node.
+    """
+    next_node = path_service.get_next_path_node(db, str(current_user.id))
+
+    if next_node is None:
+        return []
+
+    quests = service.get_quests_by_skill(db, next_node["skill_id"])
     return [
         QuestListResponse(
             id=str(q.id),

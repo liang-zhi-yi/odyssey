@@ -35,4 +35,14 @@ export const questService = {
   listUserQuests(): Promise<UserQuest[]> {
     return api.get<UserQuest[]>("/user-quests");
   },
+
+  /** Get daily recommended quests (not yet accepted) */
+  listRecommendedQuests(): Promise<QuestListItem[]> {
+    return api.get<QuestListItem[]>("/quests/recommended");
+  },
+
+  /** Get quests for the user's current path node */
+  listPathNodeQuests(): Promise<QuestListItem[]> {
+    return api.get<QuestListItem[]>("/quests/path-node");
+  },
 };

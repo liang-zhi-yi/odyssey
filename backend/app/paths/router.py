@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.paths.schemas import (
     PathResponse,
+    PathNodesResponse,
+    PathSkillNode,
     SelectPathRequest,
     SelectPathResponse,
     UserPathResponse,
@@ -31,6 +33,18 @@ def list_paths(db: Session = Depends(get_db)):
         )
         for p in paths
     ]
+
+
+@router.get("/paths/{path_id}/nodes", response_model=PathNodesResponse)
+def get_path_nodes(path_id: str, db: Session = Depends(get_db)):
+    """Return a path's detailed node structure — each node is a skill stage."""
+    result = service.get_path_nodes(db, path_id)
+    return PathNodesResponse(
+        path_id=result["path_id"],
+        path_name=result["path_name"],
+        path_description=result["path_description"],
+        nodes=[PathSkillNode(**n) for n in result["nodes"]],
+    )
 
 
 @router.post("/user-paths", response_model=SelectPathResponse, status_code=201)

@@ -3,6 +3,7 @@
 import { api } from "@/lib/api";
 import type {
   GrowthPath,
+  PathNodes,
   SelectPathRequest,
   SelectPathResponse,
   UserPath,
@@ -12,6 +13,11 @@ export const pathService = {
   /** Get all available growth paths */
   listPaths(): Promise<GrowthPath[]> {
     return api.get<GrowthPath[]>("/paths");
+  },
+
+  /** Get detailed node structure of a path (stages with skills) */
+  getPathNodes(pathId: string): Promise<PathNodes> {
+    return api.get<PathNodes>(`/paths/${pathId}/nodes`);
   },
 
   /** Select (activate) a growth path */

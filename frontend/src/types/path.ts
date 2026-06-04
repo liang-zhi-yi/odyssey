@@ -21,3 +21,31 @@ export interface UserPath {
   name: string;
   progress: number;
 }
+
+/** A single skill node (stage) within a growth path */
+export interface PathSkillNode {
+  stage_order: number;
+  skill_id: string;
+  skill_name: string;
+  skill_description: string | null;
+  required_score: number;
+}
+
+/** Full path breakdown with all nodes */
+export interface PathNodes {
+  path_id: string;
+  path_name: string;
+  path_description: string | null;
+  nodes: PathSkillNode[];
+}
+
+/** Current path node info (for quest push) */
+export interface NextPathNode {
+  stage_order: number;
+  skill_id: string;
+  skill_name: string;
+  skill_description: string | null;
+  required_score: number;
+  current_score: number;
+  path_id: string;
+}

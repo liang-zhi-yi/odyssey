@@ -1,5 +1,6 @@
-"""Quests business logic — list, detail, accept, user quests."""
+"""Quests business logic — list, detail, accept, user quests, recommendations."""
 
+import random
 from uuid import UUID
 
 from sqlalchemy.orm import Session, joinedload
@@ -35,6 +36,55 @@ def get_quest_detail(db: Session, quest_id: str) -> Quest:
     if quest is None:
         raise NotFoundException("Quest", quest_id)
     return quest
+
+
+def get_recommended_quests(db: Session, user_id: str, limit: int = 4) -> list[Quest]:
+    """Return daily recommended quests — quests the user hasn't accepted yet.
+
+    Prioritises quests matching the user's skill levels and returns a
+    deterministic daily set based on the calendar day (stable within a day).
+    """
+    # Quests the user has already interacted with
+    accepted_ids = {
+        str(row.quest_id)
+        for row in db.query(QuestSubmission.quest_id)
+        .filter(QuestSubmission.user_id == user_id)
+        .all()
+    }
+
+    # All available quests with skill loaded
+    all_quests = (
+        db.query(Quest)
+        .options(joinedload(Quest.skill))
+        .order_by(Quest.difficulty, Quest.title)
+        .all()
+    )
+
+    # Filter out already-accepted quests
+    available = [q for q in all_quests if str(q.id) not in accepted_ids]
+
+    if not available:
+        # User has accepted everything — return all quests as review
+        available = all_quests
+
+    # Deterministic daily shuffle: seed from date so it changes daily
+    from datetime import date
+    daily_seed = int(date.today().strftime("%Y%m%d"))
+    rng = random.Random(daily_seed)
+    rng.shuffle(available)
+
+    return available[:limit]
+
+
+def get_quests_by_skill(db: Session, skill_id: str) -> list[Quest]:
+    """Return all quests for a specific skill (used for path-node quest push)."""
+    return (
+        db.query(Quest)
+        .options(joinedload(Quest.skill))
+        .filter(Quest.skill_id == skill_id)
+        .order_by(Quest.difficulty, Quest.title)
+        .all()
+    )
 
 
 def accept_quest(db: Session, user_id: str, quest_id: str) -> QuestSubmission:

@@ -170,13 +170,13 @@ export function Navbar() {
               href="/login"
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              Sign In
+              登录
             </Link>
             <Link
               href="/register"
               className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
             >
-              Get Started
+              注册
             </Link>
           </div>
         )}
