@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Override DATABASE_URL early, before any app imports
 os.environ.setdefault(
     "DATABASE_URL",
-    "postgresql+psycopg2://postgres:postgres@host.docker.internal:5432/odyssey",
+    "postgresql+psycopg2://postgres:postgres@localhost:5432/odyssey",
 )
 
 # Import app.models FIRST so ALL ORM models are registered before any query

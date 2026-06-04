@@ -14,6 +14,15 @@ import type { User } from "@/types/user";
 import type { LoginRequest, RegisterRequest } from "@/types/auth";
 import { ApiRequestError } from "@/lib/api";
 
+/** Dev-only mock user for previewing without a running backend */
+const DEV_USER: User = {
+  id: "dev-user-001",
+  username: "dev-preview",
+  email: "dev@odyssey.local",
+  avatar_url: null,
+  bio: "Dev preview mode — backend not connected",
+};
+
 interface AuthState {
   user: User | null;
   isLoading: boolean;
@@ -26,20 +35,28 @@ interface AuthContextValue extends AuthState {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  /** Whether dev auth bypass is active */
+  isDevMode: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const SKIP_AUTH =
+  typeof process !== "undefined" &&
+  process.env.NEXT_PUBLIC_SKIP_AUTH === "true";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
-    user: null,
-    isLoading: true,
-    isAuthenticated: false,
+    user: SKIP_AUTH ? DEV_USER : null,
+    isLoading: !SKIP_AUTH,
+    isAuthenticated: SKIP_AUTH,
     error: null,
   });
 
   // On mount, check if we have a valid token and fetch user
   useEffect(() => {
+    if (SKIP_AUTH) return; // dev bypass — already set in initial state
+
     const token = getToken();
     if (!token) {
       setState((s) => ({ ...s, isLoading: false }));
@@ -97,7 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearAuth();
-    setState({ user: null, isLoading: false, isAuthenticated: false, error: null });
+    if (SKIP_AUTH) {
+      // In dev mode, just reset to dev user
+      setState({ user: DEV_USER, isLoading: false, isAuthenticated: true, error: null });
+    } else {
+      setState({ user: null, isLoading: false, isAuthenticated: false, error: null });
+    }
   }, []);
 
   const clearError = useCallback(() => {
@@ -106,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, register, logout, clearError }}
+      value={{ ...state, login, register, logout, clearError, isDevMode: SKIP_AUTH }}
     >
       {children}
     </AuthContext.Provider>

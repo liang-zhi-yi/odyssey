@@ -1,30 +1,146 @@
 """
 LLM client for the Odyssey assessment engine.
 
-Wraps the OpenAI SDK with structured JSON output enforcement,
-consistent temperature=0, and configurable timeout.
+Supports multiple LLM providers via OpenAI-compatible APIs:
+  - OpenAI (native structured output)
+  - DeepSeek, Bailian (Qwen), Zhipu (GLM), Moonshot (Kimi)
+  - OpenRouter (multi-provider proxy)
+  - Custom OpenAI-compatible endpoints
+
+Response format strategy (auto-selected per provider):
+  1. json_schema (strict) — OpenAI native, most reliable
+  2. json_object          — widely supported fallback
+  3. plain-text + JSON extraction — last resort for non-OpenAI APIs
+
+Architecture:
+  config.py  →  providers.py  →  llm.py  →  assessment engine
+  (env vars)    (presets)        (client)    (evaluate_submission)
 """
 import json
 import logging
+import re
 
 from openai import OpenAI
 
 from app.config import settings
+from app.core.providers import (
+    resolve_provider,
+    get_effective_base_url,
+    get_effective_model,
+)
 
 logger = logging.getLogger(__name__)
 
+# ── JSON instruction injected for providers without json_schema ─────────
+
+_JSON_INSTRUCTION = (
+    "\n\n---\n\n"
+    "## ⚠️ 输出要求\n\n"
+    "你必须**只输出一个合法的 JSON 对象**，不能包含任何其他文字、注释、"
+    "Markdown 代码块标记（如 ```json```）或解释。\n"
+    "直接以 `{` 开始，以 `}` 结束。"
+)
+
+# Regex to find a JSON object when the model wraps it in text
+_JSON_BLOCK_RE = re.compile(r"\{[\s\S]*\}")
+
 
 class LLMClientError(Exception):
-    """Raised when the LLM call fails (timeout, API error, etc.)."""
+    """Raised when the LLM call fails (timeout, API error, invalid JSON, etc.)."""
+
+
+# ── Scoring output schema (reused across all provider modes) ────────────
+
+_SCORING_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "knowledge": {
+            "type": "object",
+            "properties": {
+                "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                "justification": {"type": "string"},
+            },
+            "required": ["score", "justification"],
+            "additionalProperties": False,
+        },
+        "reasoning": {
+            "type": "object",
+            "properties": {
+                "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                "justification": {"type": "string"},
+            },
+            "required": ["score", "justification"],
+            "additionalProperties": False,
+        },
+        "application": {
+            "type": "object",
+            "properties": {
+                "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                "justification": {"type": "string"},
+            },
+            "required": ["score", "justification"],
+            "additionalProperties": False,
+        },
+        "creation": {
+            "type": "object",
+            "properties": {
+                "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                "justification": {"type": "string"},
+            },
+            "required": ["score", "justification"],
+            "additionalProperties": False,
+        },
+    },
+    "required": ["knowledge", "reasoning", "application", "creation"],
+    "additionalProperties": False,
+}
+
+
+# ── Client factory ──────────────────────────────────────────────────────
 
 
 def _get_client() -> OpenAI:
-    """Create an OpenAI client (lazy — doesn't require API key at import time)."""
+    """Create an OpenAI client configured for the current provider.
+
+    Uses the effective base URL (provider preset or LLM_BASE_URL override).
+    Raises LLMClientError if LLM_API_KEY is not set.
+    """
     if not settings.llm_api_key:
         raise LLMClientError(
-            "LLM_API_KEY is not configured. Set it in .env or environment."
+            "LLM_API_KEY is not configured. Set it in backend/.env or as an "
+            "environment variable. Get a key from your chosen provider "
+            f"(LLM_PROVIDER={settings.llm_provider})."
         )
-    return OpenAI(api_key=settings.llm_api_key)
+
+    kwargs: dict = {"api_key": settings.llm_api_key}
+
+    base_url = get_effective_base_url(settings.llm_provider, settings.llm_base_url)
+    if base_url:
+        kwargs["base_url"] = base_url
+
+    return OpenAI(**kwargs)
+
+
+def _check_provider_compatibility() -> None:
+    """Raise LLMClientError if the selected provider is not OpenAI-compatible.
+
+    Currently only Anthropic's native API is flagged as incompatible.
+    The error message includes actionable advice (use OpenRouter instead).
+    """
+    provider = resolve_provider(settings.llm_provider)
+    if not provider.is_openai_compatible:
+        raise LLMClientError(
+            f"Provider '{provider.name}' ({settings.llm_provider}) is NOT "
+            f"OpenAI-compatible and cannot be used directly.\n\n"
+            f"To use Claude models, set LLM_PROVIDER=openrouter and "
+            f"LLM_MODEL=anthropic/claude-sonnet-4-6 (or another Claude model).\n"
+            f"Get a key at https://openrouter.ai/keys\n\n"
+            f"Alternatively, use a LiteLLM proxy or any OpenAI-compatible "
+            f"endpoint that wraps Claude."
+        )
+
+
+# ── Main evaluation entry point ─────────────────────────────────────────
 
 
 def evaluate_submission(
@@ -37,121 +153,137 @@ def evaluate_submission(
 ) -> dict:
     """Call the LLM for assessment with structured JSON output.
 
-    The response MUST conform to the LLMScoreOutput schema:
+    Automatically adapts the response_format based on provider capabilities:
+      - OpenAI  → json_schema (strict) ← most reliable
+      - DeepSeek / Bailian / Zhipu / Moonshot → json_object
+      - Custom   → json_object (with JSON instruction injection)
+
+    The response MUST conform to:
       {
-        "knowledge":           { "score": 0-100, "justification": "..." },
-        "reasoning":           { "score": 0-100, "justification": "..." },
-        "application":         { "score": 0-100, "justification": "..." },
-        "creation":            { "score": 0-100, "justification": "..." }
+        "knowledge":   { "score": 0-100, "justification": "..." },
+        "reasoning":   { "score": 0-100, "justification": "..." },
+        "application": { "score": 0-100, "justification": "..." },
+        "creation":    { "score": 0-100, "justification": "..." }
       }
 
     Returns the parsed dict on success.
     Raises LLMClientError on any failure (timeout, API error, invalid JSON).
     """
+    _check_provider_compatibility()
+
     client = _get_client()
-    used_model = model or settings.llm_model
-    used_temperature = temperature if temperature is not None else settings.llm_temperature
+    provider = resolve_provider(settings.llm_provider)
+    used_model = model or get_effective_model(settings.llm_provider, settings.llm_model)
+    used_temperature = (
+        temperature if temperature is not None else settings.llm_temperature
+    )
     used_timeout = timeout or settings.llm_timeout_seconds
 
+    # Build messages — inject JSON instruction if provider doesn't enforce it
+    effective_system = system_prompt
+    if not provider.supports_json_schema:
+        effective_system = system_prompt + _JSON_INSTRUCTION
+
+    messages = [
+        {"role": "system", "content": effective_system},
+        {"role": "user", "content": user_content},
+    ]
+
+    # Build create() kwargs with appropriate response_format
+    create_kwargs: dict = {
+        "model": used_model,
+        "temperature": used_temperature,
+        "timeout": used_timeout,
+        "messages": messages,
+    }
+
+    if provider.supports_json_schema:
+        create_kwargs["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "assessment_output",
+                "strict": True,
+                "schema": _SCORING_JSON_SCHEMA,
+            },
+        }
+    elif provider.supports_json_object:
+        create_kwargs["response_format"] = {"type": "json_object"}
+
     logger.info(
-        "Calling LLM — model=%s, temperature=%s, timeout=%ds",
+        "Calling LLM — provider=%s model=%s temperature=%s timeout=%ds "
+        "base_url=%s json_mode=%s",
+        settings.llm_provider,
         used_model,
         used_temperature,
         used_timeout,
+        get_effective_base_url(settings.llm_provider, settings.llm_base_url) or "(default)",
+        "json_schema" if provider.supports_json_schema else (
+            "json_object" if provider.supports_json_object else "text"
+        ),
     )
 
     try:
-        response = client.chat.completions.create(
-            model=used_model,
-            temperature=used_temperature,
-            timeout=used_timeout,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "assessment_output",
-                    "strict": True,
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "knowledge": {
-                                "type": "object",
-                                "properties": {
-                                    "score": {
-                                        "type": "integer",
-                                        "minimum": 0,
-                                        "maximum": 100,
-                                    },
-                                    "justification": {"type": "string"},
-                                },
-                                "required": ["score", "justification"],
-                                "additionalProperties": False,
-                            },
-                            "reasoning": {
-                                "type": "object",
-                                "properties": {
-                                    "score": {
-                                        "type": "integer",
-                                        "minimum": 0,
-                                        "maximum": 100,
-                                    },
-                                    "justification": {"type": "string"},
-                                },
-                                "required": ["score", "justification"],
-                                "additionalProperties": False,
-                            },
-                            "application": {
-                                "type": "object",
-                                "properties": {
-                                    "score": {
-                                        "type": "integer",
-                                        "minimum": 0,
-                                        "maximum": 100,
-                                    },
-                                    "justification": {"type": "string"},
-                                },
-                                "required": ["score", "justification"],
-                                "additionalProperties": False,
-                            },
-                            "creation": {
-                                "type": "object",
-                                "properties": {
-                                    "score": {
-                                        "type": "integer",
-                                        "minimum": 0,
-                                        "maximum": 100,
-                                    },
-                                    "justification": {"type": "string"},
-                                },
-                                "required": ["score", "justification"],
-                                "additionalProperties": False,
-                            },
-                        },
-                        "required": [
-                            "knowledge",
-                            "reasoning",
-                            "application",
-                            "creation",
-                        ],
-                        "additionalProperties": False,
-                    },
-                },
-            },
-        )
-
-        content = response.choices[0].message.content
-        if content is None:
-            raise LLMClientError("LLM returned empty response")
-
-        result = json.loads(content)
-        logger.info("LLM returned valid assessment: %s", result)
-        return result
-
-    except LLMClientError:
-        raise
+        response = client.chat.completions.create(**create_kwargs)
     except Exception as exc:
         logger.error("LLM call failed: %s", exc)
-        raise LLMClientError(str(exc)) from exc
+        raise LLMClientError(
+            f"LLM API call failed for provider '{settings.llm_provider}': {exc}"
+        ) from exc
+
+    content = response.choices[0].message.content
+    if content is None:
+        raise LLMClientError("LLM returned empty response")
+
+    # Parse JSON — with fallback extraction for non-schema modes
+    result = _parse_json_response(content)
+
+    logger.info(
+        "LLM returned valid assessment — provider=%s model=%s",
+        settings.llm_provider,
+        used_model,
+    )
+    return result
+
+
+# ── JSON parsing helpers ─────────────────────────────────────────────────
+
+
+def _parse_json_response(content: str) -> dict:
+    """Parse JSON from LLM response, with progressive fallback.
+
+    1. Direct parse (works for json_schema / json_object modes)
+    2. Strip Markdown code fences and retry
+    3. Regex extraction of first JSON object
+    """
+    # Attempt 1: direct parse
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        pass
+
+    # Attempt 2: strip ```json ... ``` fences
+    stripped = content.strip()
+    if stripped.startswith("```"):
+        # Remove opening fence line
+        stripped = re.sub(r"^```\w*\s*", "", stripped)
+        # Remove closing fence
+        stripped = re.sub(r"\s*```$", "", stripped)
+        try:
+            return json.loads(stripped.strip())
+        except json.JSONDecodeError:
+            pass
+
+    # Attempt 3: regex — find the first { ... } block
+    match = _JSON_BLOCK_RE.search(content)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+
+    # All attempts failed
+    raise LLMClientError(
+        f"LLM response could not be parsed as JSON. "
+        f"Provider: {settings.llm_provider}. "
+        f"Raw response (first 500 chars): {content[:500]}"
+    )
