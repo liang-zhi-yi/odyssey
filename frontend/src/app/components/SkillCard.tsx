@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { UserSkill } from "@/types/skill";
 import { RANK_LABELS } from "@/types/skill";
+import { useLocale } from "@/hooks/useLocale";
 
 interface SkillCardProps {
   skill: UserSkill;
@@ -13,11 +14,13 @@ interface SkillCardProps {
  * Links to the skill detail page.
  */
 export function SkillCard({ skill }: SkillCardProps) {
+  const { t } = useLocale();
+
   const dimensions = [
-    { key: "knowledge", label: "知识", value: skill.knowledge },
-    { key: "reasoning", label: "推理", value: skill.reasoning },
-    { key: "application", label: "应用", value: skill.application },
-    { key: "creation", label: "创造", value: skill.creation },
+    { key: "knowledge", value: skill.knowledge },
+    { key: "reasoning", value: skill.reasoning },
+    { key: "application", value: skill.application },
+    { key: "creation", value: skill.creation },
   ];
 
   return (
@@ -32,7 +35,7 @@ export function SkillCard({ skill }: SkillCardProps) {
           </h4>
         </div>
         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-          {RANK_LABELS[skill.rank] || skill.rank}
+          {t(`skills.rank.${skill.rank}`) || RANK_LABELS[skill.rank] || skill.rank}
         </span>
       </div>
 
@@ -40,7 +43,7 @@ export function SkillCard({ skill }: SkillCardProps) {
       <div className="space-y-1.5">
         {dimensions.map((d) => (
           <div key={d.key} className="flex items-center gap-1.5 text-xs">
-            <span className="w-8 shrink-0 text-muted-foreground">{d.label}</span>
+            <span className="w-8 shrink-0 text-muted-foreground">{t(`skills.dimensions.${d.key}`)}</span>
             <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all"
@@ -56,7 +59,7 @@ export function SkillCard({ skill }: SkillCardProps) {
 
       {/* Overall */}
       <div className="mt-3 flex items-center gap-2 border-t border-border pt-2">
-        <span className="text-xs text-muted-foreground">综合</span>
+        <span className="text-xs text-muted-foreground">{t("skills.overall")}</span>
         <span className="text-lg font-bold text-primary tabular-nums">{skill.overall}</span>
       </div>
     </Link>

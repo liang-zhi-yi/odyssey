@@ -1,6 +1,6 @@
 /** Barrel export — all types */
 
-export type { User } from "./user";
+export type { User, UpdateProfileRequest, ChangePasswordRequest } from "./user";
 
 export type {
   RegisterRequest,
@@ -35,6 +35,7 @@ export type {
   SubmitRequest,
   SubmitResponse,
   SubmissionDetail,
+  SubmissionHistoryItem,
 } from "./submission";
 
 export type {
@@ -68,3 +69,5 @@ export type {
   SelectPathResponse,
   UserPath,
 } from "./path";
+
+export type { UserSettings, UpdateSettingsRequest } from "./settings";

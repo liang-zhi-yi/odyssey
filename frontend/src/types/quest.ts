@@ -33,6 +33,8 @@ export interface UserQuest {
   quest_id: string;
   quest_title: string;
   status: SubmissionStatus;
+  latest_submission_id: string | null;
+  submission_count: number;
 }
 
 /** Submission status matching backend SubmissionStatus enum */
@@ -42,7 +44,8 @@ export type SubmissionStatus =
   | "SUBMITTED"
   | "ASSESSING"
   | "PASSED"
-  | "FAILED";
+  | "FAILED"
+  | "ABANDONED";
 
 export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   ACCEPTED: "已接受",
@@ -51,6 +54,7 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   ASSESSING: "评估中",
   PASSED: "已通过",
   FAILED: "未通过",
+  ABANDONED: "已放弃",
 };
 
 export const DIFFICULTY_LABELS: Record<QuestDifficulty, string> = {

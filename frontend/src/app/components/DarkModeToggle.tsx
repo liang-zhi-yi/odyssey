@@ -1,17 +1,21 @@
 "use client";
 
+import { useLocale } from "@/hooks/useLocale";
+
 interface DarkModeToggleProps {
   isDark: boolean;
   onToggle: () => void;
 }
 
 export function DarkModeToggle({ isDark, onToggle }: DarkModeToggleProps) {
+  const { t } = useLocale();
+
   return (
     <button
       onClick={onToggle}
       className="rounded-lg p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
-      aria-label={isDark ? "切换亮色模式" : "切换暗色模式"}
-      title={isDark ? "切换亮色模式" : "切换暗色模式"}
+      aria-label={isDark ? t("common.lightMode") : t("common.darkMode")}
+      title={isDark ? t("common.lightMode") : t("common.darkMode")}
     >
       {isDark ? (
         /* Sun icon */

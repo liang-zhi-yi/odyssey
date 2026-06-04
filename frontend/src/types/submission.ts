@@ -22,3 +22,12 @@ export interface SubmissionDetail {
   demo_url: string | null;
   status: SubmissionStatus;
 }
+
+export interface SubmissionHistoryItem {
+  submission_id: string;
+  quest_id: string;
+  quest_title: string;
+  status: string;
+  content_preview: string | null;
+  submitted_at: string | null;
+}

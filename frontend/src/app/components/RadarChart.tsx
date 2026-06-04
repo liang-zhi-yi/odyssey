@@ -1,6 +1,7 @@
 "use client";
 
 import { DIMENSION_LABELS, type DimensionScores } from "@/types/assessment";
+import { useLocale } from "@/hooks/useLocale";
 
 interface RadarChartProps {
   scores: DimensionScores;
@@ -22,6 +23,7 @@ const DIMENSIONS: (keyof DimensionScores)[] = [
  * Features animated polygon fill-in and staggered data-point reveal.
  */
 export function RadarChart({ scores, size = 200, showLabels = true }: RadarChartProps) {
+  const { t } = useLocale();
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.38;
@@ -149,7 +151,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
               dominantBaseline="middle"
               className="fill-foreground text-[11px] font-medium"
             >
-              {DIMENSION_LABELS[dim]}
+              {t(`skills.dimensions.${dim}`) || DIMENSION_LABELS[dim]}
             </text>
           );
         })}

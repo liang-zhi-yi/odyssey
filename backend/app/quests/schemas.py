@@ -1,6 +1,6 @@
 """Quest request / response schemas."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class QuestListResponse(BaseModel):
@@ -36,5 +36,7 @@ class UserQuestResponse(BaseModel):
     quest_id: str
     quest_title: str
     status: str
+    latest_submission_id: str | None = None
+    submission_count: int = 0
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

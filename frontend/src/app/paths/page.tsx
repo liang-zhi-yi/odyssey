@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import useSWR, { mutate } from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { pathService } from "@/services/path.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -13,6 +14,7 @@ import type { GrowthPath, UserPath } from "@/types/path";
 
 export default function PathsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [selectError, setSelectError] = useState<string | null>(null);
@@ -52,47 +54,47 @@ export default function PathsPage() {
         const message =
           err instanceof ApiRequestError
             ? err.message
-            : "选择路径失败";
+            : t("paths.selectError");
         setSelectError(message);
       } finally {
         setSelectingId(null);
       }
     },
-    []
+    [t]
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   const difficultyLabel = (level: number) => {
-    if (level <= 2) return { text: "入门", color: "bg-success/10 text-success" };
-    if (level <= 4) return { text: "中级", color: "bg-warning/10 text-warning" };
-    return { text: "高级", color: "bg-destructive/10 text-destructive" };
+    if (level <= 2) return { text: t("paths.difficultyLevels.beginner"), color: "bg-success/10 text-success" };
+    if (level <= 4) return { text: t("paths.difficultyLevels.intermediate"), color: "bg-warning/10 text-warning" };
+    return { text: t("paths.difficultyLevels.advanced"), color: "bg-destructive/10 text-destructive" };
   };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">学习路径</h1>
+        <h1 className="text-2xl font-bold">{t("paths.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          选择你的成长路径，追踪学习进度
+          {t("paths.subtitle")}
         </p>
       </div>
 
       {/* Current active path */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">当前路径</h2>
+        <h2 className="text-lg font-semibold mb-3">{t("paths.currentPath")}</h2>
         {currentLoading ? (
           <div className="rounded-xl border border-border bg-background p-6 skeleton-shimmer" style={{ height: "100px" }} />
         ) : currentError ? (
-          <ErrorState message="加载路径状态失败" />
+          <ErrorState message={t("paths.loadPathStatusError")} />
         ) : currentPath ? (
           <CurrentPathCard path={currentPath} />
         ) : (
           <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-6 text-center">
             <p className="text-sm text-muted-foreground">
-              尚未选择学习路径 — 从下方目录中选择一条路径开始你的学习之旅
+              {t("paths.noPathSelectedDesc")}
             </p>
           </div>
         )}
@@ -100,7 +102,7 @@ export default function PathsPage() {
 
       {/* Available paths */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">可用路径</h2>
+        <h2 className="text-lg font-semibold mb-3">{t("paths.availablePaths")}</h2>
         {selectError && (
           <div className="mb-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {selectError}
@@ -109,9 +111,9 @@ export default function PathsPage() {
         {pathsLoading ? (
           <Loading variant="skeleton-cards" cardCount={4} />
         ) : pathsError ? (
-          <ErrorState message="加载路径列表失败" />
+          <ErrorState message={t("paths.loadPathListError")} />
         ) : paths.length === 0 ? (
-          <EmptyState title="暂无可用路径" description="敬请期待更多学习路径" />
+          <EmptyState title={t("paths.noAvailablePaths")} description={t("paths.comingSoonPaths")} />
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 animate-stagger">
             {paths.map((p: GrowthPath) => {
@@ -131,7 +133,7 @@ export default function PathsPage() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       {p.is_official && (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          官方
+                          {t("paths.official")}
                         </span>
                       )}
                       <span
@@ -150,7 +152,7 @@ export default function PathsPage() {
 
                   {isActive ? (
                     <div className="rounded-lg bg-success/10 px-3 py-2 text-xs font-medium text-success text-center">
-                      ✅ 当前路径
+                      ✅ {t("paths.currentPath")}
                     </div>
                   ) : (
                     <button
@@ -158,7 +160,7 @@ export default function PathsPage() {
                       disabled={selectingId === p.id}
                       className="w-full rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
                     >
-                      {selectingId === p.id ? "选择中..." : "选择路径"}
+                      {selectingId === p.id ? t("paths.selecting") : t("paths.select")}
                     </button>
                   )}
                 </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Navbar } from "./components/Navbar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { HtmlLang } from "./components/HtmlLang";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,6 +41,7 @@ export default function RootLayout({
     <html lang="zh-CN" className={inter.variable}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>
+          <HtmlLang />
           <Navbar />
           <main className="mx-auto max-w-6xl px-4 py-8">
             <ErrorBoundary>{children}</ErrorBoundary>

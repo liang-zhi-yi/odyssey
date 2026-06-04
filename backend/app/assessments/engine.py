@@ -82,11 +82,41 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
         quest_description=quest.description or "",
     )
 
+    # ── 3.5 Load user settings for per-user model config ──────────
+    from app.settings.models import UserSettings
+
+    user_settings = (
+        db.query(UserSettings)
+        .filter(UserSettings.user_id == submission.user_id)
+        .first()
+    )
+
+    user_api_key = None
+    user_base_url = None
+    user_model = None
+    user_provider = None
+
+    if user_settings and user_settings.llm_api_key:
+        user_api_key = user_settings.llm_api_key
+        user_base_url = user_settings.llm_base_url
+        user_model = user_settings.llm_model
+        user_provider = user_settings.llm_provider
+        logger.info(
+            "Using per-user LLM config — provider=%s model=%s user=%s",
+            user_provider or "(default)",
+            user_model or "(default)",
+            submission.user_id,
+        )
+
     # ── 4. Run LLM evaluation ───────────────────────────────────────
     try:
         result = run_consistent_assessment(
             system_prompt=system_prompt,
             user_message=user_message,
+            user_api_key=user_api_key,
+            user_base_url=user_base_url,
+            user_model=user_model,
+            user_provider=user_provider,
         )
     except LLMClientError as exc:
         _fail_assessment(db, assessment, f"LLM evaluation failed: {exc}")

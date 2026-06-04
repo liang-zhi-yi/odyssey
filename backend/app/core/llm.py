@@ -121,16 +121,17 @@ def _get_client() -> OpenAI:
     return OpenAI(**kwargs)
 
 
-def _check_provider_compatibility() -> None:
+def _check_provider_compatibility(provider_key: str | None = None) -> None:
     """Raise LLMClientError if the selected provider is not OpenAI-compatible.
 
     Currently only Anthropic's native API is flagged as incompatible.
     The error message includes actionable advice (use OpenRouter instead).
     """
-    provider = resolve_provider(settings.llm_provider)
+    effective_provider = provider_key or settings.llm_provider
+    provider = resolve_provider(effective_provider)
     if not provider.is_openai_compatible:
         raise LLMClientError(
-            f"Provider '{provider.name}' ({settings.llm_provider}) is NOT "
+            f"Provider '{provider.name}' ({effective_provider}) is NOT "
             f"OpenAI-compatible and cannot be used directly.\n\n"
             f"To use Claude models, set LLM_PROVIDER=openrouter and "
             f"LLM_MODEL=anthropic/claude-sonnet-4-6 (or another Claude model).\n"
@@ -150,6 +151,11 @@ def evaluate_submission(
     model: str | None = None,
     temperature: float | None = None,
     timeout: int | None = None,
+    # Per-user overrides for model configuration
+    user_api_key: str | None = None,
+    user_base_url: str | None = None,
+    user_model: str | None = None,
+    user_provider: str | None = None,
 ) -> dict:
     """Call the LLM for assessment with structured JSON output.
 
@@ -169,15 +175,43 @@ def evaluate_submission(
     Returns the parsed dict on success.
     Raises LLMClientError on any failure (timeout, API error, invalid JSON).
     """
-    _check_provider_compatibility()
+    # Determine effective provider
+    effective_provider_key = user_provider or settings.llm_provider
+    _check_provider_compatibility(effective_provider_key)
 
-    client = _get_client()
-    provider = resolve_provider(settings.llm_provider)
-    used_model = model or get_effective_model(settings.llm_provider, settings.llm_model)
+    provider = resolve_provider(effective_provider_key)
+
+    # Determine effective API key
+    effective_api_key = user_api_key or settings.llm_api_key
+    if not effective_api_key:
+        raise LLMClientError(
+            "LLM_API_KEY is not configured. Set it in backend/.env or as an "
+            "environment variable. Get a key from your chosen provider "
+            f"(LLM_PROVIDER={effective_provider_key})."
+        )
+
+    # Determine effective base URL
+    if user_base_url:
+        effective_base_url = user_base_url.strip().rstrip("/")
+    else:
+        effective_base_url = get_effective_base_url(effective_provider_key, settings.llm_base_url)
+
+    # Determine effective model
+    if user_model:
+        effective_model = user_model.strip()
+    else:
+        effective_model = model or get_effective_model(effective_provider_key, settings.llm_model)
+
     used_temperature = (
         temperature if temperature is not None else settings.llm_temperature
     )
     used_timeout = timeout or settings.llm_timeout_seconds
+
+    # Create client with effective values
+    client_kwargs: dict = {"api_key": effective_api_key}
+    if effective_base_url:
+        client_kwargs["base_url"] = effective_base_url
+    client = OpenAI(**client_kwargs)
 
     # Build messages — inject JSON instruction if provider doesn't enforce it
     effective_system = system_prompt
@@ -191,7 +225,7 @@ def evaluate_submission(
 
     # Build create() kwargs with appropriate response_format
     create_kwargs: dict = {
-        "model": used_model,
+        "model": effective_model,
         "temperature": used_temperature,
         "timeout": used_timeout,
         "messages": messages,
@@ -212,11 +246,11 @@ def evaluate_submission(
     logger.info(
         "Calling LLM — provider=%s model=%s temperature=%s timeout=%ds "
         "base_url=%s json_mode=%s",
-        settings.llm_provider,
-        used_model,
+        effective_provider_key,
+        effective_model,
         used_temperature,
         used_timeout,
-        get_effective_base_url(settings.llm_provider, settings.llm_base_url) or "(default)",
+        effective_base_url or "(default)",
         "json_schema" if provider.supports_json_schema else (
             "json_object" if provider.supports_json_object else "text"
         ),
@@ -227,7 +261,7 @@ def evaluate_submission(
     except Exception as exc:
         logger.error("LLM call failed: %s", exc)
         raise LLMClientError(
-            f"LLM API call failed for provider '{settings.llm_provider}': {exc}"
+            f"LLM API call failed for provider '{effective_provider_key}': {exc}"
         ) from exc
 
     content = response.choices[0].message.content
@@ -235,12 +269,12 @@ def evaluate_submission(
         raise LLMClientError("LLM returned empty response")
 
     # Parse JSON — with fallback extraction for non-schema modes
-    result = _parse_json_response(content)
+    result = _parse_json_response(content, provider_key=effective_provider_key)
 
     logger.info(
         "LLM returned valid assessment — provider=%s model=%s",
-        settings.llm_provider,
-        used_model,
+        effective_provider_key,
+        effective_model,
     )
     return result
 
@@ -248,7 +282,7 @@ def evaluate_submission(
 # ── JSON parsing helpers ─────────────────────────────────────────────────
 
 
-def _parse_json_response(content: str) -> dict:
+def _parse_json_response(content: str, *, provider_key: str | None = None) -> dict:
     """Parse JSON from LLM response, with progressive fallback.
 
     1. Direct parse (works for json_schema / json_object modes)
@@ -284,6 +318,6 @@ def _parse_json_response(content: str) -> dict:
     # All attempts failed
     raise LLMClientError(
         f"LLM response could not be parsed as JSON. "
-        f"Provider: {settings.llm_provider}. "
+        f"Provider: {provider_key or settings.llm_provider}. "
         f"Raw response (first 500 chars): {content[:500]}"
     )

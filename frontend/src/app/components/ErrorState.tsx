@@ -1,9 +1,15 @@
+"use client";
+
+import { useLocale } from "@/hooks/useLocale";
+
 interface ErrorStateProps {
   message?: string;
   detail?: string;
 }
 
-export function ErrorState({ message = "加载失败", detail }: ErrorStateProps) {
+export function ErrorState({ message, detail }: ErrorStateProps) {
+  const { t } = useLocale();
+  const displayMessage = message || t("common.error");
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="mb-4 rounded-full bg-destructive/10 p-3">
@@ -21,7 +27,7 @@ export function ErrorState({ message = "加载失败", detail }: ErrorStateProps
           />
         </svg>
       </div>
-      <p className="text-sm font-medium text-destructive">{message}</p>
+      <p className="text-sm font-medium text-destructive">{displayMessage}</p>
       {detail && (
         <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
       )}

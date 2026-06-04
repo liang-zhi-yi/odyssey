@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/hooks/useLocale";
 
 interface SubmissionFormProps {
   questId: string;
@@ -24,6 +25,7 @@ export function SubmissionForm({
   isSubmitting,
   error,
 }: SubmissionFormProps) {
+  const { t } = useLocale();
   const [content, setContent] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
@@ -49,14 +51,14 @@ export function SubmissionForm({
           htmlFor="submission-content"
           className="block text-sm font-medium mb-1.5"
         >
-          提交内容
+          {t("quests.content")}
         </label>
         <textarea
           id="submission-content"
           rows={6}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="描述你的解决方案、思路和关键代码片段..."
+          placeholder={t("quests.contentPlaceholder")}
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
@@ -67,7 +69,7 @@ export function SubmissionForm({
           htmlFor="submission-github"
           className="block text-sm font-medium mb-1.5"
         >
-          GitHub 仓库地址
+          {t("quests.githubUrl")}
         </label>
         <input
           id="submission-github"
@@ -85,7 +87,7 @@ export function SubmissionForm({
           htmlFor="submission-demo"
           className="block text-sm font-medium mb-1.5"
         >
-          在线演示地址 <span className="text-muted-foreground/60">(可选)</span>
+          {t("quests.demoUrl")}
         </label>
         <input
           id="submission-demo"
@@ -110,7 +112,7 @@ export function SubmissionForm({
         disabled={!canSubmit}
         className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
       >
-        {isSubmitting ? "提交中..." : "提交成果"}
+        {isSubmitting ? t("quests.submitting") : t("quests.submitButton")}
       </button>
     </form>
   );

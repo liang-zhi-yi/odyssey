@@ -10,6 +10,7 @@ from app.quests.schemas import (
     UserQuestResponse,
 )
 from app.quests import service
+from app.quests.service import abandon_quest
 from app.paths import service as path_service
 from app.database import get_db
 from app.dependencies import get_current_user
@@ -126,3 +127,13 @@ def list_user_quests(
     """Return all quests the current user has interacted with."""
     rows = service.get_user_quests(db, str(current_user.id))
     return [UserQuestResponse(**r) for r in rows]
+
+
+@router.post("/quests/{quest_id}/abandon")
+def abandon_accepted_quest(
+    quest_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Abandon a previously accepted quest."""
+    return abandon_quest(db, str(current_user.id), quest_id)

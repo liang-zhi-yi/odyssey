@@ -3,6 +3,7 @@
 import { Loading } from "./Loading";
 import type { UserSkill } from "@/types/skill";
 import type { UserPath } from "@/types/path";
+import { useLocale } from "@/hooks/useLocale";
 
 interface DashboardOverviewProps {
   userSkills: UserSkill[];
@@ -22,8 +23,10 @@ export function DashboardOverview({
   currentPath,
   isLoading,
 }: DashboardOverviewProps) {
+  const { t } = useLocale();
+
   if (isLoading) {
-    return <Loading text="Loading dashboard..." />;
+    return <Loading text={t("common.loading")} />;
   }
 
   const avgScore =
@@ -40,24 +43,24 @@ export function DashboardOverview({
 
   const stats = [
     {
-      label: "技能数量",
+      label: t("dashboard.skillsCount"),
       value: userSkills.length,
-      sub: "项已激活",
+      sub: t("common.activated"),
     },
     {
-      label: "平均分",
+      label: t("dashboard.avgScore"),
       value: avgScore,
-      sub: "综合评分",
+      sub: t("dashboard.overallScore"),
     },
     {
-      label: "学习路径",
-      value: currentPath?.name || "未选择",
-      sub: currentPath ? `进度 ${currentPath.progress}%` : "选择路径开始学习",
+      label: t("dashboard.activePath"),
+      value: currentPath?.name || t("dashboard.notSelected"),
+      sub: currentPath ? t("paths.progress") + ` ${currentPath.progress}%` : t("dashboard.selectPath"),
     },
     {
-      label: "最高排名",
+      label: t("dashboard.topRank"),
       value: topSkill?.rank || "—",
-      sub: topSkill?.skill_name || "完成首次Quest",
+      sub: topSkill?.skill_name || t("dashboard.completeFirstQuest"),
     },
   ];
 

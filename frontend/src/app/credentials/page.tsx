@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { credentialService } from "@/services/credential.service";
 import { CredentialBadge } from "@/app/components/CredentialBadge";
 import { Loading } from "@/app/components/Loading";
@@ -13,6 +14,7 @@ import type { Credential } from "@/types/credential";
 
 export default function CredentialsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"mine" | "all">("mine");
 
@@ -41,7 +43,7 @@ export default function CredentialsPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   const earnedIds = new Set(userCredentials.map((c) => c.id));
@@ -49,9 +51,9 @@ export default function CredentialsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">凭证中心</h1>
+        <h1 className="text-2xl font-bold">{t("credentials.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          你的技能凭证与成就
+          {t("credentials.subtitle")}
         </p>
       </div>
 
@@ -65,7 +67,7 @@ export default function CredentialsPage() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          我的凭证
+          {t("credentials.myCredentials")}
           {userCredentials.length > 0 && (
             <span className="ml-1.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
               {userCredentials.length}
@@ -80,7 +82,7 @@ export default function CredentialsPage() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          全部凭证
+          {t("credentials.allCredentials")}
         </button>
       </div>
 
@@ -89,12 +91,12 @@ export default function CredentialsPage() {
         userLoading ? (
           <Loading variant="skeleton-cards" cardCount={4} />
         ) : userError ? (
-          <ErrorState message="加载凭证失败" />
+          <ErrorState message={t("credentials.loadCredentialsError")} />
         ) : userCredentials.length === 0 ? (
           <EmptyState
-            title="暂无凭证"
-            description="完成Quest并通过评估后，你将获得技能凭证"
-            actionLabel="浏览 Quests"
+            title={t("credentials.noEarned")}
+            description={t("credentials.noEarnedDesc")}
+            actionLabel={t("credentials.browseQuests")}
             actionHref="/quests"
           />
         ) : (
@@ -107,9 +109,9 @@ export default function CredentialsPage() {
       ) : allLoading ? (
         <Loading variant="skeleton-cards" cardCount={6} />
       ) : allError ? (
-        <ErrorState message="加载凭证目录失败" />
+        <ErrorState message={t("credentials.loadCredentialsCatalogError")} />
       ) : allCredentials.length === 0 ? (
-        <EmptyState title="暂无凭证定义" description="敬请期待更多凭证" />
+        <EmptyState title={t("credentials.noCredentialsDefined")} description={t("credentials.comingSoonCredentials")} />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
           {allCredentials.map((credential: Credential) => {
@@ -141,7 +143,7 @@ export default function CredentialsPage() {
                       </p>
                     )}
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      要求分数: {credential.required_score}
+                      {t("credentials.requiredScore")}: {credential.required_score}
                     </p>
                   </div>
                 </div>

@@ -4,9 +4,11 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function RegisterPage() {
   const { register, isLoading, error, clearError } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -20,12 +22,12 @@ export default function RegisterPage() {
     setLocalError(null);
 
     if (password !== confirmPassword) {
-      setLocalError("Passwords do not match.");
+      setLocalError(t("auth.passwordMismatchError"));
       return;
     }
 
     if (password.length < 6) {
-      setLocalError("Password must be at least 6 characters.");
+      setLocalError(t("auth.passwordMinLength"));
       return;
     }
 
@@ -43,9 +45,9 @@ export default function RegisterPage() {
     <div className="flex min-h-[80vh] items-center justify-center">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-card">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Join Odyssey</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("auth.register")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start your capability growth journey
+            {t("auth.registerSubtitle")}
           </p>
         </div>
 
@@ -59,7 +61,7 @@ export default function RegisterPage() {
                 clearError();
               }}
             >
-              Dismiss
+              {t("auth.dismiss")}
             </button>
           </div>
         )}
@@ -70,7 +72,7 @@ export default function RegisterPage() {
               htmlFor="email"
               className="mb-1.5 block text-sm font-medium"
             >
-              Email
+              {t("auth.email")}
             </label>
             <input
               id="email"
@@ -88,7 +90,7 @@ export default function RegisterPage() {
               htmlFor="username"
               className="mb-1.5 block text-sm font-medium"
             >
-              Username
+              {t("auth.username")}
             </label>
             <input
               id="username"
@@ -107,7 +109,7 @@ export default function RegisterPage() {
               htmlFor="password"
               className="mb-1.5 block text-sm font-medium"
             >
-              Password
+              {t("auth.password")}
             </label>
             <input
               id="password"
@@ -116,7 +118,7 @@ export default function RegisterPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
+              placeholder={t("auth.passwordMinLength")}
               className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -126,7 +128,7 @@ export default function RegisterPage() {
               htmlFor="confirmPassword"
               className="mb-1.5 block text-sm font-medium"
             >
-              Confirm Password
+              {t("auth.confirmPassword")}
             </label>
             <input
               id="confirmPassword"
@@ -134,7 +136,7 @@ export default function RegisterPage() {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter your password"
+              placeholder={t("auth.confirmPassword")}
               className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -144,17 +146,17 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isLoading ? "Creating account..." : "Create Account"}
+            {isLoading ? t("auth.creatingAccount") : t("auth.registerButton")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("auth.hasAccount")}{" "}
           <Link
             href="/login"
             className="font-medium text-primary hover:underline"
           >
-            Sign in
+            {t("auth.login")}
           </Link>
         </p>
       </div>

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { projectService } from "@/services/project.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -14,6 +15,7 @@ export default function ProjectDetailPage() {
   const { id: projectId } = useParams<{ id: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -34,13 +36,13 @@ export default function ProjectDetailPage() {
   const project = projects.find((p) => p.id === projectId);
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   if (isLoading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <Loading text="Loading project..." />
+        <Loading text={t("common.loading")} />
       </div>
     );
   }
@@ -49,7 +51,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
         <ErrorState
-          message="加载失败"
+          message={t("common.error")}
           detail={error instanceof Error ? error.message : "Project not found"}
         />
       </div>
@@ -59,17 +61,17 @@ export default function ProjectDetailPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
       {/* Back navigation */}
-      <BackButton href="/projects" label="返回项目列表" />
+      <BackButton href="/projects" label={t("projects.backToList")} />
 
       <div>
         <h1 className="text-2xl font-bold">{project.title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">项目详情</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("projects.detailTitle")}</p>
       </div>
 
       {/* Description */}
       {project.description && (
         <div className="rounded-xl border border-border bg-background p-6">
-          <h2 className="text-sm font-semibold mb-3">描述</h2>
+          <h2 className="text-sm font-semibold mb-3">{t("projects.descriptionSection")}</h2>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {project.description}
           </p>
@@ -78,7 +80,7 @@ export default function ProjectDetailPage() {
 
       {/* Links */}
       <div className="rounded-xl border border-border bg-background p-6">
-        <h2 className="text-sm font-semibold mb-3">链接</h2>
+        <h2 className="text-sm font-semibold mb-3">{t("projects.links")}</h2>
         <div className="space-y-2 text-sm">
           {project.github_url ? (
             <div>
@@ -93,7 +95,7 @@ export default function ProjectDetailPage() {
               </a>
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">暂无GitHub链接</p>
+            <p className="text-xs text-muted-foreground">{t("projects.noGithub")}</p>
           )}
           {project.demo_url ? (
             <div>
@@ -108,7 +110,7 @@ export default function ProjectDetailPage() {
               </a>
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">暂无Demo链接</p>
+            <p className="text-xs text-muted-foreground">{t("projects.noDemo")}</p>
           )}
         </div>
       </div>
@@ -119,7 +121,7 @@ export default function ProjectDetailPage() {
           href="/projects"
           className="text-sm text-primary hover:underline"
         >
-          ← 返回项目列表
+          ← {t("projects.backToList")}
         </Link>
       </div>
     </div>

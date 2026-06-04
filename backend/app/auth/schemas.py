@@ -1,6 +1,6 @@
 """Auth request / response schemas."""
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class RegisterRequest(BaseModel):
@@ -19,11 +19,27 @@ class TokenResponse(BaseModel):
     user_id: str | None = None
 
 
+class UpdateProfileRequest(BaseModel):
+    """Fields the user can update on their profile."""
+    nickname: str | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
+    github_username: str | None = None
+
+
+class ChangePasswordRequest(BaseModel):
+    """Change password — requires current password for verification."""
+    current_password: str
+    new_password: str
+
+
 class UserResponse(BaseModel):
     id: str
     username: str
     email: str
+    nickname: str | None = None
+    github_username: str | None = None
     avatar_url: str | None = None
     bio: str | None = None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

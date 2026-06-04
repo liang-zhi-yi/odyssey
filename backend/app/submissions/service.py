@@ -52,11 +52,20 @@ def submit_quest(
             "ASSESSING_IN_PROGRESS",
             "This quest is currently being assessed",
         )
-    if submission.status in (SubmissionStatus.PASSED, SubmissionStatus.FAILED):
+    if submission.status == SubmissionStatus.PASSED:
         raise ConflictException(
-            "QUEST_ALREADY_COMPLETED",
-            f"This quest has already been {submission.status.value}",
+            "QUEST_ALREADY_PASSED",
+            "This quest has already been passed — no retry needed",
         )
+
+    # Allow retry on FAILED or ABANDONED — create a new submission row
+    if submission.status in (SubmissionStatus.FAILED, SubmissionStatus.ABANDONED):
+        submission = QuestSubmission(
+            user_id=UUID(user_id),
+            quest_id=UUID(quest_id),
+            status=SubmissionStatus.SUBMITTED,
+        )
+        db.add(submission)
 
     # Combine github_url and demo_url into submission_url
     urls = []
@@ -114,3 +123,38 @@ def _extract_url(submission_url: str | None, prefix: str) -> str | None:
         if line.startswith(f"{prefix}: "):
             return line.removeprefix(f"{prefix}: ")
     return None
+
+
+def get_submission_history(
+    db: Session, user_id: str, quest_id: str | None = None
+) -> list[dict]:
+    """Return all submissions for a user, optionally filtered by quest.
+
+    Ordered by submitted_at descending (newest first).
+    """
+    query = (
+        db.query(QuestSubmission, Quest.title)
+        .join(Quest, QuestSubmission.quest_id == Quest.id)
+        .filter(QuestSubmission.user_id == user_id)
+    )
+
+    if quest_id:
+        query = query.filter(QuestSubmission.quest_id == quest_id)
+
+    rows = query.order_by(QuestSubmission.submitted_at.desc()).all()
+
+    return [
+        {
+            "submission_id": str(sub.id),
+            "quest_id": str(sub.quest_id),
+            "quest_title": title,
+            "status": sub.status.value,
+            "content_preview": (
+                sub.submission_content[:200] if sub.submission_content else None
+            ),
+            "submitted_at": (
+                sub.submitted_at.isoformat() if sub.submitted_at else None
+            ),
+        }
+        for sub, title in rows
+    ]

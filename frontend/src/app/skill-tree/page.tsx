@@ -5,6 +5,7 @@ import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -33,6 +34,7 @@ function rankColor(rank: SkillRank): string {
 
 export default function SkillTreePage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function SkillTreePage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   const isLoading = skillsLoading || userLoading;
@@ -68,9 +70,9 @@ export default function SkillTreePage() {
     return (
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
         <div>
-          <h1 className="text-2xl font-bold">技能树</h1>
+          <h1 className="text-2xl font-bold">{t("skillTree.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            交互式能力图谱
+            {t("skillTree.interactiveMap")}
           </p>
         </div>
         <div className="flex items-center justify-center py-24">
@@ -84,12 +86,12 @@ export default function SkillTreePage() {
     return (
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
         <div>
-          <h1 className="text-2xl font-bold">技能树</h1>
+          <h1 className="text-2xl font-bold">{t("skillTree.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            交互式能力图谱
+            {t("skillTree.interactiveMap")}
           </p>
         </div>
-        <ErrorState message="加载技能数据失败" />
+        <ErrorState message={t("skillTree.loadError")} />
       </div>
     );
   }
@@ -98,14 +100,14 @@ export default function SkillTreePage() {
     return (
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
         <div>
-          <h1 className="text-2xl font-bold">技能树</h1>
+          <h1 className="text-2xl font-bold">{t("skillTree.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            交互式能力图谱
+            {t("skillTree.interactiveMap")}
           </p>
         </div>
         <EmptyState
-          title="暂无技能数据"
-          description="技能定义将在后台配置后显示"
+          title={t("skillTree.noSkillData")}
+          description={t("skillTree.noSkillDesc")}
         />
       </div>
     );
@@ -119,7 +121,7 @@ export default function SkillTreePage() {
   // Group skills by category
   const categories = new Map<string, Skill[]>();
   for (const skill of allSkills) {
-    const cat = skill.category || "未分类";
+    const cat = skill.category || t("skillTree.uncategorized");
     if (!categories.has(cat)) categories.set(cat, []);
     categories.get(cat)!.push(skill);
   }
@@ -131,9 +133,9 @@ export default function SkillTreePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">技能树</h1>
+        <h1 className="text-2xl font-bold">{t("skillTree.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          交互式能力图谱 · {unlockedCount}/{totalSkills} 已激活
+          {t("skillTree.stats", { unlocked: unlockedCount, total: totalSkills })}
         </p>
       </div>
 
@@ -141,11 +143,11 @@ export default function SkillTreePage() {
       <div className="flex flex-wrap items-center gap-4 text-xs">
         <div className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-primary" />
-          <span className="text-muted-foreground">已激活</span>
+          <span className="text-muted-foreground">{t("skillTree.active")}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full border-2 border-border bg-background" />
-          <span className="text-muted-foreground">未激活</span>
+          <span className="text-muted-foreground">{t("skillTree.inactive")}</span>
         </div>
         {(["NOVICE", "BEGINNER", "PRACTITIONER", "ENGINEER", "ARCHITECT"] as SkillRank[]).map(
           (rank) => (
@@ -244,7 +246,7 @@ export default function SkillTreePage() {
                                 )}
                               </div>
                               <span className="text-[10px] text-muted-foreground/60 shrink-0">
-                                未激活
+                                {t("skillTree.inactive")}
                               </span>
                             </div>
                           </div>

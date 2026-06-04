@@ -119,19 +119,75 @@ def accept_quest(db: Session, user_id: str, quest_id: str) -> QuestSubmission:
 
 
 def get_user_quests(db: Session, user_id: str) -> list[dict]:
-    """Return all quests the user has interacted with (accepted → passed/failed)."""
+    """Return all quests the user has interacted with, including status and counts."""
+    from sqlalchemy import desc
+
+    # Get all user's submissions with quest titles, ordered newest first
     rows = (
         db.query(QuestSubmission, Quest.title)
         .join(Quest, QuestSubmission.quest_id == Quest.id)
         .filter(QuestSubmission.user_id == user_id)
-        .order_by(QuestSubmission.submitted_at.desc().nullslast())
+        .order_by(desc(QuestSubmission.submitted_at))
         .all()
     )
-    return [
-        {
-            "quest_id": str(sub.quest_id),
-            "quest_title": title,
-            "status": sub.status.value,
-        }
-        for sub, title in rows
-    ]
+
+    # Group by quest_id: first row is the latest submission (used for status/id),
+    # count tracks total submissions per quest
+    seen: dict[str, dict] = {}
+    for sub, title in rows:
+        qid = str(sub.quest_id)
+        if qid not in seen:
+            seen[qid] = {
+                "quest_id": qid,
+                "quest_title": title,
+                "status": sub.status.value,
+                "latest_submission_id": str(sub.id),
+                "submission_count": 0,
+            }
+        seen[qid]["submission_count"] += 1
+
+    return list(seen.values())
+
+
+def abandon_quest(
+    db: Session, user_id: str, quest_id: str
+) -> dict:
+    """Abandon an accepted quest.
+
+    Only allowed when the submission status is ACCEPTED or IN_PROGRESS.
+    Once SUBMITTED or ASSESSING, the quest cannot be abandoned.
+
+    Raises:
+        NotFoundException: If the quest hasn't been accepted.
+        ConflictException: If the quest cannot be abandoned at its current status.
+    """
+    submission = (
+        db.query(QuestSubmission)
+        .filter(
+            QuestSubmission.user_id == user_id,
+            QuestSubmission.quest_id == quest_id,
+        )
+        .order_by(QuestSubmission.submitted_at.desc())
+        .first()
+    )
+
+    if submission is None:
+        raise NotFoundException(
+            "QuestSubmission",
+            f"quest={quest_id} — you haven't accepted this quest",
+        )
+
+    if submission.status not in (
+        SubmissionStatus.ACCEPTED,
+        SubmissionStatus.IN_PROGRESS,
+    ):
+        raise ConflictException(
+            "CANNOT_ABANDON",
+            f"Cannot abandon a quest with status '{submission.status.value}'. "
+            "Only ACCEPTED or IN_PROGRESS quests can be abandoned.",
+        )
+
+    submission.status = SubmissionStatus.ABANDONED
+    db.commit()
+
+    return {"status": "ABANDONED", "quest_id": quest_id}

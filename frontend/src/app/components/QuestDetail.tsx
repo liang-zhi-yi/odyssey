@@ -5,6 +5,7 @@ import {
   DIFFICULTY_LABELS,
   QUEST_TYPE_LABELS,
 } from "@/types/quest";
+import { useLocale } from "@/hooks/useLocale";
 import { Loading } from "./Loading";
 import { ErrorState } from "./ErrorState";
 
@@ -29,18 +30,20 @@ export function QuestDetail({
   isAccepting = false,
   alreadyAccepted = false,
 }: QuestDetailProps) {
+  const { t } = useLocale();
+
   if (isLoading) {
-    return <Loading text="Loading quest..." />;
+    return <Loading text={t("common.loading")} />;
   }
 
   if (error) {
-    return <ErrorState message="加载失败" detail={error} />;
+    return <ErrorState message={t("common.error")} detail={error} />;
   }
 
   if (!quest) {
     return (
       <div className="rounded-xl border border-border bg-background p-6 text-center">
-        <p className="text-sm text-muted-foreground">Quest not found</p>
+        <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
       </div>
     );
   }
@@ -52,10 +55,10 @@ export function QuestDetail({
         <h2 className="text-xl font-bold">{quest.title}</h2>
         <div className="flex items-center gap-2">
           <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-            {DIFFICULTY_LABELS[quest.difficulty] || quest.difficulty}
+            {t(`quests.difficulty.${quest.difficulty}`) || DIFFICULTY_LABELS[quest.difficulty] || quest.difficulty}
           </span>
           <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
-            {QUEST_TYPE_LABELS[quest.quest_type] || quest.quest_type}
+            {t(`quests.type.${quest.quest_type}`) || QUEST_TYPE_LABELS[quest.quest_type] || quest.quest_type}
           </span>
         </div>
       </div>
@@ -70,11 +73,11 @@ export function QuestDetail({
       {/* Meta */}
       <div className="grid grid-cols-2 gap-3 text-sm mb-6">
         <div>
-          <span className="text-muted-foreground">交付物类型</span>
+          <span className="text-muted-foreground">{t("quests.deliverableType")}</span>
           <p className="font-medium mt-0.5">{quest.expected_deliverable}</p>
         </div>
         <div>
-          <span className="text-muted-foreground">关联技能</span>
+          <span className="text-muted-foreground">{t("quests.relatedSkill")}</span>
           <p className="font-medium mt-0.5">{quest.skill_name}</p>
         </div>
       </div>
@@ -83,7 +86,7 @@ export function QuestDetail({
       <div className="border-t border-border pt-4">
         {alreadyAccepted ? (
           <div className="rounded-lg bg-success/10 px-4 py-3 text-sm text-success font-medium text-center">
-            ✅ 你已接受此Quest — 前往提交你的成果
+            {t("quests.acceptedGoSubmit")}
           </div>
         ) : (
           <button
@@ -91,7 +94,7 @@ export function QuestDetail({
             disabled={isAccepting}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
           >
-            {isAccepting ? "接受中..." : "接受 Quest"}
+            {isAccepting ? t("quests.accepting") : t("quests.accept")}
           </button>
         )}
       </div>

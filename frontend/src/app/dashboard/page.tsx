@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
 import { progressService } from "@/services/progress.service";
 import { pathService } from "@/services/path.service";
@@ -21,6 +22,7 @@ import type { SkillGrowthPoint } from "@/types/progress";
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
 
@@ -65,15 +67,15 @@ export default function DashboardPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t("dashboard.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          你的能力概览与学习动态
+          {t("dashboard.subtitle")}
         </p>
       </div>
 
@@ -86,16 +88,16 @@ export default function DashboardPage() {
 
       {/* Skills grid */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">技能</h2>
+        <h2 className="text-lg font-semibold mb-3">{t("dashboard.skillsSection")}</h2>
         {skillsLoading ? (
           <Loading variant="skeleton-cards" cardCount={3} />
         ) : skillsError ? (
-            <ErrorState message="加载技能失败" />
+            <ErrorState message={t("dashboard.loadSkillsError")} />
           ) : userSkills.length === 0 ? (
           <EmptyState
-            title="暂无技能数据"
-            description="接受并完成Quest后，你的技能档案将在此展示"
-            actionLabel="浏览 Quests"
+            title={t("dashboard.noSkillData")}
+            description={t("dashboard.noSkillDesc")}
+            actionLabel={t("dashboard.browseQuests")}
             actionHref="/quests"
           />
         ) : (
@@ -112,7 +114,7 @@ export default function DashboardPage() {
                 }}
                 tabIndex={0}
                 role="button"
-                aria-label={`查看 ${skill.skill_name || skill.skill_id} 详情`}
+                aria-label={t("skills.viewSkillDetail", { name: skill.skill_name || skill.skill_id })}
                 className="cursor-pointer card-hover"
               >
                 <SkillCard skill={skill} />
@@ -125,7 +127,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent activity */}
         <section>
-          <h2 className="text-lg font-semibold mb-3">最近动态</h2>
+          <h2 className="text-lg font-semibold mb-3">{t("dashboard.recentActivity")}</h2>
           <div className="rounded-xl border border-border bg-background p-4">
             <RecentActivity logs={progressLogs} isLoading={logsLoading} />
           </div>
@@ -134,7 +136,7 @@ export default function DashboardPage() {
         {/* Growth chart */}
         <section>
           <h2 className="text-lg font-semibold mb-3">
-            {selectedSkillId ? "成长曲线" : "选择技能查看成长曲线"}
+            {selectedSkillId ? t("dashboard.growthChart") : t("dashboard.selectSkillChart")}
           </h2>
           <div className="rounded-xl border border-border bg-background p-4">
             {selectedSkillId ? (
@@ -149,7 +151,7 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <p className="text-sm text-muted-foreground">
-                  点击上方技能卡片查看对应的成长曲线
+                  {t("dashboard.clickSkillHint")}
                 </p>
               </div>
             )}

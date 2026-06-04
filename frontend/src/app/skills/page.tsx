@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
 import { SkillCard } from "@/app/components/SkillCard";
 import { ScoreCard } from "@/app/components/ScoreCard";
@@ -17,6 +18,7 @@ import { ErrorState } from "@/app/components/ErrorState";
 
 export default function SkillsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [selectedSkill, setSelectedSkill] = useState<UserSkill | null>(null);
 
@@ -42,7 +44,7 @@ export default function SkillsPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   const userSkillMap = new Map(userSkills.map((us) => [us.skill_id, us]));
@@ -60,9 +62,9 @@ export default function SkillsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">技能树</h1>
+        <h1 className="text-2xl font-bold">{t("skills.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          你的四维能力档案
+          {t("skills.fourDimensionProfile")}
         </p>
       </div>
 
@@ -73,7 +75,7 @@ export default function SkillsPage() {
           <h3 className="text-sm font-semibold mb-4">
             {selectedSkill
               ? selectedSkill.skill_name || selectedSkill.skill_id
-              : "综合能力雷达图"}
+              : t("skills.aggregateRadar")}
           </h3>
           <RadarChart scores={radarScores} size={240} />
           {selectedSkill && (
@@ -81,7 +83,7 @@ export default function SkillsPage() {
               onClick={() => setSelectedSkill(null)}
               className="mt-4 text-xs text-primary hover:underline"
             >
-              ← 查看综合概览
+              {t("skills.viewOverview")}
             </button>
           )}
         </div>
@@ -91,12 +93,12 @@ export default function SkillsPage() {
           {isLoading ? (
             <Loading variant="skeleton-cards" cardCount={6} />
           ) : error ? (
-            <ErrorState message="加载技能失败" />
+            <ErrorState message={t("skills.loadError")} />
           ) : userSkills.length === 0 ? (
             <EmptyState
-              title="暂无技能数据"
-              description="接受并完成Quest后，你的技能档案将在此展示"
-              actionLabel="浏览 Quests"
+              title={t("skills.noSkills")}
+              description={t("skills.noSkillDesc")}
+              actionLabel={t("skills.browseQuests")}
               actionHref="/quests"
             />
           ) : selectedSkill ? (
@@ -128,7 +130,7 @@ export default function SkillsPage() {
                   }}
                   tabIndex={0}
                   role="button"
-                  aria-label={`查看 ${skill.skill_name || skill.skill_id} 详情`}
+                  aria-label={t("skills.viewSkillDetail", { name: skill.skill_name || skill.skill_id })}
                   className="cursor-pointer card-hover"
                 >
                   <SkillCard skill={skill} />
@@ -142,7 +144,7 @@ export default function SkillsPage() {
       {/* All defined skills reference */}
       {allSkills.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">全部技能目录</h2>
+          <h2 className="text-lg font-semibold mb-3">{t("skills.allSkillsDirectory")}</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {allSkills.map((skill: Skill) => {
               const userSkill = userSkillMap.get(skill.id);
@@ -165,7 +167,7 @@ export default function SkillsPage() {
                   }}
                   tabIndex={userSkill ? 0 : undefined}
                   role={userSkill ? "button" : undefined}
-                  aria-label={userSkill ? `查看 ${skill.name} 详情` : undefined}
+                  aria-label={userSkill ? t("skills.viewSkillDetail", { name: skill.name }) : undefined}
                 >
                   <p className="font-medium truncate">{skill.name}</p>
                   {userSkill ? (
@@ -173,7 +175,7 @@ export default function SkillsPage() {
                       {userSkill.overall}
                     </p>
                   ) : (
-                    <p className="text-muted-foreground mt-0.5">未激活</p>
+                    <p className="text-muted-foreground mt-0.5">{t("skills.inactive")}</p>
                   )}
                 </div>
               );

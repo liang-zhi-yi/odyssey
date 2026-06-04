@@ -49,6 +49,7 @@ class SubmissionStatus(str, enum.Enum):
     ASSESSING = "ASSESSING"
     PASSED = "PASSED"
     FAILED = "FAILED"
+    ABANDONED = "ABANDONED"
 
 
 class AssessmentStatus(str, enum.Enum):

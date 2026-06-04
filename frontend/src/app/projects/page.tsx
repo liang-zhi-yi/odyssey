@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { projectService } from "@/services/project.service";
 import { ProjectCard } from "@/app/components/ProjectCard";
 import { Loading } from "@/app/components/Loading";
@@ -13,6 +14,7 @@ import { EmptyState } from "@/app/components/EmptyState";
 
 export default function ProjectsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -30,35 +32,35 @@ export default function ProjectsPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">项目</h1>
+          <h1 className="text-2xl font-bold">{t("projects.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            展示你的作品与成果
+            {t("projects.subtitle")}
           </p>
         </div>
         <Link
           href="/projects/new"
           className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
         >
-          + 新建项目
+          + {t("projects.newProject")}
         </Link>
       </div>
 
       {isLoading ? (
-        <Loading text="Loading projects..." />
+        <Loading text={t("common.loading")} />
       ) : error ? (
-        <ErrorState message="加载项目失败" />
+        <ErrorState message={t("projects.loadError")} />
       ) : projects.length === 0 ? (
         <EmptyState
-          title="暂无项目"
-          description="完成Quest后，将你的成果展示在这里"
-          actionLabel="浏览 Quests"
+          title={t("projects.noProjects")}
+          description={t("projects.noProjectsDesc")}
+          actionLabel={t("projects.browseQuests")}
           actionHref="/quests"
         />
       ) : (

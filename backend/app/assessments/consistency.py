@@ -22,6 +22,10 @@ def run_consistent_assessment(
     *,
     max_attempts: int = MAX_ATTEMPTS,
     delta_threshold: int = MAX_DELTA_THRESHOLD,
+    user_api_key: str | None = None,
+    user_base_url: str | None = None,
+    user_model: str | None = None,
+    user_provider: str | None = None,
 ) -> dict:
     """Run LLM evaluation with consistency checks.
 
@@ -59,6 +63,10 @@ def run_consistent_assessment(
             result = evaluate_submission(
                 system_prompt=system_prompt,
                 user_content=user_message,
+                user_api_key=user_api_key,
+                user_base_url=user_base_url,
+                user_model=user_model,
+                user_provider=user_provider,
             )
         except LLMClientError as exc:
             logger.warning("Attempt %d failed: %s", attempt_num, exc)

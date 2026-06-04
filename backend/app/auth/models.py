@@ -33,6 +33,12 @@ class User(Base):
     bio: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
+    nickname: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )
+    github_username: Mapped[str | None] = mapped_column(
+        String(100), nullable=True, unique=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
@@ -41,6 +47,9 @@ class User(Base):
     )
 
     # Relationships
+    settings: Mapped["UserSettings | None"] = relationship(
+        "UserSettings", back_populates="user", uselist=False, lazy="selectin"
+    )
     user_paths: Mapped[list["UserPath"]] = relationship(
         "UserPath", back_populates="user", lazy="selectin"
     )

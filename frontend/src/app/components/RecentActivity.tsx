@@ -1,6 +1,7 @@
 "use client";
 
 import type { ProgressLog } from "@/types/progress";
+import { useLocale } from "@/hooks/useLocale";
 import { EmptyState } from "./EmptyState";
 
 interface RecentActivityProps {
@@ -13,6 +14,8 @@ interface RecentActivityProps {
  * Each entry shows skill name, score delta, and reason.
  */
 export function RecentActivity({ logs, isLoading }: RecentActivityProps) {
+  const { t } = useLocale();
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -32,8 +35,8 @@ export function RecentActivity({ logs, isLoading }: RecentActivityProps) {
   if (logs.length === 0) {
     return (
       <EmptyState
-        title="暂无动态"
-        description="完成Quest后，你的成长动态将显示在这里"
+        title={t("dashboard.noActivity")}
+        description={t("dashboard.noActivityDesc")}
       />
     );
   }

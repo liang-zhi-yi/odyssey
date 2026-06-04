@@ -1,6 +1,7 @@
 "use client";
 
 import type { SkillGrowthPoint } from "@/types/progress";
+import { useLocale } from "@/hooks/useLocale";
 
 interface SkillDataset {
   name: string;
@@ -35,6 +36,8 @@ export function ProgressTimeline({
   skillName,
   isLoading,
 }: ProgressTimelineProps) {
+  const { t } = useLocale();
+
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-3">
@@ -54,9 +57,9 @@ export function ProgressTimeline({
   if (allDatasets.length === 0 || allDatasets.every((ds) => ds.points.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-sm text-muted-foreground">暂无成长数据</p>
+        <p className="text-sm text-muted-foreground">{t("skills.noGrowthData")}</p>
         <p className="text-xs text-muted-foreground/60 mt-1">
-          完成Quest评估后将生成成长曲线
+          {t("skills.noGrowthDesc")}
         </p>
       </div>
     );
@@ -90,7 +93,7 @@ export function ProgressTimeline({
       {/* Header with legend */}
       {hasMultiple && (
         <div className="flex flex-wrap items-center gap-4 mb-3">
-          <span className="text-sm font-semibold">成长曲线对比</span>
+          <span className="text-sm font-semibold">{t("skills.growthComparison")}</span>
           <div className="flex flex-wrap gap-3">
             {allDatasets.map((ds, i) => {
               const color = ds.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length];
@@ -109,7 +112,7 @@ export function ProgressTimeline({
       )}
 
       {!hasMultiple && skillName && (
-        <h4 className="text-sm font-semibold mb-3">{skillName} 成长曲线</h4>
+        <h4 className="text-sm font-semibold mb-3">{t("skills.growthCurve", { name: skillName })}</h4>
       )}
 
       <div className="overflow-x-auto">

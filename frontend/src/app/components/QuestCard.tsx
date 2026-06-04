@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { QuestListItem } from "@/types/quest";
 import { DIFFICULTY_LABELS, QUEST_TYPE_LABELS } from "@/types/quest";
+import { useLocale } from "@/hooks/useLocale";
 
 interface QuestCardProps {
   quest: QuestListItem;
@@ -19,6 +20,7 @@ const difficultyColors: Record<string, string> = {
  * Compact quest card for list display.
  */
 export function QuestCard({ quest }: QuestCardProps) {
+  const { t } = useLocale();
   const diffColor = difficultyColors[quest.difficulty] || "bg-secondary text-muted-foreground";
 
   return (
@@ -29,12 +31,12 @@ export function QuestCard({ quest }: QuestCardProps) {
       <div className="flex items-start justify-between gap-2 mb-2">
         <h4 className="font-semibold text-sm leading-snug line-clamp-2">{quest.title}</h4>
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${diffColor}`}>
-          {DIFFICULTY_LABELS[quest.difficulty] || quest.difficulty}
+          {t(`quests.difficulty.${quest.difficulty}`) || DIFFICULTY_LABELS[quest.difficulty] || quest.difficulty}
         </span>
       </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span>{QUEST_TYPE_LABELS[quest.quest_type] || quest.quest_type}</span>
+        <span>{t(`quests.type.${quest.quest_type}`) || QUEST_TYPE_LABELS[quest.quest_type] || quest.quest_type}</span>
         <span>·</span>
         <span className="truncate">{quest.skill_name}</span>
         <span>·</span>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
 import { skillService } from "@/services/skill.service";
 import { pathService } from "@/services/path.service";
@@ -21,8 +22,16 @@ import {
 
 type TabId = "all" | "recommended" | "path-node" | "mine";
 
+const TAB_KEYS: { id: TabId; key: string }[] = [
+  { id: "all", key: "quests.allQuests" },
+  { id: "recommended", key: "quests.dailyRecommendations" },
+  { id: "path-node", key: "quests.pathNode" },
+  { id: "mine", key: "quests.myQuests" },
+];
+
 export default function QuestsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
@@ -101,7 +110,7 @@ export default function QuestsPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   const acceptedQuestIds = new Set(userQuests.map((uq: UserQuest) => uq.quest_id));
@@ -109,27 +118,20 @@ export default function QuestsPage() {
     userQuests.map((uq: UserQuest) => [uq.quest_id, uq])
   );
 
-  // Determine the current (first incomplete) node for path progression display
-  // Simply highlight the first node — the backend determines which node is current
   const nextNode = pathNodes?.nodes[0] ?? null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">Quest Center</h1>
+        <h1 className="text-2xl font-bold">{t("quests.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          选择Quest，证明你的真实能力
+          {t("quests.subtitle")}
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg bg-secondary p-1 w-fit flex-wrap">
-        {([
-          ["all", "全部 Quest"],
-          ["recommended", "每日推荐"],
-          ["path-node", "路径关卡"],
-          ["mine", "我的 Quest"],
-        ] as [TabId, string][]).map(([id, label]) => (
+        {TAB_KEYS.map(({ id, key }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -139,7 +141,7 @@ export default function QuestsPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {label}
+            {t(key)}
           </button>
         ))}
       </div>
@@ -152,7 +154,7 @@ export default function QuestsPage() {
             onChange={(e) => setSkillFilter(e.target.value)}
             className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <option value="">全部技能</option>
+            <option value="">{t("quests.filter.allSkills")}</option>
             {skills.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -165,7 +167,7 @@ export default function QuestsPage() {
             onChange={(e) => setDifficultyFilter(e.target.value)}
             className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <option value="">全部难度</option>
+            <option value="">{t("quests.filter.allDifficulties")}</option>
             {Object.entries(DIFFICULTY_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
@@ -181,25 +183,25 @@ export default function QuestsPage() {
               }}
               className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              清除筛选
+              {t("quests.filter.clearFilter")}
             </button>
           )}
         </div>
       )}
 
-      {/* ── Tab: 全部 Quest ────────────────────────────────── */}
+      {/* ── Tab: All Quests ────────────────────────────────── */}
       {activeTab === "all" &&
         (questsLoading ? (
           <Loading variant="skeleton-cards" cardCount={6} />
         ) : questsError ? (
-          <ErrorState message="加载Quest失败" />
+          <ErrorState message={t("quests.loadQuestsError")} />
         ) : quests.length === 0 ? (
           <EmptyState
-            title="暂无匹配的Quest"
+            title={t("quests.noQuests")}
             description={
               skillFilter || difficultyFilter
-                ? "尝试调整筛选条件"
-                : "敬请期待更多Quest"
+                ? t("quests.tryAdjustFilter")
+                : t("quests.comingSoonMore")
             }
           />
         ) : (
@@ -219,7 +221,7 @@ export default function QuestsPage() {
           </div>
         ))}
 
-      {/* ── Tab: 每日推荐 ──────────────────────────────────── */}
+      {/* ── Tab: Daily Recommendations ─────────────────────── */}
       {activeTab === "recommended" && (
         <>
           <div className="rounded-xl border border-border bg-primary/5 p-4">
@@ -238,9 +240,9 @@ export default function QuestsPage() {
                 />
               </svg>
               <div>
-                <h2 className="text-sm font-semibold">今日推荐</h2>
+                <h2 className="text-sm font-semibold">{t("quests.todayRecommendation")}</h2>
                 <p className="text-xs text-muted-foreground">
-                  基于你的能力水平，每天推荐适合的Quest。每日更新。
+                  {t("quests.dailyDesc")}
                 </p>
               </div>
             </div>
@@ -249,11 +251,11 @@ export default function QuestsPage() {
           {recommendedLoading ? (
             <Loading variant="skeleton-cards" cardCount={4} />
           ) : recommendedError ? (
-            <ErrorState message="加载推荐失败" />
+            <ErrorState message={t("quests.loadRecommendedError")} />
           ) : recommendedQuests.length === 0 ? (
             <EmptyState
-              title="今日暂无推荐"
-              description="你已经接受了所有Quest，太棒了！明天再来看看吧。"
+              title={t("quests.noRecommended")}
+              description={t("quests.allAccepted")}
             />
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
@@ -274,14 +276,14 @@ export default function QuestsPage() {
         </>
       )}
 
-      {/* ── Tab: 路径关卡 ──────────────────────────────────── */}
+      {/* ── Tab: Path Nodes ────────────────────────────────── */}
       {activeTab === "path-node" && (
         <>
           {!hasActivePath ? (
             <EmptyState
-              title="未选择成长路径"
-              description="选择一个成长路径后，系统会按照路径节点为你推送对应的Quest，帮助你逐步完成路径中的每个技能关卡。"
-              actionLabel="去选择路径"
+              title={t("quests.noPathSelected")}
+              description={t("quests.noPathSelectedDesc")}
+              actionLabel={t("paths.goSelectPath")}
               actionHref="/paths"
             />
           ) : (
@@ -338,7 +340,7 @@ export default function QuestsPage() {
                             }`}
                           >
                             <span className="block text-[10px] opacity-60">
-                              关卡 {node.stage_order}
+                              {t("quests.stage")} {node.stage_order}
                             </span>
                             <span>{node.skill_name}</span>
                           </div>
@@ -353,14 +355,14 @@ export default function QuestsPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xs font-medium text-primary">
-                            当前关卡：{nextNode.skill_name}
+                            {t("quests.currentStage")}：{nextNode.skill_name}
                           </span>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {nextNode.skill_description}
                           </p>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          要求分数 ≥ {nextNode.required_score}
+                          {t("quests.requiredScore")} ≥ {nextNode.required_score}
                         </span>
                       </div>
                     </div>
@@ -372,11 +374,11 @@ export default function QuestsPage() {
               {pathNodeLoading ? (
                 <Loading variant="skeleton-cards" cardCount={4} />
               ) : pathNodeError ? (
-                <ErrorState message="加载路径Quest失败" />
+                <ErrorState message={t("quests.loadPathQuestsError")} />
               ) : pathNodeQuests.length === 0 ? (
                 <EmptyState
-                  title="当前关卡暂无Quest"
-                  description="该技能节点暂时没有可用的Quest，请先探索其他关卡。"
+                  title={t("quests.noPathNode")}
+                  description={t("quests.noPathNodeDesc")}
                 />
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
@@ -399,15 +401,15 @@ export default function QuestsPage() {
         </>
       )}
 
-      {/* ── Tab: 我的 Quest ────────────────────────────────── */}
+      {/* ── Tab: My Quests ─────────────────────────────────── */}
       {activeTab === "mine" &&
         (userQuestsLoading ? (
-          <Loading text="Loading your quests..." />
+          <Loading text={t("common.loading")} />
         ) : userQuests.length === 0 ? (
           <EmptyState
-            title="你还没有接受任何Quest"
-            description="浏览Quest列表，选择感兴趣的Quest开始学习"
-            actionLabel="浏览 Quests"
+            title={t("quests.noMyQuests")}
+            description={t("quests.browseQuestList")}
+            actionLabel={t("dashboard.browseQuests")}
             actionHref="/quests"
           />
         ) : (

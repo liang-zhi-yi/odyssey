@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/hooks/useLocale";
 
 interface BackButtonProps {
-  /** Custom label (default: "返回") */
+  /** Custom label (default: translated "common.back") */
   label?: string;
   /** Route to navigate to. If omitted, calls router.back() */
   href?: string;
@@ -15,7 +16,9 @@ interface BackButtonProps {
  * Reusable back-navigation button.
  * Uses router.back() by default, or navigates to a specific route via `href`.
  */
-export function BackButton({ label = "返回", href, className = "" }: BackButtonProps) {
+export function BackButton({ label, href, className = "" }: BackButtonProps) {
+  const { t } = useLocale();
+  const displayLabel = label || t("common.back");
   const router = useRouter();
 
   function handleClick() {
@@ -42,7 +45,7 @@ export function BackButton({ label = "返回", href, className = "" }: BackButto
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
-      {label}
+      {displayLabel}
     </button>
   );
 }

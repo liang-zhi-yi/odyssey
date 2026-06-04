@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { projectService } from "@/services/project.service";
 import { skillService } from "@/services/skill.service";
 import { Loading } from "@/app/components/Loading";
@@ -13,6 +14,7 @@ import { ApiRequestError } from "@/lib/api";
 export default function NewProjectPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -35,7 +37,7 @@ export default function NewProjectPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   const canSubmit = !isSubmitting && title.trim().length > 0;
@@ -61,7 +63,7 @@ export default function NewProjectPage() {
       const message =
         err instanceof ApiRequestError
           ? err.message
-          : "Failed to create project";
+          : t("common.error");
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -71,12 +73,12 @@ export default function NewProjectPage() {
   return (
     <div className="mx-auto max-w-xl space-y-6 px-4 py-6">
       {/* Back navigation */}
-      <BackButton href="/projects" label="返回项目列表" />
+      <BackButton href="/projects" label={t("projects.backToList")} />
 
       <div>
-        <h1 className="text-2xl font-bold">新建项目</h1>
+        <h1 className="text-2xl font-bold">{t("projects.newProject")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          将你的作品添加到项目集中
+          {t("projects.newProjectSubtitle")}
         </p>
       </div>
 
@@ -90,7 +92,7 @@ export default function NewProjectPage() {
             htmlFor="project-title"
             className="block text-sm font-medium mb-1.5"
           >
-            项目名称 <span className="text-destructive">*</span>
+            {t("projects.createTitle")} <span className="text-destructive">*</span>
           </label>
           <input
             id="project-title"
@@ -98,7 +100,7 @@ export default function NewProjectPage() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="输入项目名称..."
+            placeholder={t("projects.titlePlaceholder")}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
@@ -109,14 +111,14 @@ export default function NewProjectPage() {
             htmlFor="project-desc"
             className="block text-sm font-medium mb-1.5"
           >
-            项目描述
+            {t("projects.description")}
           </label>
           <textarea
             id="project-desc"
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="描述你的项目背景、技术栈和亮点..."
+            placeholder={t("projects.descriptionPlaceholder")}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
@@ -127,7 +129,7 @@ export default function NewProjectPage() {
             htmlFor="project-github"
             className="block text-sm font-medium mb-1.5"
           >
-            GitHub 仓库地址
+            {t("projects.githubUrlLabel")}
           </label>
           <input
             id="project-github"
@@ -145,7 +147,7 @@ export default function NewProjectPage() {
             htmlFor="project-demo"
             className="block text-sm font-medium mb-1.5"
           >
-            在线演示地址 <span className="text-muted-foreground/60">(可选)</span>
+            {t("projects.demoUrlLabel")} <span className="text-muted-foreground/60">({t("projects.optional")})</span>
           </label>
           <input
             id="project-demo"
@@ -163,7 +165,7 @@ export default function NewProjectPage() {
             htmlFor="project-skill"
             className="block text-sm font-medium mb-1.5"
           >
-            关联技能 <span className="text-muted-foreground/60">(可选)</span>
+            {t("projects.relatedSkill")} <span className="text-muted-foreground/60">({t("projects.optional")})</span>
           </label>
           <select
             id="project-skill"
@@ -171,7 +173,7 @@ export default function NewProjectPage() {
             onChange={(e) => setRelatedSkillId(e.target.value)}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <option value="">不关联</option>
+            <option value="">{t("projects.noAssociation")}</option>
             {allSkills.map((skill) => (
               <option key={skill.id} value={skill.id}>
                 {skill.name}
@@ -194,14 +196,14 @@ export default function NewProjectPage() {
             disabled={!canSubmit}
             className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
           >
-            {isSubmitting ? "创建中..." : "创建项目"}
+            {isSubmitting ? t("projects.creating") : t("projects.create")}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
           >
-            取消
+            {t("common.cancel")}
           </button>
         </div>
       </form>

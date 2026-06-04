@@ -8,6 +8,8 @@ from app.auth.schemas import (
     LoginRequest,
     TokenResponse,
     UserResponse,
+    UpdateProfileRequest,
+    ChangePasswordRequest,
 )
 from app.auth import service
 from app.database import get_db
@@ -41,6 +43,29 @@ def me(current_user: User = Depends(get_current_user)):
         id=str(current_user.id),
         username=current_user.username,
         email=current_user.email,
+        nickname=current_user.nickname,
+        github_username=current_user.github_username,
         avatar_url=current_user.avatar_url,
         bio=current_user.bio,
     )
+
+
+@router.put("/me", response_model=UserResponse)
+def update_current_user(
+    req: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update the current user's profile."""
+    return service.update_profile(db, current_user, req)
+
+
+@router.put("/password")
+def change_current_user_password(
+    req: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Change the current user's password."""
+    service.change_password(db, current_user, req.current_password, req.new_password)
+    return {"message": "Password updated successfully"}

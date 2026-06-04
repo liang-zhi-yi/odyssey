@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { passportService } from "@/services/passport.service";
 import { skillService } from "@/services/skill.service";
 import { PassportCard } from "@/app/components/PassportCard";
@@ -14,6 +15,7 @@ import type { DimensionScores } from "@/types/assessment";
 
 export default function PassportPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -44,20 +46,20 @@ export default function PassportPage() {
     userSkills.length > 0 ? computeAggregateScores(userSkills) : null;
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   if (passportError || skillsError) {
     return (
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
         <div>
-          <h1 className="text-2xl font-bold">能力通行证</h1>
+          <h1 className="text-2xl font-bold">{t("passport.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            你的技能、凭证与项目成果
+            {t("passport.subtitle")}
           </p>
         </div>
         <ErrorState
-          message="加载通行证失败"
+          message={t("passport.loadError")}
           detail={
             passportError instanceof Error ? passportError.message : undefined
           }
@@ -69,9 +71,9 @@ export default function PassportPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-bold">能力通行证</h1>
+        <h1 className="text-2xl font-bold">{t("passport.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          你的技能、凭证与项目成果
+          {t("passport.subtitle")}
         </p>
       </div>
 

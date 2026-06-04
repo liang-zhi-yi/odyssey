@@ -4,9 +4,11 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function LoginPage() {
   const { login, isLoading, error, clearError } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -26,9 +28,9 @@ export default function LoginPage() {
     <div className="flex min-h-[80vh] items-center justify-center">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-card">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("auth.login")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to continue your Odyssey
+            {t("auth.loginSubtitle")}
           </p>
         </div>
 
@@ -39,7 +41,7 @@ export default function LoginPage() {
               className="ml-2 underline hover:no-underline"
               onClick={clearError}
             >
-              Dismiss
+              {t("common.close")}
             </button>
           </div>
         )}
@@ -50,7 +52,7 @@ export default function LoginPage() {
               htmlFor="email"
               className="mb-1.5 block text-sm font-medium"
             >
-              Email
+              {t("auth.email")}
             </label>
             <input
               id="email"
@@ -68,7 +70,7 @@ export default function LoginPage() {
               htmlFor="password"
               className="mb-1.5 block text-sm font-medium"
             >
-              Password
+              {t("auth.password")}
             </label>
             <input
               id="password"
@@ -87,17 +89,17 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? t("auth.loggingIn") : t("auth.loginButton")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          {t("auth.noAccount")}{" "}
           <Link
             href="/register"
             className="font-medium text-primary hover:underline"
           >
-            Create one
+            {t("auth.register")}
           </Link>
         </p>
       </div>

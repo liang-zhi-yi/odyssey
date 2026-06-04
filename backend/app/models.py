@@ -9,6 +9,7 @@ from sqlalchemy.orm import configure_mappers
 
 # Infrastructure
 from app.database import Base  # noqa: F401
+from app.settings.models import UserSettings  # noqa: F401
 
 # Leaf entities first (no FK/relationship references to other app tables)
 from app.auth.models import User  # noqa: F401

@@ -19,6 +19,8 @@ const DEV_USER: User = {
   id: "dev-user-001",
   username: "dev-preview",
   email: "dev@odyssey.local",
+  nickname: null,
+  github_username: null,
   avatar_url: null,
   bio: "Dev preview mode — backend not connected",
 };

@@ -6,6 +6,7 @@ import type { DimensionScores } from "@/types/assessment";
 import { RadarChart } from "./RadarChart";
 import { Loading } from "./Loading";
 import { EmptyState } from "./EmptyState";
+import { useLocale } from "@/hooks/useLocale";
 
 interface PassportCardProps {
   passport: Passport | null;
@@ -23,6 +24,7 @@ export function PassportCard({
   aggregateScores,
   isLoading,
 }: PassportCardProps) {
+  const { t } = useLocale();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -65,14 +67,14 @@ export function PassportCard({
   }, [passport]);
 
   if (isLoading) {
-    return <Loading text="Loading passport..." />;
+    return <Loading text={t("common.loading")} />;
   }
 
   if (!passport) {
     return (
       <EmptyState
-        title="暂无通行证数据"
-        description="完成Quest并获得评估后，你的能力通行证将在此生成"
+        title={t("passport.noPassportData")}
+        description={t("passport.noPassportDesc")}
       />
     );
   }
@@ -86,7 +88,7 @@ export function PassportCard({
         </div>
         <h3 className="text-lg font-bold">{passport.user}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          能力通行证 · Odyssey
+          {t("passport.subtitleTag")}
         </p>
 
         {/* Share button */}
@@ -98,7 +100,7 @@ export function PassportCard({
             {copied ? (
               <>
                 <span className="text-success">✓</span>
-                已复制
+                {t("passport.copied")}
               </>
             ) : (
               <>
@@ -115,7 +117,7 @@ export function PassportCard({
                     d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
                   />
                 </svg>
-                复制通行证
+                {t("passport.copyPassport")}
               </>
             )}
           </button>
@@ -126,7 +128,7 @@ export function PassportCard({
       {aggregateScores && (
         <div className="rounded-xl border border-border bg-background p-4">
           <h4 className="text-sm font-semibold mb-3 text-center">
-            能力雷达图
+            {t("passport.radarChart")}
           </h4>
           <div className="flex justify-center">
             <RadarChart scores={aggregateScores} size={200} />
@@ -137,11 +139,11 @@ export function PassportCard({
       {/* Skills section */}
       <div className="rounded-xl border border-border bg-background p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <span>📊</span> 技能 ({passport.skills.length})
+          <span>📊</span> {t("passport.skills")} ({passport.skills.length})
         </h4>
         {passport.skills.length === 0 ? (
           <p className="text-xs text-muted-foreground py-4 text-center">
-            暂无技能数据
+            {t("skills.noSkills")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -175,11 +177,11 @@ export function PassportCard({
       {/* Credentials section */}
       <div className="rounded-xl border border-border bg-background p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <span>🏅</span> 凭证 ({passport.credentials.length})
+          <span>🏅</span> {t("passport.credentials")} ({passport.credentials.length})
         </h4>
         {passport.credentials.length === 0 ? (
           <p className="text-xs text-muted-foreground py-4 text-center">
-            完成Quest后可获得凭证
+            {t("passport.earnCredentialsHint")}
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -198,11 +200,11 @@ export function PassportCard({
       {/* Projects section */}
       <div className="rounded-xl border border-border bg-background p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <span>🚀</span> 项目 ({passport.projects.length})
+          <span>🚀</span> {t("passport.projects")} ({passport.projects.length})
         </h4>
         {passport.projects.length === 0 ? (
           <p className="text-xs text-muted-foreground py-4 text-center">
-            提交项目后在此展示
+            {t("passport.submitProjectHint")}
           </p>
         ) : (
           <div className="space-y-2">

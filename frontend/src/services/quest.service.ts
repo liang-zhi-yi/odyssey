@@ -45,4 +45,9 @@ export const questService = {
   listPathNodeQuests(): Promise<QuestListItem[]> {
     return api.get<QuestListItem[]>("/quests/path-node");
   },
+
+  /** Abandon an accepted quest */
+  abandonQuest(questId: string): Promise<{ status: string }> {
+    return api.post<{ status: string }>(`/quests/${questId}/abandon`);
+  },
 };

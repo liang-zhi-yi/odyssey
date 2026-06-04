@@ -4,6 +4,7 @@ import type { AssessmentCompleted } from "@/types/assessment";
 import { RadarChart } from "./RadarChart";
 import { DIMENSION_LABELS, DIMENSION_WEIGHTS } from "@/types/assessment";
 import type { DimensionScores } from "@/types/assessment";
+import { useLocale } from "@/hooks/useLocale";
 
 interface AssessmentPollingProps {
   isPolling: boolean;
@@ -29,12 +30,14 @@ export function AssessmentPolling({
   result,
   error,
 }: AssessmentPollingProps) {
+  const { t } = useLocale();
+
   // Error state
   if (error && !result) {
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
         <div className="mb-3 text-3xl">⚠️</div>
-        <p className="text-sm font-medium text-destructive">评估失败</p>
+        <p className="text-sm font-medium text-destructive">{t("assessment.failed")}</p>
         <p className="text-xs text-muted-foreground mt-1">{error}</p>
       </div>
     );
@@ -47,13 +50,13 @@ export function AssessmentPolling({
         <div className="mb-4 flex justify-center">
           <div className="h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-        <h3 className="text-lg font-semibold">评估进行中...</h3>
+        <h3 className="text-lg font-semibold">{t("assessment.processing")}</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          AI 正在分析你的提交内容
+          {t("assessment.polling")}
         </p>
         <div className="mt-4 flex justify-center gap-6 text-xs text-muted-foreground">
-          <span>已用时 {Math.floor(elapsed / 1000)}s</span>
-          <span>最长等待 60s</span>
+          <span>{t("assessment.elapsed", { seconds: Math.floor(elapsed / 1000) })}</span>
+          <span>{t("assessment.maxWait")}</span>
         </div>
         {/* Animated dots */}
         <div className="mt-3 flex justify-center gap-1">
@@ -82,7 +85,7 @@ export function AssessmentPolling({
       <div className="space-y-4">
         {/* Overall score */}
         <div className="rounded-xl border border-border bg-background p-6 text-center">
-          <p className="text-sm text-muted-foreground mb-1">综合评分</p>
+          <p className="text-sm text-muted-foreground mb-1">{t("assessment.overall")}</p>
           <p className="text-5xl font-bold text-primary tabular-nums">
             {result.overall}
           </p>
@@ -93,16 +96,16 @@ export function AssessmentPolling({
 
         {/* Dimension breakdown */}
         <div className="rounded-xl border border-border bg-background p-4">
-          <h4 className="text-sm font-semibold mb-3">维度详情</h4>
+          <h4 className="text-sm font-semibold mb-3">{t("assessment.dimensionDetails")}</h4>
           <div className="space-y-2.5">
             {DIMENSIONS.map((dim) => (
               <div key={dim}>
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="font-medium">
-                    {DIMENSION_LABELS[dim]}
+                    {t(`skills.dimensions.${dim}`) || DIMENSION_LABELS[dim]}
                   </span>
                   <span className="text-muted-foreground">
-                    权重 {Math.round(DIMENSION_WEIGHTS[dim] * 100)}%
+                    {t("assessment.weight", { percent: Math.round(DIMENSION_WEIGHTS[dim] * 100) })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -124,7 +127,7 @@ export function AssessmentPolling({
         {/* Feedback */}
         {result.feedback && (
           <div className="rounded-xl border border-border bg-background p-4">
-            <h4 className="text-sm font-semibold mb-2">AI 反馈</h4>
+            <h4 className="text-sm font-semibold mb-2">{t("assessment.feedback")}</h4>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {result.feedback}
             </p>
@@ -134,7 +137,7 @@ export function AssessmentPolling({
         {/* Suggestions */}
         {result.suggestions && (
           <div className="rounded-xl border border-border bg-background p-4">
-            <h4 className="text-sm font-semibold mb-2">改进建议</h4>
+            <h4 className="text-sm font-semibold mb-2">{t("assessment.suggestions")}</h4>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {result.suggestions}
             </p>

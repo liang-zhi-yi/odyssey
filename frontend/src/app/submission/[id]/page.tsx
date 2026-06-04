@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocale } from "@/hooks/useLocale";
 import { submissionService } from "@/services/submission.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -15,6 +16,7 @@ export default function SubmissionPage() {
   const { id: submissionId } = useParams<{ id: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -32,13 +34,13 @@ export default function SubmissionPage() {
   );
 
   if (authLoading || !isAuthenticated) {
-    return <Loading text="验证中..." />;
+    return <Loading text={t("auth.validating")} />;
   }
 
   if (isLoading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <Loading text="Loading submission..." />
+        <Loading text={t("common.loading")} />
       </div>
     );
   }
@@ -47,8 +49,8 @@ export default function SubmissionPage() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6">
         <ErrorState
-          message="加载失败"
-          detail={error instanceof Error ? error.message : "Submission not found"}
+          message={t("common.error")}
+          detail={error instanceof Error ? error.message : t("submission.notFound")}
         />
       </div>
     );
@@ -59,10 +61,10 @@ export default function SubmissionPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
       {/* Back navigation */}
-      <BackButton label="返回上一级" />
+      <BackButton label={t("submission.backOneLevel")} />
 
       <div>
-        <h1 className="text-2xl font-bold">提交详情</h1>
+        <h1 className="text-2xl font-bold">{t("submission.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Submission #{submission.submission_id}
         </p>
@@ -71,7 +73,7 @@ export default function SubmissionPage() {
       {/* Status */}
       <div className="rounded-xl border border-border bg-background p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">状态</h2>
+          <h2 className="text-lg font-semibold">{t("submission.status")}</h2>
           <span
             className={`rounded-full px-3 py-1 text-sm font-medium ${
               status === "PASSED"
@@ -90,7 +92,7 @@ export default function SubmissionPage() {
         {/* Content */}
         {submission.content && (
           <div className="mb-4">
-            <h3 className="text-sm font-medium mb-1.5">提交内容</h3>
+            <h3 className="text-sm font-medium mb-1.5">{t("submission.content")}</h3>
             <div className="rounded-lg bg-secondary/50 p-3">
               <pre className="text-sm whitespace-pre-wrap font-sans text-muted-foreground">
                 {submission.content}
@@ -103,7 +105,7 @@ export default function SubmissionPage() {
         <div className="space-y-2 text-sm">
           {submission.github_url && (
             <div>
-              <span className="text-muted-foreground">GitHub: </span>
+              <span className="text-muted-foreground">{t("submission.githubUrl")}: </span>
               <a
                 href={submission.github_url}
                 target="_blank"
@@ -116,7 +118,7 @@ export default function SubmissionPage() {
           )}
           {submission.demo_url && (
             <div>
-              <span className="text-muted-foreground">Demo: </span>
+              <span className="text-muted-foreground">{t("submission.demoUrl")}: </span>
               <a
                 href={submission.demo_url}
                 target="_blank"
@@ -136,7 +138,7 @@ export default function SubmissionPage() {
           href={`/quests/${submission.quest_id}`}
           className="text-sm text-primary hover:underline"
         >
-          ← 返回 Quest
+          {t("submission.backToQuest")}
         </Link>
       </div>
     </div>

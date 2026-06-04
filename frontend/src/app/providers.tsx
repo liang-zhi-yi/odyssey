@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { AuthProvider } from "@/hooks/useAuth";
+import { LocaleProvider } from "@/hooks/useLocale";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -13,7 +14,9 @@ export function Providers({ children }: { children: ReactNode }) {
         dedupingInterval: 2000,
       }}
     >
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <LocaleProvider>{children}</LocaleProvider>
+      </AuthProvider>
     </SWRConfig>
   );
 }
