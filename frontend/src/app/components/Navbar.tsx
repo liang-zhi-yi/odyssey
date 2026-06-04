@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const NAV_ITEMS = [
   { href: "/dashboard", labelKey: "nav.dashboard" },
+  { href: "/world", labelKey: "nav.myWorld" },
   { href: "/skills", labelKey: "nav.skills" },
   { href: "/quests", labelKey: "nav.quests" },
   { href: "/history", labelKey: "nav.history" },

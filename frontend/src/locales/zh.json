@@ -6,6 +6,7 @@
     "projects": "项目",
     "paths": "路径",
     "credentials": "证书",
+    "myWorld": "我的世界",
     "badges": "徽章",
     "passport": "护照",
     "history": "历史",
@@ -440,6 +441,33 @@
       "milestone": "里程碑",
       "mastery": "精通",
       "ranking": "等级"
+    }
+  },
+  "world": {
+    "myWorld": "我的世界",
+    "subtitle": "能力的成长，看得见的建筑",
+    "stats": "世界统计",
+    "civilizationLevel": "文明等级",
+    "activeBuildings": "已激活建筑",
+    "averageLevel": "平均等级",
+    "highestBuilding": "最高建筑",
+    "regions": "区域",
+    "locked": "未解锁",
+    "unlocked": "已解锁",
+    "selectBuilding": "选择一个建筑查看详情",
+    "upgradePath": "升级路径",
+    "nextLevel": "下一等级需要分数",
+    "scoreToNext": "还需 {score} 分达到下一等级",
+    "maxLevelReached": "已达最高等级",
+    "viewSkill": "查看技能详情",
+    "emptyTitle": "你的世界尚未建立",
+    "emptyDesc": "完成首次Quest评估，开始构建你的能力世界",
+    "startQuest": "开始 Quest",
+    "status": {
+      "LOCKED": "未激活",
+      "CONSTRUCTING": "建设中",
+      "STABLE": "稳定",
+      "UPGRADING": "升级中"
     }
   }
 }

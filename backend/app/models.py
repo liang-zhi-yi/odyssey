@@ -20,6 +20,8 @@ from app.assessments.models import Assessment  # noqa: F401
 from app.progress.models import ProgressLog  # noqa: F401
 from app.credentials.models import Credential, UserCredential  # noqa: F401
 from app.projects.models import Project  # noqa: F401
+from app.badges.models import BadgeDefinition, UserBadge  # noqa: F401
+from app.world.models import BuildingTemplate, UserBuilding, World  # noqa: F401
 
 # Entities with cross-model relationships (import last so all targets exist)
 from app.skills.models import Skill, UserSkill  # noqa: F401

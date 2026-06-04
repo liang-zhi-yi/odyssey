@@ -57,6 +57,9 @@ class Skill(Base):
     credentials: Mapped[list["Credential"]] = relationship(
         "Credential", back_populates="skill", lazy="selectin"
     )
+    building_template: Mapped["BuildingTemplate | None"] = relationship(
+        "BuildingTemplate", back_populates="skill", uselist=False, lazy="selectin"
+    )
     # Note: Skill → ProgressLog navigation removed to avoid circular import.
     # Query ProgressLog directly with .filter(ProgressLog.skill_id == skill_id).
 

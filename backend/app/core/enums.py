@@ -56,3 +56,10 @@ class AssessmentStatus(str, enum.Enum):
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+
+
+class BuildingStatus(str, enum.Enum):
+    LOCKED = "LOCKED"           # Skill not yet activated
+    CONSTRUCTING = "CONSTRUCTING"  # Recently activated, building under construction
+    STABLE = "STABLE"           # At current level, no recent change
+    UPGRADING = "UPGRADING"     # Just upgraded, transient state

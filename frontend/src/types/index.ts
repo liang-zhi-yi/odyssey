@@ -73,3 +73,14 @@ export type {
 export type { UserSettings, UpdateSettingsRequest } from "./settings";
 
 export type { BadgeDefinition, UserBadge } from "./badge";
+
+export type {
+  World,
+  WorldStats,
+  RegionInfo,
+  UserBuilding,
+  BuildingTemplate,
+  BuildingDetail,
+  BuildingStatus,
+} from "./world";
+export { LEVEL_LABELS, BUILDING_STATUS_LABELS } from "./world";

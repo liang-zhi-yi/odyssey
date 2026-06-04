@@ -6,6 +6,7 @@
     "projects": "Projects",
     "paths": "Paths",
     "credentials": "Credentials",
+    "myWorld": "My World",
     "badges": "Badges",
     "passport": "Passport",
     "history": "History",
@@ -440,6 +441,33 @@
       "milestone": "Milestone",
       "mastery": "Mastery",
       "ranking": "Ranking"
+    }
+  },
+  "world": {
+    "myWorld": "My World",
+    "subtitle": "Visible growth, tangible buildings",
+    "stats": "World Stats",
+    "civilizationLevel": "Civilization Level",
+    "activeBuildings": "Active Buildings",
+    "averageLevel": "Average Level",
+    "highestBuilding": "Highest Building",
+    "regions": "Regions",
+    "locked": "Locked",
+    "unlocked": "Unlocked",
+    "selectBuilding": "Select a building to view details",
+    "upgradePath": "Upgrade Path",
+    "nextLevel": "Score needed for next level",
+    "scoreToNext": "{score} more points to next level",
+    "maxLevelReached": "Max level reached",
+    "viewSkill": "View Skill Details",
+    "emptyTitle": "Your world has not been built yet",
+    "emptyDesc": "Complete your first Quest assessment to start building your capability world",
+    "startQuest": "Start a Quest",
+    "status": {
+      "LOCKED": "Locked",
+      "CONSTRUCTING": "Constructing",
+      "STABLE": "Stable",
+      "UPGRADING": "Upgrading"
     }
   }
 }

@@ -32,6 +32,7 @@ from app.assessments.skill_updater import apply_assessment_to_user_skill
 from app.assessments.progress_logger import log_progress
 from app.credentials.checker import check_and_award_credentials
 from app.badges.engine import check_and_award_badges
+from app.world.upgrade_engine import sync_buildings_after_assessment
 
 logger = logging.getLogger(__name__)
 
@@ -206,6 +207,17 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
             logger.info("Badges awarded: %s", new_badges)
     except Exception as exc:
         logger.warning("Badge check failed (non-fatal): %s", exc)
+
+    # ── 7d. Sync world buildings ───────────────────────────────────
+    try:
+        upgrades = sync_buildings_after_assessment(
+            db=db,
+            user_id=submission.user_id,
+        )
+        if upgrades:
+            logger.info("Building upgrades: %s", upgrades)
+    except Exception as exc:
+        logger.warning("Building sync failed (non-fatal): %s", exc)
 
     # ── 8. Update Assessment record ─────────────────────────────────
     passed = overall_assessment >= PASS_THRESHOLD
