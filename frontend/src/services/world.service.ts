@@ -8,6 +8,7 @@ import type {
   WorldEvent,
   UserMilestone,
   TechTreeData,
+  CivilizationDirection,
 } from "@/types/world";
 
 export const worldService = {
@@ -45,5 +46,10 @@ export const worldService = {
   /** Get the full tech tree */
   getTechTree(): Promise<TechTreeData> {
     return api.get<TechTreeData>("/world/tech-tree");
+  },
+
+  /** Get civilization direction — how active paths drive world growth */
+  getCivilizationDirection(): Promise<CivilizationDirection> {
+    return api.get<CivilizationDirection>("/world/civilization-direction");
   },
 };

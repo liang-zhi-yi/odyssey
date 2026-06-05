@@ -44,11 +44,18 @@ def list_quests(
 
 @router.get("/quests/recommended", response_model=list[QuestListResponse])
 def list_recommended_quests(
+    context: str | None = Query(None, description="Optional: 'world' for building-aware recommendations"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Return daily recommended quests — not yet accepted by the user."""
-    quests = service.get_recommended_quests(db, str(current_user.id))
+    """Return daily recommended quests — not yet accepted by the user.
+
+    When context=world, prioritises quests for skills whose buildings are
+    closest to leveling up, and includes building_context in each response.
+    """
+    quests, building_context = service.get_recommended_quests(
+        db, str(current_user.id), context=context
+    )
     return [
         QuestListResponse(
             id=str(q.id),
@@ -59,6 +66,7 @@ def list_recommended_quests(
             difficulty=q.difficulty.value,
             quest_type=q.quest_type.value,
             expected_deliverable=q.expected_deliverable.value,
+            building_context=building_context.get(str(q.id)) if building_context else None,
         )
         for q in quests
     ]

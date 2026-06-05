@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import useSWR from "swr";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { useAgent } from "@/hooks/useAgent";
+import { learningPathService } from "@/services/learningPath.service";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { NotificationBell } from "./NotificationBell";
@@ -65,6 +67,14 @@ export function Navbar() {
   const { isDark, toggle } = useDarkMode();
   const { toggle: toggleAgent, hasUnread } = useAgent();
 
+  // Active paths count — for world nav indicator
+  const { data: allPaths = [] } = useSWR(
+    isAuthenticated ? "all-paths" : null,
+    () => learningPathService.listPaths().catch(() => []),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  const activePathCount = allPaths.filter((p) => p.status === "ACTIVE").length;
+
   // Hide navbar on login/register pages
   if (pathname === "/login" || pathname === "/register") {
     return null;
@@ -95,7 +105,7 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all duration-300 ${
+                    className={`relative rounded-xl px-3 py-1.5 text-sm font-medium transition-all duration-300 ${
                       isActive
                         ? "bg-primary/10 text-primary shadow-sm"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -105,6 +115,10 @@ export function Navbar() {
                       const tr = t(item.labelKey);
                       return tr !== item.labelKey ? tr : (item.label || item.labelKey);
                     })()}
+                    {/* Active path indicator on world icon */}
+                    {item.href === "/world" && activePathCount > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-success animate-warm-pulse" />
+                    )}
                   </Link>
                 );
               })}

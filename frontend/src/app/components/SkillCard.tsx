@@ -7,10 +7,22 @@ import { RANK_LABELS } from "@/types/skill";
 import { useLocale } from "@/hooks/useLocale";
 import { GrowthRing, masteryColor } from "@/app/components/GrowthRing";
 import { Sparkline } from "@/app/components/Sparkline";
+import { BuildingBadge } from "./BuildingBadge";
+
+export interface BuildingMapEntry {
+  name: string;
+  name_en: string | null;
+  level: number;
+  icon: string;
+}
 
 interface SkillCardProps {
   skill: UserSkill;
   trend?: SkillGrowthPoint[];
+  /** Optional: pre-resolved building info for this skill */
+  buildingInfo?: BuildingMapEntry | null;
+  /** Optional: pre-fetched world buildings for BuildingBadge to use (avoids extra fetch) */
+  worldBuildings?: { template: { skill_id: string; name: string; name_en: string | null; icon: string } | null; level: number }[];
 }
 
 /**
@@ -18,7 +30,7 @@ interface SkillCardProps {
  * flat progress bars with concentric GrowthRings. Color intensity
  * reflects mastery depth: light sage → deep sage → gold.
  */
-export function SkillCard({ skill, trend }: SkillCardProps) {
+export function SkillCard({ skill, trend, worldBuildings }: SkillCardProps) {
   const { t } = useLocale();
 
   const dimensions = [
@@ -79,6 +91,16 @@ export function SkillCard({ skill, trend }: SkillCardProps) {
           {skill.overall}
         </span>
       </div>
+
+      {/* Building link */}
+      {skill.skill_id && (
+        <div className="mt-2">
+          <BuildingBadge
+            skillId={skill.skill_id}
+            worldBuildings={worldBuildings}
+          />
+        </div>
+      )}
     </Link>
   );
 }

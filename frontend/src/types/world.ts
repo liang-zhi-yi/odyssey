@@ -8,7 +8,8 @@ export type WorldEventType =
   | "COMPOUND_UPGRADE"
   | "REGION_UNLOCK"
   | "TIER_ADVANCE"
-  | "MILESTONE_REACHED";
+  | "MILESTONE_REACHED"
+  | "PATH_MILESTONE_COMPLETED";
 export type CivilizationTierValue =
   | "SETTLER"
   | "VILLAGE"
@@ -245,4 +246,33 @@ export const EVENT_TYPE_LABELS: Record<WorldEventType, { zh: string; en: string;
   REGION_UNLOCK: { zh: "区域解锁", en: "Region Unlock", icon: "🗺️" },
   TIER_ADVANCE: { zh: "文明晋级", en: "Tier Advance", icon: "⭐" },
   MILESTONE_REACHED: { zh: "里程碑达成", en: "Milestone", icon: "🎯" },
+  PATH_MILESTONE_COMPLETED: { zh: "路径里程碑", en: "Path Milestone", icon: "🛤️" },
 };
+
+// ── Civilization Direction ──────────────────────────────────────────────
+
+export interface TargetedBuilding {
+  building_id: string;
+  building_name: string;
+  building_name_en: string | null;
+  building_icon: string;
+  current_level: number;
+  projected_level: number;
+  remaining_milestones: number;
+  region: string;
+  region_en: string | null;
+  max_level: number;
+}
+
+export interface ActivePathDirection {
+  path_id: string;
+  path_title: string;
+  progress_pct: number;
+  targeted_buildings: TargetedBuilding[];
+}
+
+export interface CivilizationDirection {
+  active_paths: ActivePathDirection[];
+  summary: string;
+  suggested_focus: string;
+}

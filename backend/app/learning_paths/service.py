@@ -18,6 +18,7 @@ from app.learning_paths.memory import build_memory_context, record_interaction
 from app.settings.models import UserSettings
 from app.skills.models import Skill
 from app.quests.models import Quest
+from app.world.events import event_path_milestone_completed
 from app.core.exceptions import NotFoundException, ConflictException
 
 logger = logging.getLogger(__name__)
@@ -382,6 +383,27 @@ def toggle_milestone(
         datetime.now(timezone.utc) if milestone.is_completed else None
     )
 
+    # When milestone is completed, generate a world event to bridge Paths ↔ World
+    if milestone.is_completed:
+        building_name = None
+        if milestone.skill_id:
+            from app.world.models import BuildingTemplate
+            bld_tpl = (
+                db.query(BuildingTemplate)
+                .filter(BuildingTemplate.skill_id == milestone.skill_id)
+                .first()
+            )
+            if bld_tpl:
+                building_name = bld_tpl.name
+
+        event_path_milestone_completed(
+            db,
+            user_id=UUID(user_id),
+            milestone_title=milestone.title,
+            path_title=path.title,
+            building_name=building_name,
+        )
+
     # Recalculate path progress
     all_milestones = (
         db.query(LearningPathMilestone)
@@ -419,6 +441,110 @@ def toggle_milestone(
         "is_completed": milestone.is_completed,
         "path_progress_pct": path.progress_pct,
         "next_checkpoint_unlocked": next_unlocked,
+    }
+
+
+def get_path_world_impact(db: Session, user_id: str, path_id: str) -> dict | None:
+    """Analyze how completing this learning path would affect the world."""
+    from app.world.models import BuildingTemplate, UserBuilding
+    from app.world.service import score_to_level
+
+    path = _get_user_path(db, path_id, user_id)
+    if not path:
+        return None
+
+    milestones = (
+        db.query(LearningPathMilestone)
+        .filter(LearningPathMilestone.learning_path_id == path.id)
+        .all()
+    )
+
+    # Collect unique skill_ids from milestones
+    skill_ids: list[str] = []
+    seen: set[str] = set()
+    for ms in milestones:
+        if ms.skill_id and str(ms.skill_id) not in seen:
+            skill_ids.append(str(ms.skill_id))
+            seen.add(str(ms.skill_id))
+
+    # Map to buildings
+    buildings_affected = []
+    total_current_level = 0
+    total_projected_level = 0
+    regions_to_unlock: set[str] = set()
+
+    for sid in skill_ids:
+        tpl = (
+            db.query(BuildingTemplate)
+            .filter(BuildingTemplate.skill_id == sid)
+            .first()
+        )
+        if not tpl:
+            continue
+
+        ub = (
+            db.query(UserBuilding)
+            .filter(
+                UserBuilding.user_id == user_id,
+                UserBuilding.building_template_id == tpl.id,
+            )
+            .first()
+        )
+
+        current_level = ub.level if ub else 1
+        project_inc = sum(
+            1 for ms in milestones
+            if str(ms.skill_id) == sid and not ms.is_completed
+        )
+        projected_level = min(
+            score_to_level(current_level * 20 + project_inc * 20),
+            tpl.max_level,
+        )
+
+        if projected_level >= 3 and current_level < 3:
+            regions_to_unlock.add(tpl.region_en or tpl.region)
+
+        buildings_affected.append({
+            "skill_name": tpl.name,
+            "skill_name_en": tpl.name_en,
+            "building_name": tpl.name,
+            "building_name_en": tpl.name_en,
+            "building_icon": tpl.icon,
+            "current_level": current_level,
+            "projected_level": projected_level,
+            "milestones_remaining": sum(
+                1 for ms in milestones
+                if str(ms.skill_id) == sid and not ms.is_completed
+            ),
+            "region": tpl.region,
+            "region_en": tpl.region_en,
+        })
+        total_current_level += current_level
+        total_projected_level += projected_level
+
+    # Tier projection (simplified)
+    from app.world.models import World
+    from app.world.service import score_to_tier
+
+    world = db.query(World).filter(World.user_id == user_id).first()
+    current_tier = score_to_tier(world.tier_score if world else 0)
+    projected_score = (world.tier_score if world else 0) + (total_projected_level - total_current_level) * 2
+    projected_tier = score_to_tier(projected_score)
+
+    return {
+        "path_id": str(path.id),
+        "path_title": path.title,
+        "buildings_affected": buildings_affected,
+        "regions_to_unlock": list(regions_to_unlock),
+        "tier_projection": {
+            "current_tier": current_tier["tier"],
+            "current_tier_name": current_tier["tier_name_zh"],
+            "current_tier_name_en": current_tier["tier_name_en"],
+            "projected_tier": projected_tier["tier"],
+            "projected_tier_name": projected_tier["tier_name_zh"],
+            "projected_tier_name_en": projected_tier["tier_name_en"],
+            "score_increase_estimate": (total_projected_level - total_current_level) * 2,
+        },
     }
 
 

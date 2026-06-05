@@ -9,6 +9,8 @@ interface LearningPathCardProps {
   path: LearningPath;
   onSelect?: (pathId: string) => void;
   selecting?: boolean;
+  /** Optional: world buildings for showing target building pills */
+  worldBuildings?: { template: { skill_id: string; name: string; name_en: string | null; icon: string } | null; level: number }[];
 }
 
 const DIFFICULTY_COLORS: Record<number, string> = {
@@ -45,6 +47,7 @@ export function LearningPathCard({
   path,
   onSelect,
   selecting,
+  worldBuildings,
 }: LearningPathCardProps) {
   const { locale } = useLocale();
 
@@ -57,6 +60,23 @@ export function LearningPathCard({
     locale === "zh"
       ? PATH_STATUS_LABELS_ZH[path.status] ?? path.status
       : PATH_STATUS_LABELS[path.status] ?? path.status;
+
+  // Resolve target buildings from path metadata
+  const targetSkills: string[] = path.path_metadata?.recommended_skills ?? [];
+  const targetBuildings = worldBuildings
+    ? targetSkills
+        .map((skillName) => {
+          const b = worldBuildings.find(
+            (wb) =>
+              wb.template?.name === skillName ||
+              wb.template?.name_en === skillName
+          );
+          return b?.template
+            ? { name: b.template.name, name_en: b.template.name_en, icon: b.template.icon, level: b.level }
+            : null;
+        })
+        .filter(Boolean) as { name: string; name_en: string | null; icon: string; level: number }[]
+    : [];
 
   return (
     <Link
@@ -113,6 +133,27 @@ export function LearningPathCard({
           {path.progress_pct}%
         </span>
       </div>
+
+      {/* Target buildings */}
+      {targetBuildings.length > 0 && (
+        <div className="mt-2 flex items-center gap-1 flex-wrap">
+          <span className="text-[10px] text-muted-foreground/60">
+            {locale === "zh" ? "目标:" : "Targets:"}
+          </span>
+          {targetBuildings.map((b) => (
+            <span
+              key={b.name}
+              className="inline-flex items-center gap-0.5 rounded bg-secondary/60 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+            >
+              <span>{b.icon}</span>
+              <span className="truncate max-w-[5rem]">
+                {locale === "en" && b.name_en ? b.name_en : b.name}
+              </span>
+              <span className="tabular-nums">Lv.{b.level}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Select button for preset paths */}
       {onSelect && (

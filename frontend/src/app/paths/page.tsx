@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
 import { questService } from "@/services/quest.service";
+import { worldService } from "@/services/world.service";
 import { LearningPathCard } from "@/app/components/LearningPathCard";
 import { QuestCard } from "@/app/components/QuestCard";
 import { PathGeneratorForm } from "@/app/components/PathGeneratorForm";
@@ -85,6 +86,14 @@ export default function PathsPage() {
     () => questService.listUserQuests().catch(() => [])
   );
 
+  // Fetch world state for building pills on learning path cards
+  const { data: worldData } = useSWR(
+    isAuthenticated ? "world" : null,
+    () => worldService.getWorld().catch(() => null),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  const worldBuildings = worldData?.buildings ?? [];
+
   const handleSelectPreset = useCallback(
     (pathId: string) => {
       router.push(`/paths/${pathId}`);
@@ -155,7 +164,7 @@ export default function PathsPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
             {userPaths.map((path: LearningPath) => (
               <div key={path.id} className="card-hover">
-                <LearningPathCard path={path} />
+                <LearningPathCard path={path} worldBuildings={worldBuildings} />
               </div>
             ))}
           </div>
@@ -179,6 +188,7 @@ export default function PathsPage() {
                 <LearningPathCard
                   path={path}
                   onSelect={handleSelectPreset}
+                  worldBuildings={worldBuildings}
                 />
               </div>
             ))}

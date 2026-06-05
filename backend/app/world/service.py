@@ -624,6 +624,129 @@ def get_tech_tree(db: Session, user_id: UUID) -> dict:
     }
 
 
+def get_civilization_direction(db: Session, user_id: UUID) -> dict:
+    """Analyze active learning paths → target skills → buildings → civilization direction.
+
+    Returns the active paths and which buildings they're driving growth toward.
+    """
+    from app.learning_paths.models import LearningPath, LearningPathMilestone
+
+    # 1. Get active learning paths
+    active_paths = (
+        db.query(LearningPath)
+        .filter(
+            LearningPath.user_id == user_id,
+            LearningPath.status == "ACTIVE",
+        )
+        .all()
+    )
+
+    # 2. Build skill_id → building info mapping
+    building_templates = db.query(BuildingTemplate).all()
+    user_buildings = {
+        ub.building_template_id: ub
+        for ub in db.query(UserBuilding)
+        .filter(UserBuilding.user_id == user_id)
+        .all()
+    }
+    skill_to_building: dict[UUID, dict] = {}
+    for tpl in building_templates:
+        ub = user_buildings.get(tpl.id)
+        skill_to_building[tpl.skill_id] = {
+            "building_id": str(ub.id) if ub else str(tpl.id),
+            "building_name": tpl.name,
+            "building_name_en": tpl.name_en,
+            "building_icon": tpl.icon,
+            "current_level": ub.level if ub else 1,
+            "region": tpl.region,
+            "region_en": tpl.region_en,
+            "max_level": tpl.max_level,
+        }
+
+    # 3. For each active path, gather targeted buildings from milestones
+    path_directions = []
+    all_targeted_skill_ids: set[UUID] = set()
+
+    for path in active_paths:
+        milestones = (
+            db.query(LearningPathMilestone)
+            .filter(LearningPathMilestone.learning_path_id == path.id)
+            .all()
+        )
+
+        # Collect unique skill_ids from milestones
+        targeted_skill_ids: list[UUID] = []
+        seen_skills: set[UUID] = set()
+        for ms in milestones:
+            if ms.skill_id and ms.skill_id not in seen_skills:
+                targeted_skill_ids.append(ms.skill_id)
+                seen_skills.add(ms.skill_id)
+
+        # Map to building info
+        targeted_buildings = []
+        for sid in targeted_skill_ids:
+            bld = skill_to_building.get(sid)
+            if bld:
+                # Calculate projected level: each milestone completion adds ~20 score points
+                incomplete_ms = [
+                    m for m in milestones
+                    if m.skill_id == sid and not m.is_completed
+                ]
+                projected_increase = len(incomplete_ms) * 20  # rough estimate per milestone
+                projected_level = score_to_level(
+                    bld["current_level"] * 20 + projected_increase
+                )
+                targeted_buildings.append({
+                    **bld,
+                    "remaining_milestones": len(incomplete_ms),
+                    "projected_level": projected_level,
+                })
+                all_targeted_skill_ids.add(sid)
+
+        path_directions.append({
+            "path_id": str(path.id),
+            "path_title": path.title,
+            "progress_pct": path.progress_pct or 0,
+            "targeted_buildings": targeted_buildings,
+        })
+
+    # 4. Build summary text
+    all_regions: set[str] = set()
+    all_building_names: list[str] = []
+    for pd in path_directions:
+        for tb in pd["targeted_buildings"]:
+            all_regions.add(tb["region"])
+            all_building_names.append(tb["building_name"])
+
+    summary = ""
+    suggested_focus = ""
+    if path_directions:
+        region_list = list(all_regions)[:2]
+        building_list = all_building_names[:3]
+        summary = (
+            f"Your civilization is evolving toward "
+            f"{' and '.join(region_list)} mastery. "
+            f"Active paths are driving {len(all_building_names)} buildings."
+        )
+        if path_directions:
+            top_path = path_directions[0]
+            if top_path["targeted_buildings"]:
+                first_bld = top_path["targeted_buildings"][0]
+                suggested_focus = (
+                    f"Prioritize '{top_path['path_title']}' "
+                    f"to reach {first_bld['building_name']} Lv.{first_bld['projected_level']}"
+                )
+    else:
+        summary = "No active learning paths. Create a path to guide your civilization's growth."
+        suggested_focus = "Start by creating a learning path to define your civilization's direction."
+
+    return {
+        "active_paths": path_directions,
+        "summary": summary,
+        "suggested_focus": suggested_focus,
+    }
+
+
 def get_milestones(db: Session, user_id: UUID) -> list[dict]:
     """Return all milestone definitions with user unlock status."""
     ensure_world_exists(db, user_id)

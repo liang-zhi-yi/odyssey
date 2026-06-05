@@ -121,6 +121,8 @@ export default function DashboardPage() {
     (q) => q.status === "PASSED"
   ).length;
 
+  const activePathCount = allPaths.filter((p) => p.status === "ACTIVE").length;
+
   const worldTier = (worldData?.tier ? parseInt(worldData.tier_score as unknown as string, 10) || 1 : 0);
   const buildingCount = worldData?.buildings?.length ?? 0;
   const regionCount = worldData?.regions?.length ?? 0;
@@ -201,6 +203,7 @@ export default function DashboardPage() {
             worldTier={worldTier}
             buildingCount={buildingCount}
             regionCount={regionCount}
+            activePathCount={activePathCount}
             isLoading={worldLoading}
           />
         </div>

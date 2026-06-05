@@ -186,6 +186,21 @@ def delete_learning_path(
     return {"detail": "ok"}
 
 
+# -- World Impact --
+
+@router.get("/learning-paths/{path_id}/world-impact")
+def get_path_world_impact(
+    path_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Analyze how completing this learning path would affect the world."""
+    result = service.get_path_world_impact(db, str(current_user.id), path_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Learning path not found")
+    return result
+
+
 # -- AI Generation --
 
 @router.post("/learning-paths/{path_id}/generate", response_model=GeneratePathResponse)

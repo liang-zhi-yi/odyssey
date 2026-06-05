@@ -1,11 +1,15 @@
 "use client";
 
 import useSWR from "swr";
+import Link from "next/link";
 import { worldService } from "@/services/world.service";
+import { questService } from "@/services/quest.service";
 import { useLocale } from "@/hooks/useLocale";
 import { LEVEL_LABELS } from "@/types/world";
 import { RANK_LABELS } from "@/types/skill";
+import { StarRating, difficultyToLevel } from "./StarRating";
 import type { UserBuilding, UserCompoundBuilding, BuildingTemplate, BuildingDetail, CompoundBuildingDetail } from "@/types/world";
+import type { QuestListItem } from "@/types/quest";
 
 interface BuildingDetailPanelProps {
   building: UserBuilding | UserCompoundBuilding;
@@ -115,6 +119,13 @@ function RegularDetail({
   t: (key: string, vars?: Record<string, string>) => string;
   locale: string;
 }) {
+  // Fetch related quests by skill_id
+  const { data: relatedQuests = [] } = useSWR(
+    tpl?.skill_id ? `quests-skill-${tpl.skill_id}` : null,
+    () => questService.listQuests({ skill_id: tpl!.skill_id }),
+    { dedupingInterval: 60000 }
+  );
+
   return (
     <div className="space-y-4">
       {!isLocked && detail.skill_scores && (
@@ -180,6 +191,50 @@ function RegularDetail({
           {t("world.viewSkill")}
         </a>
       )}
+
+      {/* Related Quests */}
+      {tpl?.skill_id && (
+        <RelatedQuests quests={relatedQuests} skillName={tpl?.name ?? ""} locale={locale} />
+      )}
+    </div>
+  );
+}
+
+function RelatedQuests({ quests, skillName, locale }: { quests: QuestListItem[]; skillName: string; locale: string }) {
+  const top3 = quests.slice(0, 3);
+  if (top3.length === 0) return null;
+
+  return (
+    <div className="border-t border-border pt-3 mt-1">
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        {locale === "en" ? "Related Quests" : "相关任务"}
+      </h4>
+      <div className="space-y-1.5">
+        {top3.map((q) => {
+          const title = locale === "en" && q.title_en ? q.title_en : q.title;
+          const level = difficultyToLevel(q.difficulty);
+          return (
+            <Link
+              key={q.id}
+              href={`/quests/${q.id}`}
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-secondary/60"
+            >
+              <StarRating level={level} />
+              <span className="flex-1 truncate text-foreground">{title}</span>
+              <svg className="h-3 w-3 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </Link>
+          );
+        })}
+        {quests.length > 3 && (
+          <p className="text-[10px] text-muted-foreground text-center pt-1">
+            {locale === "en"
+              ? `+${quests.length - 3} more quests`
+              : `还有 ${quests.length - 3} 个任务`}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

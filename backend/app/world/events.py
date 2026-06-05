@@ -190,3 +190,28 @@ def event_milestone_reached(
         db, user_id, WorldEventType.MILESTONE_REACHED,
         title, title_en, milestone_description, milestone_description_en,
     )
+
+
+def event_path_milestone_completed(
+    db: Session,
+    user_id: UUID,
+    milestone_title: str,
+    path_title: str,
+    building_name: str | None = None,
+) -> WorldEvent:
+    """Log a learning path milestone completion — bridges Paths ↔ World."""
+    if building_name:
+        title = f"路径里程碑完成：{milestone_title} — 推动 {building_name} 发展"
+        title_en = f"Path Milestone: {milestone_title} — advancing {building_name}"
+        desc = f"在路径「{path_title}」中完成里程碑「{milestone_title}」，加速了 {building_name} 的建设"
+        desc_en = f"Completed milestone '{milestone_title}' in path '{path_title}', accelerating the development of {building_name}"
+    else:
+        title = f"路径里程碑完成：{milestone_title}"
+        title_en = f"Path Milestone: {milestone_title}"
+        desc = f"在路径「{path_title}」中完成里程碑「{milestone_title}」"
+        desc_en = f"Completed milestone '{milestone_title}' in path '{path_title}'"
+
+    return create_world_event(
+        db, user_id, WorldEventType.PATH_MILESTONE_COMPLETED,
+        title, title_en, desc, desc_en,
+    )

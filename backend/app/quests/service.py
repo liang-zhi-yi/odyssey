@@ -38,11 +38,16 @@ def get_quest_detail(db: Session, quest_id: str) -> Quest:
     return quest
 
 
-def get_recommended_quests(db: Session, user_id: str, limit: int = 4) -> list[Quest]:
+def get_recommended_quests(
+    db: Session, user_id: str, limit: int = 4, context: str | None = None
+) -> tuple[list[Quest], dict[str, dict] | None]:
     """Return daily recommended quests — quests the user hasn't accepted yet.
 
-    Prioritises quests matching the user's skill levels and returns a
-    deterministic daily set based on the calendar day (stable within a day).
+    When context="world", prioritises quests for skills whose buildings are
+    closest to the next level threshold, and returns building_context info.
+
+    Returns: (quests, building_context_map) where building_context_map is
+    {quest_id: {building_name, building_icon, current_level, next_level_at}}
     """
     # Quests the user has already interacted with
     accepted_ids = {
@@ -64,16 +69,81 @@ def get_recommended_quests(db: Session, user_id: str, limit: int = 4) -> list[Qu
     available = [q for q in all_quests if str(q.id) not in accepted_ids]
 
     if not available:
-        # User has accepted everything — return all quests as review
         available = all_quests
 
-    # Deterministic daily shuffle: seed from date so it changes daily
-    from datetime import date
-    daily_seed = int(date.today().strftime("%Y%m%d"))
-    rng = random.Random(daily_seed)
-    rng.shuffle(available)
+    building_context: dict[str, dict] | None = None
 
-    return available[:limit]
+    if context == "world":
+        # Find buildings closest to the next level threshold and prioritize their skills
+        from app.world.models import BuildingTemplate, UserBuilding
+        from app.skills.models import UserSkill
+
+        user_buildings = (
+            db.query(UserBuilding)
+            .filter(UserBuilding.user_id == user_id)
+            .all()
+        )
+        # Build skill_id -> building gap info
+        skill_gaps: dict[str, dict] = {}
+        for ub in user_buildings:
+            if ub.building_template_id is None:
+                continue
+            tpl = db.query(BuildingTemplate).filter(
+                BuildingTemplate.id == ub.building_template_id
+            ).first()
+            if tpl is None:
+                continue
+
+            skill_id_str = str(tpl.skill_id)
+            us = (
+                db.query(UserSkill)
+                .filter(
+                    UserSkill.user_id == user_id,
+                    UserSkill.skill_id == tpl.skill_id,
+                )
+                .first()
+            )
+            current_score = us.overall_score if us else 0
+            # Calculate next level threshold
+            from app.world.service import score_to_next_level
+            next_at = score_to_next_level(current_score)
+            gap = next_at - current_score if next_at <= 100 else 999
+
+            skill_gaps[skill_id_str] = {
+                "building_name": tpl.name,
+                "building_name_en": tpl.name_en,
+                "building_icon": tpl.icon,
+                "current_level": ub.level,
+                "current_score": current_score,
+                "next_level_at": next_at,
+                "gap": gap,
+            }
+
+        # Sort available quests: those with smaller gaps come first
+        available.sort(
+            key=lambda q: skill_gaps.get(str(q.skill_id), {}).get("gap", 999)
+        )
+
+        # Build building_context map for eligible quests
+        building_context = {}
+        for q in all_quests:
+            sid = str(q.skill_id)
+            if sid in skill_gaps and skill_gaps[sid]["next_level_at"] <= 100:
+                building_context[str(q.id)] = {
+                    "building_name": skill_gaps[sid]["building_name"],
+                    "building_name_en": skill_gaps[sid]["building_name_en"],
+                    "building_icon": skill_gaps[sid]["building_icon"],
+                    "current_level": skill_gaps[sid]["current_level"],
+                    "next_level_at": skill_gaps[sid]["next_level_at"],
+                }
+    else:
+        # Deterministic daily shuffle: seed from date so it changes daily
+        from datetime import date
+        daily_seed = int(date.today().strftime("%Y%m%d"))
+        rng = random.Random(daily_seed)
+        rng.shuffle(available)
+
+    return available[:limit], building_context
 
 
 def get_quests_by_skill(db: Session, skill_id: str) -> list[Quest]:

@@ -201,6 +201,8 @@
     "buildings": "Buildings",
     "regions": "Regions",
     "viewWorld": "View Full World",
+    "pathDriving": "{count} paths driving growth",
+    "pathDrivingOne": "1 path driving growth",
     "activity": "Activity",
     "dayStreak": "day streak",
     "recentSkills": "Recent Skills",

@@ -8,6 +8,8 @@ interface WorldSnapshotWidgetProps {
   buildingCount: number;
   regionCount: number;
   isLoading: boolean;
+  /** Number of active learning paths driving world growth */
+  activePathCount?: number;
 }
 
 /**
@@ -18,6 +20,7 @@ export function WorldSnapshotWidget({
   buildingCount,
   regionCount,
   isLoading,
+  activePathCount,
 }: WorldSnapshotWidgetProps) {
   const { t } = useLocale();
 
@@ -73,6 +76,18 @@ export function WorldSnapshotWidget({
               {regionCount}
             </span>
           </div>
+
+          {/* Active paths driving growth */}
+          {activePathCount != null && activePathCount > 0 && (
+            <div className="flex items-center gap-2 rounded-lg bg-success/5 border border-success/20 px-3 py-2">
+              <span className="h-2 w-2 rounded-full bg-success animate-warm-pulse" />
+              <span className="text-xs text-success font-medium">
+                {activePathCount === 1
+                  ? t("dashboard.pathDrivingOne")
+                  : t("dashboard.pathDriving", { count: String(activePathCount) })}
+              </span>
+            </div>
+          )}
 
           <Link
             href="/world"

@@ -221,3 +221,31 @@ class UpgradeEvent(BaseModel):
     to_level: int
     level_name: str = ""
     level_name_en: str | None = None
+
+
+# ── Civilization Direction ─────────────────────────────────────────────
+
+class TargetedBuildingResponse(BaseModel):
+    building_id: str
+    building_name: str
+    building_name_en: str | None = None
+    building_icon: str
+    current_level: int
+    projected_level: int
+    remaining_milestones: int
+    region: str
+    region_en: str | None = None
+    max_level: int
+
+
+class ActivePathDirection(BaseModel):
+    path_id: str
+    path_title: str
+    progress_pct: int
+    targeted_buildings: list[TargetedBuildingResponse]
+
+
+class CivilizationDirectionResponse(BaseModel):
+    active_paths: list[ActivePathDirection]
+    summary: str
+    suggested_focus: str

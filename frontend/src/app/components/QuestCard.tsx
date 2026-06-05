@@ -5,6 +5,7 @@ import type { QuestListItem } from "@/types/quest";
 import { DIFFICULTY_LABELS, QUEST_TYPE_LABELS } from "@/types/quest";
 import { useLocale } from "@/hooks/useLocale";
 import { StarRating, difficultyToLevel } from "./StarRating";
+import { BuildingBadge } from "./BuildingBadge";
 
 interface QuestCardProps {
   quest: QuestListItem;
@@ -68,6 +69,9 @@ export function QuestCard({ quest }: QuestCardProps) {
             <span className="text-muted-foreground/40">·</span>
             <span className="truncate">{quest.skill_name}</span>
           </>
+        )}
+        {quest.skill_id && (
+          <BuildingBadge skillId={quest.skill_id} />
         )}
         {quest.expected_deliverable && (
           <>

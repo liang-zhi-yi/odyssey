@@ -9,6 +9,7 @@ import { worldService } from "@/services/world.service";
 import { WorldMap } from "@/app/components/WorldMap";
 import { BuildingDetailPanel } from "@/app/components/BuildingDetailPanel";
 import { CivilizationTier } from "@/app/components/CivilizationTier";
+import { CivilizationCompass } from "@/app/components/CivilizationCompass";
 import { WorldEventTimeline } from "@/app/components/WorldEventTimeline";
 import { MilestoneChecklist } from "@/app/components/MilestoneChecklist";
 import { TechTreeView } from "@/app/components/TechTreeView";
@@ -46,6 +47,13 @@ export default function WorldPage() {
     error,
   } = useSWR(isAuthenticated ? "world" : null, () =>
     worldService.getWorld().catch(() => null)
+  );
+
+  // Fetch civilization direction for the compass
+  const { data: civDirection, isLoading: civDirectionLoading } = useSWR(
+    isAuthenticated ? "world-civ-direction" : null,
+    () => worldService.getCivilizationDirection().catch(() => null),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
 
   if (authLoading || !isAuthenticated) {
@@ -179,12 +187,10 @@ export default function WorldPage() {
                         onClose={() => setSelectedBuilding(null)}
                       />
                     ) : (
-                      <div className="rounded-xl border-2 border-dashed border-border/60 bg-muted/10 p-5 text-center">
-                        <span className="text-3xl block mb-2">👆</span>
-                        <p className="text-xs text-muted-foreground">
-                          {t("world.selectBuilding")}
-                        </p>
-                      </div>
+                      <CivilizationCompass
+                        direction={civDirection ?? null}
+                        isLoading={civDirectionLoading}
+                      />
                     )}
                   </div>
                 </div>
@@ -333,3 +339,4 @@ function StatCell({ label, value, accent }: { label: string; value: string; acce
     </div>
   );
 }
+

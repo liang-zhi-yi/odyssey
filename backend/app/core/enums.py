@@ -67,12 +67,13 @@ class BuildingStatus(str, enum.Enum):
 
 class WorldEventType(str, enum.Enum):
     """Types of world events for the event timeline."""
-    BUILDING_UPGRADE = "BUILDING_UPGRADE"       # Regular building level up
-    COMPOUND_UNLOCK = "COMPOUND_UNLOCK"         # Compound building unlocked
-    COMPOUND_UPGRADE = "COMPOUND_UPGRADE"       # Compound building level up
-    REGION_UNLOCK = "REGION_UNLOCK"             # New region unlocked (first building >= Lv.3)
-    TIER_ADVANCE = "TIER_ADVANCE"               # Civilization tier advanced
-    MILESTONE_REACHED = "MILESTONE_REACHED"     # Capability milestone achieved
+    BUILDING_UPGRADE = "BUILDING_UPGRADE"           # Regular building level up
+    COMPOUND_UNLOCK = "COMPOUND_UNLOCK"             # Compound building unlocked
+    COMPOUND_UPGRADE = "COMPOUND_UPGRADE"           # Compound building level up
+    REGION_UNLOCK = "REGION_UNLOCK"                 # New region unlocked (first building >= Lv.3)
+    TIER_ADVANCE = "TIER_ADVANCE"                   # Civilization tier advanced
+    MILESTONE_REACHED = "MILESTONE_REACHED"         # Capability milestone achieved
+    PATH_MILESTONE_COMPLETED = "PATH_MILESTONE_COMPLETED"  # Learning path milestone completed
 
 
 class CivilizationTier(str, enum.Enum):

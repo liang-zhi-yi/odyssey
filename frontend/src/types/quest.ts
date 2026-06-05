@@ -4,6 +4,14 @@ export type QuestDifficulty = "LEVEL_1" | "LEVEL_2" | "LEVEL_3" | "LEVEL_4";
 export type QuestType = "KNOWLEDGE" | "APPLICATION" | "PROJECT" | "MASTERY";
 export type DeliverableType = "PROMPT" | "ARCHITECTURE" | "WORKFLOW" | "CODE" | "REPORT";
 
+export interface BuildingContext {
+  building_name: string;
+  building_name_en: string | null;
+  building_icon: string;
+  current_level: number;
+  next_level_at: number;
+}
+
 export interface QuestListItem {
   id: string;
   title: string;
@@ -13,6 +21,8 @@ export interface QuestListItem {
   difficulty: QuestDifficulty;
   quest_type: QuestType;
   expected_deliverable: DeliverableType;
+  /** Optional: building context from world-aware recommendations */
+  building_context?: BuildingContext | null;
 }
 
 export interface QuestDetail {

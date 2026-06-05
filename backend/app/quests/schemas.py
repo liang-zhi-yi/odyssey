@@ -12,6 +12,8 @@ class QuestListResponse(BaseModel):
     difficulty: str
     quest_type: str
     expected_deliverable: str
+    # Optional: building context when using world-aware recommendations
+    building_context: dict | None = None
 
     model_config = {"from_attributes": True}
 

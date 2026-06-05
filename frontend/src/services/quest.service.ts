@@ -36,9 +36,10 @@ export const questService = {
     return api.get<UserQuest[]>("/user-quests");
   },
 
-  /** Get daily recommended quests (not yet accepted) */
-  listRecommendedQuests(): Promise<QuestListItem[]> {
-    return api.get<QuestListItem[]>("/quests/recommended");
+  /** Get daily recommended quests (not yet accepted). Set context="world" for world-aware. */
+  listRecommendedQuests(context?: string): Promise<QuestListItem[]> {
+    const qs = context ? `?context=${context}` : "";
+    return api.get<QuestListItem[]>(`/quests/recommended${qs}`);
   },
 
   /** Get quests for the user's current path node */

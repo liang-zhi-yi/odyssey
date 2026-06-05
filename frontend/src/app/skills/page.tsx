@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
+import { worldService } from "@/services/world.service";
 import { SkillCard } from "@/app/components/SkillCard";
 import { ScoreCard } from "@/app/components/ScoreCard";
 import { RadarChart } from "@/app/components/RadarChart";
@@ -44,6 +45,14 @@ export default function SkillsPage() {
   } = useSWR(isAuthenticated ? "user-skills" : null, () =>
     skillService.listUserSkills()
   );
+
+  // Fetch world state for building links on skill cards
+  const { data: worldData } = useSWR(
+    isAuthenticated ? "world" : null,
+    () => worldService.getWorld().catch(() => null),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  const worldBuildings = worldData?.buildings ?? [];
 
   if (authLoading || !isAuthenticated) {
     return <Loading text={t("auth.validating")} />;
@@ -147,7 +156,7 @@ export default function SkillsPage() {
                   aria-label={t("skills.viewSkillDetail", { name: skill.skill_name || skill.skill_id })}
                   className="cursor-pointer card-hover"
                 >
-                  <SkillCard skill={skill} />
+                  <SkillCard skill={skill} worldBuildings={worldBuildings} />
                 </div>
               ))}
             </div>

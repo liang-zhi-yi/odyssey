@@ -19,6 +19,9 @@ from app.world.schemas import (
     WorldEventResponse,
     UserMilestoneResponse,
     TechTreeResponse,
+    CivilizationDirectionResponse,
+    ActivePathDirection,
+    TargetedBuildingResponse,
 )
 
 router = APIRouter(tags=["world"])
@@ -97,6 +100,21 @@ def get_milestones(
     """Get all milestone definitions with user unlock status."""
     milestones = world_service.get_milestones(db, current_user.id)
     return [UserMilestoneResponse(**m) for m in milestones]
+
+
+# ── Civilization Direction ──────────────────────────────────────────────
+
+@router.get("/world/civilization-direction", response_model=CivilizationDirectionResponse)
+def get_civilization_direction(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze active learning paths and their projected impact on the world.
+
+    Returns which buildings each active path is driving growth toward,
+    along with projected levels and a summary of civilization direction.
+    """
+    return world_service.get_civilization_direction(db, current_user.id)
 
 
 # ── Tech Tree ──────────────────────────────────────────────────────────

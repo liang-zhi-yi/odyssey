@@ -201,6 +201,8 @@
     "buildings": "建筑",
     "regions": "区域",
     "viewWorld": "查看完整世界",
+    "pathDriving": "{count} 条路径正驱动发展",
+    "pathDrivingOne": "1 条路径正驱动发展",
     "activity": "活跃度",
     "dayStreak": "连续天数",
     "recentSkills": "近期技能",
