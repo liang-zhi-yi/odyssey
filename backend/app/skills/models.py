@@ -37,6 +37,9 @@ class Skill(Base):
     category: Mapped[str] = mapped_column(
         String(100), nullable=False, default="AI"
     )
+    domain: Mapped[str] = mapped_column(
+        String(50), default="AI", nullable=False, index=True
+    )
     max_score: Mapped[int] = mapped_column(
         Integer, default=100, nullable=False
     )
@@ -45,9 +48,6 @@ class Skill(Base):
     )
 
     # Relationships
-    path_skills: Mapped[list["PathSkill"]] = relationship(
-        "PathSkill", back_populates="skill", lazy="selectin"
-    )
     user_skills: Mapped[list["UserSkill"]] = relationship(
         "UserSkill", back_populates="skill", lazy="selectin"
     )

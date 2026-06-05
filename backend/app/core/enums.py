@@ -99,6 +99,36 @@ TIER_RANGES: list[tuple[CivilizationTier, int, str, str]] = [
 ]
 
 
+class SkillDomain(str, enum.Enum):
+    """Top-level domain grouping skills (AI, Programming, Product, etc.)."""
+    AI = "AI"
+    PROGRAMMING = "PROGRAMMING"
+    PRODUCT = "PRODUCT"
+    DESIGN = "DESIGN"
+    WRITING = "WRITING"
+    RESEARCH = "RESEARCH"
+    BUSINESS = "BUSINESS"
+    MANAGEMENT = "MANAGEMENT"
+    LANGUAGE = "LANGUAGE"
+    FITNESS = "FITNESS"
+    CAREER = "CAREER"
+
+
+SKILL_DOMAIN_LABELS: dict[SkillDomain, dict[str, str]] = {
+    SkillDomain.AI: {"zh": "人工智能", "en": "AI"},
+    SkillDomain.PROGRAMMING: {"zh": "编程", "en": "Programming"},
+    SkillDomain.PRODUCT: {"zh": "产品", "en": "Product"},
+    SkillDomain.DESIGN: {"zh": "设计", "en": "Design"},
+    SkillDomain.WRITING: {"zh": "写作", "en": "Writing"},
+    SkillDomain.RESEARCH: {"zh": "研究", "en": "Research"},
+    SkillDomain.BUSINESS: {"zh": "商业", "en": "Business"},
+    SkillDomain.MANAGEMENT: {"zh": "管理", "en": "Management"},
+    SkillDomain.LANGUAGE: {"zh": "语言", "en": "Language"},
+    SkillDomain.FITNESS: {"zh": "健身", "en": "Fitness"},
+    SkillDomain.CAREER: {"zh": "职业", "en": "Career"},
+}
+
+
 class MilestoneCategory(str, enum.Enum):
     """Categories for capability milestones."""
     FOUNDATION = "FOUNDATION"   # Early game: first building, first upgrade

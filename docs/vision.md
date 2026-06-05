@@ -298,7 +298,7 @@ a URL            GitHub           desktop app       the world         with the u
 - A **local-first application** — your data lives on your machine, under your control
 
 ### The Agent is NOT:
-- ❌ A chatbot assistant (like ChatGPT)
+- ❌ A general-purpose chatbot（通用聊天机器人）— Odyssey Agent is a domain-specific growth companion that maps real capabilities, not a general Q&A tool
 - ❌ A code completion tool (like GitHub Copilot)
 - ❌ A note-taking app (like Obsidian)
 - ❌ A task manager (like Notion / Todoist)
@@ -333,7 +333,7 @@ These apply regardless of form factor — cloud web app or local agent.
 - ❌ XP grinding game（经验值挂机游戏）
 - ❌ RPG leveling game（RPG 升级游戏）
 - ❌ Fake growth system（虚假成长系统）
-- ❌ Chatbot / AI assistant（聊天机器人）
+- ❌ General-purpose chatbot（通用聊天机器人）— Odyssey Agent is a domain-specific growth companion for capability tracking and growth, not a general Q&A tool
 - ❌ Code completion tool（代码补全工具）
 
 ---
@@ -462,7 +462,6 @@ Agent 是那面镜子的持有者 —
 
 | Document | Purpose |
 |----------|---------|
-| [World Evolution Roadmap](./world-evolution-roadmap.md) | Feature-level 5-phase breakdown |
 | [CLAUDE.md](../CLAUDE.md) | Active development guidance (operating manual) |
 | [Product Principles](./product-principles.md) | Detailed design philosophy |
 | [System Architecture](./system-architecture.md) | Current technical architecture |

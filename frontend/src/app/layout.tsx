@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Navbar } from "./components/Navbar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HtmlLang } from "./components/HtmlLang";
+import { AgentSidebar } from "./components/AgentSidebar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,13 +40,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className={inter.variable}>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased transition-colors duration-300">
         <Providers>
           <HtmlLang />
           <Navbar />
-          <main className="mx-auto max-w-6xl px-4 py-8">
+          <main className="mx-auto max-w-7xl px-6 py-8 pb-16">
             <ErrorBoundary>{children}</ErrorBoundary>
           </main>
+          <AgentSidebar />
         </Providers>
       </body>
     </html>

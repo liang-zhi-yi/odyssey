@@ -1,0 +1,28 @@
+<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Subtle concentric compass rings -->
+  <circle cx="30" cy="30" r="28" fill="none" stroke="oklch(0.55 0.08 160 / 0.04)" stroke-width="0.3" />
+  <circle cx="30" cy="30" r="18" fill="none" stroke="oklch(0.55 0.08 160 / 0.06)" stroke-width="0.4" />
+  <circle cx="30" cy="30" r="8" fill="none" stroke="oklch(0.7 0.12 85 / 0.05)" stroke-width="0.5" />
+  <!-- Center dot -->
+  <circle cx="30" cy="30" r="1.2" fill="oklch(0.55 0.08 160 / 0.12)" />
+  <!-- Cardinal direction path dots -->
+  <circle cx="30" cy="2" r="0.8" fill="oklch(0.55 0.08 160 / 0.1)" />
+  <circle cx="30" cy="58" r="0.8" fill="oklch(0.55 0.08 160 / 0.1)" />
+  <circle cx="2" cy="30" r="0.8" fill="oklch(0.55 0.08 160 / 0.1)" />
+  <circle cx="58" cy="30" r="0.8" fill="oklch(0.55 0.08 160 / 0.1)" />
+  <!-- Diagonal dots -->
+  <circle cx="10" cy="10" r="0.6" fill="oklch(0.7 0.12 85 / 0.08)" />
+  <circle cx="50" cy="10" r="0.6" fill="oklch(0.7 0.12 85 / 0.08)" />
+  <circle cx="10" cy="50" r="0.6" fill="oklch(0.7 0.12 85 / 0.08)" />
+  <circle cx="50" cy="50" r="0.6" fill="oklch(0.7 0.12 85 / 0.08)" />
+  <!-- Faint connecting path lines -->
+  <line x1="30" y1="2" x2="30" y2="58" stroke="oklch(0.55 0.08 160 / 0.04)" stroke-width="0.3" />
+  <line x1="2" y1="30" x2="58" y2="30" stroke="oklch(0.55 0.08 160 / 0.04)" stroke-width="0.3" />
+  <line x1="10" y1="10" x2="50" y2="50" stroke="oklch(0.7 0.12 85 / 0.03)" stroke-width="0.25" />
+  <line x1="50" y1="10" x2="10" y2="50" stroke="oklch(0.7 0.12 85 / 0.03)" stroke-width="0.25" />
+  <!-- Tiny star-like markers on the outer ring -->
+  <circle cx="30" cy="4" r="0.4" fill="oklch(0.7 0.12 85 / 0.15)" />
+  <circle cx="56" cy="30" r="0.4" fill="oklch(0.7 0.12 85 / 0.15)" />
+  <circle cx="30" cy="56" r="0.4" fill="oklch(0.7 0.12 85 / 0.15)" />
+  <circle cx="4" cy="30" r="0.4" fill="oklch(0.7 0.12 85 / 0.15)" />
+</svg>

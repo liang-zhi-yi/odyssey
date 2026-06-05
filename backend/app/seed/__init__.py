@@ -7,13 +7,16 @@ Usage:
 """
 from sqlalchemy.orm import Session
 
-from app.seed import seed_skills, seed_paths, seed_path_skills, seed_quests, seed_credentials, seed_badges, seed_buildings, seed_compound_buildings, seed_milestones
+from app.seed import seed_skills, seed_skills_extended, seed_paths, seed_path_skills, seed_quests, seed_credentials, seed_badges, seed_buildings, seed_compound_buildings, seed_milestones
 
 
 def seed_all(db: Session) -> None:
     """Run every seed module in dependency order. Idempotent."""
     # 1. Skills (no dependencies)
     skill_ids = seed_skills.run(db)
+    # 1b. Extended skills (multi-domain — Programming, Product, Design, etc.)
+    extended_ids = seed_skills_extended.run(db)
+    skill_ids.update(extended_ids)
     # 2. Paths (no dependencies)
     path_id = seed_paths.run(db)
     # 3. Path ↔ Skill mappings

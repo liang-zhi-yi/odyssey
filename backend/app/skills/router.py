@@ -20,8 +20,11 @@ def list_skills(db: Session = Depends(get_db)):
         SkillResponse(
             id=str(s.id),
             name=s.name,
+            name_en=s.name_en,
             description=s.description,
+            description_en=s.description_en,
             category=s.category,
+            domain=s.domain,
         )
         for s in skills
     ]

@@ -103,4 +103,52 @@ export const api = {
   delete<T>(path: string): Promise<T> {
     return request<T>(path, { method: "DELETE" });
   },
+
+  /** Upload a file using multipart/form-data (no Content-Type header — browser sets boundary). */
+  upload<T>(path: string, formData: FormData): Promise<T> {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    return fetch(`${BASE_URL}${path}`, {
+      method: "POST",
+      headers,
+      body: formData,
+    }).then(async (res) => {
+      if (res.status === 401) {
+        clearAuth();
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+        throw new ApiRequestError({
+          status: 401,
+          code: "UNAUTHORIZED",
+          message: "Session expired. Please log in again.",
+        });
+      }
+
+      if (!res.ok) {
+        let body: Partial<ApiError> = {};
+        try {
+          body = await res.json();
+        } catch {
+          // Not JSON
+        }
+        throw new ApiRequestError({
+          status: res.status,
+          code: body.code ?? "UNKNOWN",
+          message: body.message ?? `Upload failed with status ${res.status}`,
+          detail: body.detail,
+        });
+      }
+
+      if (res.status === 204) {
+        return undefined as T;
+      }
+
+      return res.json();
+    });
+  },
 };

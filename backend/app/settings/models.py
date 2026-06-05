@@ -47,6 +47,19 @@ class UserSettings(Base):
     llm_model: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
+    # Path generation LLM config (separate from assessment LLM)
+    path_llm_provider: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
+    path_llm_api_key: Mapped[str | None] = mapped_column(
+        String(512), nullable=True
+    )
+    path_llm_base_url: Mapped[str | None] = mapped_column(
+        String(512), nullable=True
+    )
+    path_llm_model: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )

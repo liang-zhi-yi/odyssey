@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LocaleProvider } from "@/hooks/useLocale";
+import { AgentProvider } from "@/hooks/useAgent";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: ReactNode }) {
       }}
     >
       <AuthProvider>
-        <LocaleProvider>{children}</LocaleProvider>
+        <LocaleProvider>
+          <AgentProvider>{children}</AgentProvider>
+        </LocaleProvider>
       </AuthProvider>
     </SWRConfig>
   );

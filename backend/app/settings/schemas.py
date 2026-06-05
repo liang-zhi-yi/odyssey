@@ -8,6 +8,11 @@ class UserSettingsResponse(BaseModel):
     llm_api_key_masked: str | None = None  # e.g. "sk-...abcd"
     llm_base_url: str | None = None
     llm_model: str | None = None
+    # Path generation LLM
+    path_llm_provider: str | None = None
+    path_llm_api_key_masked: str | None = None
+    path_llm_base_url: str | None = None
+    path_llm_model: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -18,3 +23,8 @@ class UpdateSettingsRequest(BaseModel):
     llm_api_key: str | None = None  # plaintext input, stored as-is
     llm_base_url: str | None = None
     llm_model: str | None = None
+    # Path generation LLM
+    path_llm_provider: str | None = None
+    path_llm_api_key: str | None = None
+    path_llm_base_url: str | None = None
+    path_llm_model: str | None = None

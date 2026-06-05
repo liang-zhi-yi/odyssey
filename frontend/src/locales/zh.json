@@ -10,10 +10,31 @@
     "badges": "徽章",
     "passport": "护照",
     "history": "历史",
+    "learningPaths": "学习路径",
+    "personal": "个人",
+    "profile": "个人主页",
     "settings": "设置",
+    "goals": "目标",
     "logout": "退出登录",
     "login": "登录",
     "register": "注册"
+  },
+  "agent": {
+    "title": "Odyssey 智能体",
+    "subtitle": "你的成长伙伴",
+    "placeholder": "问我关于你的进度、技能或下一步学什么...",
+    "greeting": "你好 {name}！我是 Odyssey，你的成长伙伴。",
+    "suggestions": {
+      "progress": "我的进度如何？",
+      "next": "我下一步该学什么？",
+      "world": "展示我的世界状态"
+    },
+    "newChat": "新对话",
+    "send": "发送",
+    "thinking": "Odyssey 正在思考...",
+    "toggleOpen": "切换智能体面板 (Ctrl+.)",
+    "toggleClose": "关闭智能体面板",
+    "empty": "还没有消息，开始对话吧！"
   },
   "landing": {
     "title": "Odyssey",
@@ -47,6 +68,67 @@
     "principle2Desc": "通过AI评估验证后才能解锁成就",
     "principle3Desc": "无被动积累。成长只来自完成真实挑战",
     "principle4Desc": "每个建筑升级对应真实世界的能力变化"
+  },
+  "learningPaths": {
+    "title": "学习路径",
+    "subtitle": "AI 驱动的个性化学习路径",
+    "myPaths": "我的路径",
+    "presetPaths": "预设路径",
+    "createPath": "创建路径",
+    "aiGenerate": "AI 生成路径",
+    "generating": "正在生成你的个性化学习路径...",
+    "generatingDesc": "AI 正在分析你的目标并设计结构化的学习路径",
+    "regenerate": "重新生成",
+    "regenerateConfirm": "这将替换所有现有的里程碑和关卡。是否继续？",
+    "milestones": "里程碑",
+    "checkpoints": "关卡",
+    "generateQuests": "生成任务",
+    "questsGenerated": "任务已生成",
+    "noPaths": "还没有学习路径",
+    "noPathsDesc": "创建一个目标，让 AI 来设计你的学习旅程",
+    "noPresetPaths": "暂无预设路径",
+    "pathType": {
+      "AI_GENERATED": "AI 定制",
+      "PRESET": "官方预设"
+    },
+    "estimatedWeeks": "约 {weeks} 周",
+    "milestoneCount": "{count} 个里程碑",
+    "progress": "进度",
+    "currentMilestone": "当前里程碑",
+    "pathSummary": "路径概览",
+    "recommendedSkills": "推荐技能",
+    "checkpointStatus": {
+      "PENDING": "待生成",
+      "GENERATED": "已就绪",
+      "FAILED": "生成失败"
+    },
+    "viewQuests": "查看任务",
+    "createFirstPath": "创建你的第一个学习路径",
+    "deleteConfirm": "删除此学习路径？所有里程碑和关卡都将丢失。",
+    "editPath": "编辑路径",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "selectPath": "选择路径",
+    "pathSelected": "路径已选择！前往我的路径开始学习。",
+    "requiredScore": "要求分数",
+    "difficulty": "难度"
+  },
+  "memory": {
+    "title": "记忆库",
+    "subtitle": "AI 从使用中了解到的偏好",
+    "preferences": "偏好",
+    "habits": "习惯",
+    "learningStyle": "学习风格",
+    "interactions": "交互记录",
+    "feedback": "反馈",
+    "noMemory": "还没有记忆条目",
+    "noMemoryDesc": "AI 会在你使用平台的过程中了解你的偏好",
+    "clearMemory": "清除所有记忆",
+    "clearConfirm": "清除所有 AI 记忆？此操作不可撤销。",
+    "memoryCleared": "记忆已清除",
+    "loadError": "加载记忆条目失败",
+    "clearError": "清除记忆失败"
   },
   "auth": {
     "login": "登录",
@@ -96,7 +178,40 @@
     "notSelected": "未选择",
     "completeFirstQuest": "完成首次Quest",
     "noActivity": "暂无动态",
-    "noActivityDesc": "完成Quest后，你的成长动态将显示在这里"
+    "noActivityDesc": "完成Quest后，你的成长动态将显示在这里",
+    "onPath": "当前路径：{path}",
+    "startJourney": "开启你的第一次学习旅程",
+    "createPath": "创建路径",
+    "createFirstPath": "创建你的第一个路径",
+    "nextMilestone": "下一里程碑",
+    "selectPathHint": "选择一个学习路径查看成长曲线",
+    "questsCompleted": "已完成任务",
+    "worldTier": "世界等级",
+    "avgScoreShort": "平均",
+    "skillLandscape": "能力景观",
+    "activeQuests": "进行中的任务",
+    "noActiveQuests": "暂无进行的任务",
+    "growthInsights": "成长洞察",
+    "noInsights": "暂无洞察",
+    "myWorld": "我的世界",
+    "noWorld": "你的世界尚未建造",
+    "startQuesting": "开始任务来建造",
+    "civilizationTier": "等级",
+    "tier": "等级",
+    "buildings": "建筑",
+    "regions": "区域",
+    "viewWorld": "查看完整世界",
+    "activity": "活跃度",
+    "dayStreak": "连续天数",
+    "recentSkills": "近期技能",
+    "growthCurve": "成长曲线",
+    "phase": {
+      "settling": "安顿扎根",
+      "sprouting": "快速成长",
+      "building": "建立根基",
+      "expanding": "拓展视野",
+      "mastery": "融会贯通"
+    }
   },
   "skills": {
     "title": "技能中心",
@@ -203,6 +318,7 @@
     "attempt": "第{count}次提交",
     "confirmAbandon": "确定要放弃此Quest吗？此操作可以撤销（重新接受即可）。",
     "abandoned": "已放弃此任务",
+    "cannotAbandon": "仅已接受或进行中的状态可放弃",
     "viewHistory": "提交记录",
     "noHistory": "暂无历史提交记录",
     "backToList": "返回任务列表",
@@ -271,6 +387,12 @@
   "paths": {
     "title": "成长路径",
     "subtitle": "选择你的能力成长路径",
+    "tabs": {
+      "my": "我的路径",
+      "preset": "预设路径",
+      "create": "创建路径",
+      "checkpoint": "路径关卡"
+    },
     "currentPath": "当前路径",
     "availablePaths": "可用路径",
     "select": "选择路径",
@@ -291,7 +413,15 @@
     "loadPathStatusError": "加载路径状态失败",
     "loadPathListError": "加载路径列表失败",
     "noAvailablePaths": "暂无可用路径",
-    "comingSoonPaths": "敬请期待更多学习路径"
+    "comingSoonPaths": "敬请期待更多学习路径",
+    "currentCheckpoint": "当前关卡",
+    "skill": "技能",
+    "viewFullPath": "查看完整路径",
+    "loadMyError": "加载学习路径失败",
+    "loadPresetError": "加载预设路径失败",
+    "comingSoon": "敬请期待更多官方学习路径",
+    "noPaths": "还没有学习路径",
+    "noPathsDesc": "前往「预设路径」选择一个官方路径，或在「创建路径」中让 AI 为您生成个性化路径"
   },
   "credentials": {
     "title": "证书中心",
@@ -321,26 +451,95 @@
     "copied": "已复制",
     "noData": "暂无数据",
     "loadError": "加载通行证失败",
-    "noPassportData": "暂无通行证数据",
-    "noPassportDesc": "完成Quest并获得评估后，你的能力通行证将在此生成",
+    "noPassportData": "暂无护照数据",
+    "noPassportDesc": "完成任务和评估来构建你的能力护照",
     "subtitleTag": "能力通行证 · Odyssey",
     "copyPassport": "复制通行证",
     "radarChart": "能力雷达图",
     "earnCredentialsHint": "完成Quest后可获得凭证",
     "submitProjectHint": "提交项目后在此展示"
   },
+  "pathGenerator": {
+    "title": "AI 生成路径",
+    "subtitle": "描述你想学习的内容，AI 将为你创建包含里程碑和关卡的个性化学习路径。",
+    "fieldTitle": "标题 *",
+    "titlePlaceholder": "例如：4周精通RAG系统",
+    "fieldDescription": "描述（可选）",
+    "descriptionPlaceholder": "你想要达成什么目标？有哪些特定的重点领域？",
+    "fieldCategory": "分类（可选）",
+    "categoryPlaceholder": "例如：LLM、RAG、Agents",
+    "fieldTargetDate": "目标日期（可选）",
+    "generating": "AI 正在生成你的路径...",
+    "generateButton": "AI 生成",
+    "success": "路径生成成功",
+    "difficulty": "难度",
+    "estimatedWeeks": "预计周数",
+    "milestones": "里程碑",
+    "viewPath": "查看路径",
+    "createAnother": "创建新路径",
+    "createError": "路径创建失败，请重试。",
+    "questsGenerated": "已生成任务"
+  },
+  "personal": {
+    "title": "个人页面",
+    "subtitle": "你的完整能力档案",
+    "overview": "概览",
+    "skills": "技能",
+    "credentials": "证书",
+    "badges": "徽章",
+    "identity": "身份",
+    "noSkills": "还没有技能",
+    "noCredentials": "尚未获得证书",
+    "noBadges": "尚未获得徽章",
+    "noIdentity": "个人资料未设置",
+    "noIdentityDesc": "前往设置完善你的个人资料",
+    "totalSkills": "技能总数",
+    "totalCredentials": "证书总数",
+    "totalBadges": "徽章总数",
+    "earned": "已获得",
+    "all": "全部",
+    "locked": "未解锁"
+  },
+  "profile": {
+    "title": "我的主页",
+    "subtitle": "你的个人身份展示",
+    "skills": "技能",
+    "credentials": "证书",
+    "noSkills": "完成任务获取技能",
+    "noCredentials": "精通技能获得证书"
+  },
   "settings": {
     "title": "设置",
     "profile": "个人信息",
-    "advanced": "高级设置",
+    "password": "密码",
+    "preferences": "偏好设置",
+    "tabs": {
+      "memory": "记忆"
+    },
+    "data": "数据",
     "nickname": "昵称",
     "nicknamePlaceholder": "输入显示名称",
     "bio": "个人简介",
     "bioPlaceholder": "介绍一下你自己...",
     "githubUsername": "GitHub 用户名",
     "githubPlaceholder": "你的GitHub用户名",
-    "avatarUrl": "头像地址",
-    "avatarPlaceholder": "头像图片URL",
+    "title": "头衔",
+    "titlePlaceholder": "例如：AI工程师",
+    "location": "所在地",
+    "locationPlaceholder": "例如：北京",
+    "website": "个人网站",
+    "websitePlaceholder": "https://...",
+    "socialLinks": "社交链接",
+    "addLink": "添加链接",
+    "platform": "平台",
+    "url": "链接",
+    "remove": "移除",
+    "avatar": "头像",
+    "uploadAvatar": "上传头像",
+    "removeAvatar": "移除头像",
+    "avatarHint": "支持 JPEG、PNG、WebP 格式，最大 2MB",
+    "avatarTooLarge": "头像文件过大，最大支持 2MB",
+    "avatarInvalidType": "不支持的文件类型，仅支持 JPEG、PNG、WebP",
     "saveProfile": "保存",
     "saving": "保存中...",
     "saved": "已保存",
@@ -437,11 +636,45 @@
     "noBadges": "暂无徽章",
     "noBadgesDesc": "完成任务和评估以解锁成就徽章",
     "browseQuests": "浏览任务",
+    "comingSoon": "敬请期待更多徽章",
     "categories": {
       "milestone": "里程碑",
       "mastery": "精通",
       "ranking": "等级"
     }
+  },
+  "domains": {
+    "AI": "人工智能",
+    "PROGRAMMING": "编程",
+    "PRODUCT": "产品",
+    "DESIGN": "设计",
+    "WRITING": "写作",
+    "RESEARCH": "研究",
+    "BUSINESS": "商业",
+    "MANAGEMENT": "管理",
+    "LANGUAGE": "语言",
+    "FITNESS": "健身",
+    "CAREER": "职业"
+  },
+  "filter": {
+    "allDomains": "全部领域"
+  },
+  "analytics": {
+    "title": "学习分析",
+    "insights": "AI 智能洞察",
+    "summary": "分析摘要",
+    "trends": "成长趋势",
+    "noInsights": "暂无洞察数据",
+    "noInsightsDesc": "完成更多Quest和评估后，将获得AI驱动的成长洞察"
+  },
+  "insights": {
+    "growthAcceleration": "能力加速成长",
+    "plateauWarning": "能力平台期",
+    "skillGap": "能力短板",
+    "strengthArea": "你的优势",
+    "recommendedFocus": "建议优先提升",
+    "viewTrends": "查看趋势",
+    "startQuest": "开始 Quest"
   },
   "world": {
     "myWorld": "我的世界",
@@ -499,5 +732,66 @@
       "STABLE": "稳定",
       "UPGRADING": "升级中"
     }
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "暂无通知",
+    "emptyDesc": "你的成就和成长通知将显示在这里。",
+    "justNow": "刚刚",
+    "minutesAgo": "{n}分钟前",
+    "hoursAgo": "{n}小时前",
+    "daysAgo": "{n}天前",
+    "markAllRead": "全部已读",
+    "types": {
+      "credentialEarned": "获得证书",
+      "tierAdvance": "文明晋级",
+      "milestoneReached": "里程碑达成",
+      "assessmentComplete": "评估完成",
+      "weeklyDigest": "每周摘要"
+    }
+  },
+  "export": {
+    "title": "数据导出",
+    "exportPassport": "导出能力护照 (JSON)",
+    "exportAllData": "导出全部数据 (JSON)",
+    "exporting": "导出中...",
+    "passportExported": "护照已导出",
+    "dataExported": "数据已导出"
+  },
+  "goals": {
+    "title": "目标",
+    "subtitle": "设定能力目标并追踪进度",
+    "newGoal": "新建目标",
+    "noGoals": "暂无目标",
+    "noGoalsDesc": "创建你的第一个目标，开始追踪能力成长",
+    "createFirst": "创建第一个目标",
+    "loadError": "加载目标失败",
+    "delete": "删除",
+    "deleteConfirm": "确定要删除此目标吗？",
+    "milestones": "里程碑",
+    "progress": "进度",
+    "decompose": "AI 分解",
+    "decomposing": "分解中...",
+    "status": {
+      "ACTIVE": "进行中",
+      "COMPLETED": "已完成",
+      "ABANDONED": "已放弃"
+    },
+    "form": {
+      "title": "标题",
+      "titlePlaceholder": "输入你的目标...",
+      "description": "描述",
+      "descriptionPlaceholder": "描述你想要达成的目标...",
+      "category": "分类",
+      "categoryPlaceholder": "例如：AI、编程",
+      "targetDate": "目标日期"
+    },
+    "filter": {
+      "all": "全部"
+    }
+  },
+  "plans": {
+    "title": "学习计划",
+    "weeklyHours": "每周学习时长"
   }
 }

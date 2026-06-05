@@ -1,8 +1,7 @@
 /** Progress API calls — /api/v1/progress */
 
 import { api } from "@/lib/api";
-import type { ProgressLog, SkillGrowthPoint, TimelineResponse } from "@/types/progress";
-import type { PathGrowthResponse } from "@/types/path";
+import type { ProgressLog, SkillGrowthPoint, TimelineResponse, PathGrowthResponse } from "@/types/progress";
 
 export const progressService = {
   /** Get recent progress logs */

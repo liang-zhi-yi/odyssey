@@ -28,3 +28,15 @@ export interface TimelineResponse {
   events: TimelineEvent[];
   total: number;
 }
+
+export interface PathGrowthSkill {
+  skill_name: string;
+  skill_id: string;
+  points: SkillGrowthPoint[];
+}
+
+export interface PathGrowthResponse {
+  path_id: string;
+  path_name: string;
+  skills: PathGrowthSkill[];
+}

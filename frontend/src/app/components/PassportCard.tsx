@@ -7,6 +7,8 @@ import { RadarChart } from "./RadarChart";
 import { Loading } from "./Loading";
 import { EmptyState } from "./EmptyState";
 import { useLocale } from "@/hooks/useLocale";
+import { useAuth } from "@/hooks/useAuth";
+import { resolveAvatarSrc } from "@/lib/avatar";
 
 interface PassportCardProps {
   passport: Passport | null;
@@ -25,7 +27,10 @@ export function PassportCard({
   isLoading,
 }: PassportCardProps) {
   const { t } = useLocale();
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+
+  const avatarSrc = resolveAvatarSrc(user?.avatar_url ?? null);
 
   const handleCopy = useCallback(async () => {
     if (!passport) return;
@@ -41,11 +46,6 @@ export function PassportCard({
       "🏅 Credentials:",
       ...(passport.credentials.length > 0
         ? passport.credentials.map((c) => `  • ${c.name}`)
-        : ["  • None yet"]),
-      "",
-      "🚀 Projects:",
-      ...(passport.projects.length > 0
-        ? passport.projects.map((p) => `  • ${p.title}`)
         : ["  • None yet"]),
     ];
 
@@ -82,9 +82,20 @@ export function PassportCard({
   return (
     <div className="space-y-4">
       {/* User header with share button */}
-      <div className="rounded-xl border border-border bg-background p-6 text-center">
-        <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-3xl">
-          🧑‍🎓
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-3xl overflow-hidden">
+          {avatarSrc ? (
+            <img
+              src={avatarSrc}
+              alt={passport.user}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : (
+            <span>🧑‍🎓</span>
+          )}
         </div>
         <h3 className="text-lg font-bold">{passport.user}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -126,7 +137,7 @@ export function PassportCard({
 
       {/* Radar overview */}
       {aggregateScores && (
-        <div className="rounded-xl border border-border bg-background p-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <h4 className="text-sm font-semibold mb-3 text-center">
             {t("passport.radarChart")}
           </h4>
@@ -137,7 +148,7 @@ export function PassportCard({
       )}
 
       {/* Skills section */}
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="rounded-2xl border border-border bg-card p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <span>📊</span> {t("passport.skills")} ({passport.skills.length})
         </h4>
@@ -175,7 +186,7 @@ export function PassportCard({
       </div>
 
       {/* Credentials section */}
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="rounded-2xl border border-border bg-card p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <span>🏅</span> {t("passport.credentials")} ({passport.credentials.length})
         </h4>
@@ -197,29 +208,6 @@ export function PassportCard({
         )}
       </div>
 
-      {/* Projects section */}
-      <div className="rounded-xl border border-border bg-background p-4">
-        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <span>🚀</span> {t("passport.projects")} ({passport.projects.length})
-        </h4>
-        {passport.projects.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-4 text-center">
-            {t("passport.submitProjectHint")}
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {passport.projects.map((proj, i) => (
-              <div
-                key={i}
-                className="rounded-lg bg-secondary/50 px-3 py-2.5 text-sm transition-all hover:bg-secondary flex items-center gap-2"
-              >
-                <span className="text-xs">📁</span>
-                {proj.title}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

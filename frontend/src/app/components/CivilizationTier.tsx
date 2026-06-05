@@ -15,21 +15,19 @@ export function CivilizationTier({ tier, tierScore, nextTierAt }: CivilizationTi
   const tierInfo = CIVILIZATION_TIER_LABELS[tier] ?? CIVILIZATION_TIER_LABELS.SETTLER;
   const name = locale === "en" ? tierInfo.en : tierInfo.zh;
 
-  // Calculate progress to next tier
   const isMaxTier = nextTierAt === 0 || tier === "CIVILIZATION";
   const progressPercent = isMaxTier
     ? 100
     : Math.min(100, Math.round((tierScore / Math.max(1, nextTierAt)) * 100));
-  // Use a more meaningful scale: progress within the current tier band
   const progressLabel = isMaxTier
     ? "MAX"
     : `${tierScore}/${nextTierAt}`;
 
   return (
-    <div className="rounded-xl border border-border bg-gradient-to-r from-yellow-500/10 to-amber-500/10 p-4 space-y-3">
+    <div className="rounded-2xl border border-border bg-gradient-to-r from-accent/10 to-accent/5 p-5 shadow-card space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-3xl">{tierInfo.icon}</span>
-        <span className="text-xl font-bold text-foreground">{name}</span>
+        <span className="text-xl font-semibold text-foreground">{name}</span>
       </div>
 
       {/* Progress bar */}
@@ -42,11 +40,7 @@ export function CivilizationTier({ tier, tierScore, nextTierAt }: CivilizationTi
         </div>
         <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-700 ${
-              isMaxTier
-                ? "bg-gradient-to-r from-yellow-400 to-amber-500"
-                : "bg-gradient-to-r from-yellow-500 to-amber-600"
-            }`}
+            className="h-full rounded-full bg-accent transition-all duration-700"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -60,7 +54,7 @@ export function CivilizationTier({ tier, tierScore, nextTierAt }: CivilizationTi
         </p>
       )}
       {isMaxTier && (
-        <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
+        <p className="text-xs text-accent font-medium">
           {locale === "en" ? "Maximum tier reached!" : "已达最高文明等级！"}
         </p>
       )}

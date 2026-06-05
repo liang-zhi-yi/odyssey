@@ -7,12 +7,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
 import { skillService } from "@/services/skill.service";
-import { pathService } from "@/services/path.service";
 import { submissionService } from "@/services/submission.service";
 import { QuestCard } from "@/app/components/QuestCard";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
+import { DomainPicker } from "@/app/components/DomainPicker";
+import type { Skill } from "@/types/skill";
 import {
   SUBMISSION_STATUS_LABELS,
   DIFFICULTY_LABELS,
@@ -22,12 +23,11 @@ import {
 } from "@/types/quest";
 import type { SubmissionHistoryItem } from "@/types/submission";
 
-type TabId = "all" | "recommended" | "path-node" | "mine";
+type TabId = "all" | "recommended" | "mine";
 
 const TAB_KEYS: { id: TabId; key: string }[] = [
   { id: "all", key: "quests.allQuests" },
   { id: "recommended", key: "quests.dailyRecommendations" },
-  { id: "path-node", key: "quests.pathNode" },
   { id: "mine", key: "quests.myQuests" },
 ];
 
@@ -37,6 +37,7 @@ export default function QuestsPage() {
   const router = useRouter();
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
+  const [domainFilter, setDomainFilter] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabId>("all");
 
   // My Quests management state
@@ -57,13 +58,6 @@ export default function QuestsPage() {
     isAuthenticated ? "skills-list" : null,
     () => skillService.listSkills()
   );
-
-  // Fetch current path (for path-node tab)
-  const { data: currentPath } = useSWR(
-    isAuthenticated ? "current-path" : null,
-    () => pathService.getCurrentPath()
-  );
-  const hasActivePath = currentPath && currentPath.path_id;
 
   // Fetch all quests (with optional filters)
   const {
@@ -91,24 +85,6 @@ export default function QuestsPage() {
     () => questService.listRecommendedQuests()
   );
 
-  // Fetch path-node quests
-  const {
-    data: pathNodeQuests = [],
-    isLoading: pathNodeLoading,
-    error: pathNodeError,
-  } = useSWR(
-    isAuthenticated && activeTab === "path-node" ? "path-node-quests" : null,
-    () => questService.listPathNodeQuests()
-  );
-
-  // Fetch path nodes for detailed view
-  const { data: pathNodes } = useSWR(
-    isAuthenticated && activeTab === "path-node" && hasActivePath
-      ? ["path-nodes", currentPath.path_id]
-      : null,
-    () => pathService.getPathNodes(currentPath!.path_id)
-  );
-
   // Fetch user's quests (always needed for status badges)
   const {
     data: userQuests = [],
@@ -127,7 +103,16 @@ export default function QuestsPage() {
     userQuests.map((uq: UserQuest) => [uq.quest_id, uq])
   );
 
-  const nextNode = pathNodes?.nodes[0] ?? null;
+  // Build skill_id → domain map for client-side domain filtering
+  const skillDomainMap = new Map<string, string>(
+    skills.map((s: Skill) => [s.id, s.domain])
+  );
+
+  // Client-side domain filter helper
+  const filterByDomain = (list: QuestListItem[]) => {
+    if (!domainFilter) return list;
+    return list.filter((q) => skillDomainMap.get(q.skill_id) === domainFilter);
+  };
 
   // ── Handlers for My Quests management ──────────────────
   const handleAbandon = async (questId: string) => {
@@ -166,21 +151,21 @@ export default function QuestsPage() {
     locale === "en" && uq.quest_title_en ? uq.quest_title_en : uq.quest_title;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold">{t("quests.title")}</h1>
+        <h1 className="text-2xl font-semibold">{t("quests.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t("quests.subtitle")}
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-secondary p-1 w-fit flex-wrap">
+      <div className="flex gap-1 rounded-xl bg-secondary p-1 w-fit flex-wrap">
         {TAB_KEYS.map(({ id, key }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
               activeTab === id
                 ? "bg-background shadow-sm text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -193,45 +178,53 @@ export default function QuestsPage() {
 
       {/* Filters — only for "all" tab */}
       {activeTab === "all" && (
-        <div className="flex flex-wrap gap-3">
-          <select
-            value={skillFilter}
-            onChange={(e) => setSkillFilter(e.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          >
-            <option value="">{t("quests.filter.allSkills")}</option>
-            {skills.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={difficultyFilter}
-            onChange={(e) => setDifficultyFilter(e.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          >
-            <option value="">{t("quests.filter.allDifficulties")}</option>
-            {Object.entries(DIFFICULTY_LABELS).map(([key]) => (
-              <option key={key} value={key}>
-                {t(`quests.difficulty.${key}` as any)}
-              </option>
-            ))}
-          </select>
-
-          {(skillFilter || difficultyFilter) && (
-            <button
-              onClick={() => {
-                setSkillFilter("");
-                setDifficultyFilter("");
-              }}
-              className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        <>
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={skillFilter}
+              onChange={(e) => setSkillFilter(e.target.value)}
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
-              {t("quests.filter.clearFilter")}
-            </button>
-          )}
-        </div>
+              <option value="">{t("quests.filter.allSkills")}</option>
+              {skills.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={difficultyFilter}
+              onChange={(e) => setDifficultyFilter(e.target.value)}
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="">{t("quests.filter.allDifficulties")}</option>
+              {Object.entries(DIFFICULTY_LABELS).map(([key]) => (
+                <option key={key} value={key}>
+                  {t(`quests.difficulty.${key}` as any)}
+                </option>
+              ))}
+            </select>
+
+            {(skillFilter || difficultyFilter || domainFilter) && (
+              <button
+                onClick={() => {
+                  setSkillFilter("");
+                  setDifficultyFilter("");
+                  setDomainFilter("");
+                }}
+                className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t("quests.filter.clearFilter")}
+              </button>
+            )}
+          </div>
+
+          {/* Domain filter pills */}
+          <div className="mt-2">
+            <DomainPicker selected={domainFilter} onChange={setDomainFilter} />
+          </div>
+        </>
       )}
 
       {/* ── Tab: All Quests ────────────────────────────────── */}
@@ -240,18 +233,23 @@ export default function QuestsPage() {
           <Loading variant="skeleton-cards" cardCount={6} />
         ) : questsError ? (
           <ErrorState message={t("quests.loadQuestsError")} />
-        ) : quests.length === 0 ? (
-          <EmptyState
-            title={t("quests.noQuests")}
-            description={
-              skillFilter || difficultyFilter
-                ? t("quests.tryAdjustFilter")
-                : t("quests.comingSoonMore")
-            }
-          />
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
-            {quests.map((quest: QuestListItem) => (
+        ) : (() => {
+          const filteredQuests = filterByDomain(quests);
+          if (filteredQuests.length === 0) {
+            return (
+              <EmptyState
+                title={t("quests.noQuests")}
+                description={
+                  skillFilter || difficultyFilter || domainFilter
+                    ? t("quests.tryAdjustFilter")
+                    : t("quests.comingSoonMore")
+                }
+              />
+            );
+          }
+          return (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+            {filteredQuests.map((quest: QuestListItem) => (
               <div key={quest.id} className="relative card-hover">
                 {acceptedQuestIds.has(quest.id) && (
                   <span className="absolute -top-1 -right-1 z-10 rounded-full bg-success px-2 py-0.5 text-[10px] font-medium text-success-foreground shadow-sm">
@@ -264,12 +262,13 @@ export default function QuestsPage() {
               </div>
             ))}
           </div>
-        ))}
+        );
+      })())}
 
       {/* ── Tab: Daily Recommendations ─────────────────────── */}
       {activeTab === "recommended" && (
         <>
-          <div className="rounded-xl border border-border bg-primary/5 p-4">
+          <div className="rounded-2xl border border-border bg-primary/5 p-5">
             <div className="flex items-center gap-2">
               <svg
                 className="h-5 w-5 text-primary"
@@ -303,7 +302,7 @@ export default function QuestsPage() {
               description={t("quests.allAccepted")}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
               {recommendedQuests.map((quest: QuestListItem) => (
                 <div key={quest.id} className="relative card-hover">
                   {acceptedQuestIds.has(quest.id) && (
@@ -317,144 +316,6 @@ export default function QuestsPage() {
                 </div>
               ))}
             </div>
-          )}
-        </>
-      )}
-
-      {/* ── Tab: Path Nodes ────────────────────────────────── */}
-      {activeTab === "path-node" && (
-        <>
-          {!hasActivePath ? (
-            <EmptyState
-              title={t("quests.noPathSelected")}
-              description={t("quests.noPathSelectedDesc")}
-              actionLabel={t("paths.goSelectPath")}
-              actionHref="/paths"
-            />
-          ) : (
-            <>
-              {/* Path node progression bar */}
-              {pathNodes && pathNodes.nodes.length > 0 && (
-                <div className="rounded-xl border border-border bg-background p-5">
-                  <h3 className="text-sm font-semibold mb-1">
-                    {locale === "en" && pathNodes.path_name_en
-                      ? pathNodes.path_name_en
-                      : pathNodes.path_name}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    {locale === "en" && pathNodes.path_description_en
-                      ? pathNodes.path_description_en
-                      : pathNodes.path_description}
-                  </p>
-
-                  {/* Node progression */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {pathNodes.nodes.map((node, i) => {
-                      const isCurrent =
-                        nextNode?.stage_order === node.stage_order;
-                      const isPassed =
-                        nextNode &&
-                        node.stage_order < nextNode.stage_order;
-                      return (
-                        <div key={node.stage_order} className="flex items-center gap-2">
-                          {/* Connector */}
-                          {i > 0 && (
-                            <svg
-                              className={`h-4 w-4 flex-shrink-0 ${
-                                isPassed
-                                  ? "text-success"
-                                  : "text-border"
-                              }`}
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M13 7l5 5m0 0l-5 5m5-5H6"
-                              />
-                            </svg>
-                          )}
-
-                          {/* Node badge */}
-                          <div
-                            className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-all ${
-                              isCurrent
-                                ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30"
-                                : isPassed
-                                ? "border-success/30 bg-success/5 text-success"
-                                : "border-border bg-secondary/50 text-muted-foreground"
-                            }`}
-                          >
-                            <span className="block text-[10px] opacity-60">
-                              {t("quests.stage")} {node.stage_order}
-                            </span>
-                            <span>
-                              {locale === "en" && node.skill_name_en
-                                ? node.skill_name_en
-                                : node.skill_name}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Current node highlight */}
-                  {nextNode && (
-                    <div className="mt-4 rounded-lg bg-primary/5 border border-primary/20 p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-xs font-medium text-primary">
-                            {t("quests.currentStage")}：
-                            {locale === "en" && nextNode.skill_name_en
-                              ? nextNode.skill_name_en
-                              : nextNode.skill_name}
-                          </span>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {locale === "en" && nextNode.skill_description_en
-                              ? nextNode.skill_description_en
-                              : nextNode.skill_description}
-                          </p>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {t("quests.requiredScore")} ≥ {nextNode.required_score}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Path node quests */}
-              {pathNodeLoading ? (
-                <Loading variant="skeleton-cards" cardCount={4} />
-              ) : pathNodeError ? (
-                <ErrorState message={t("quests.loadPathQuestsError")} />
-              ) : pathNodeQuests.length === 0 ? (
-                <EmptyState
-                  title={t("quests.noPathNode")}
-                  description={t("quests.noPathNodeDesc")}
-                />
-              ) : (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
-                  {pathNodeQuests.map((quest: QuestListItem) => (
-                    <div key={quest.id} className="relative card-hover">
-                      {acceptedQuestIds.has(quest.id) && (
-                        <span className="absolute -top-1 -right-1 z-10 rounded-full bg-success px-2 py-0.5 text-[10px] font-medium text-success-foreground shadow-sm">
-                          {SUBMISSION_STATUS_LABELS[
-                            userQuestMap.get(quest.id)?.status || "ACCEPTED"
-                          ] || "ACCEPTED"}
-                        </span>
-                      )}
-                      <QuestCard quest={quest} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
           )}
         </>
       )}
@@ -480,7 +341,7 @@ export default function QuestsPage() {
 
               return (
                 <div key={uq.quest_id}>
-                  <div className="flex items-center justify-between rounded-xl border border-border bg-background p-4 transition-all hover:shadow-md hover:border-primary/30">
+                  <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
                     {/* Quest title + link */}
                     <a
                       href={`/quests/${uq.quest_id}`}
@@ -525,10 +386,10 @@ export default function QuestsPage() {
                         {t("quests.viewHistory")}
                       </button>
 
-                      {/* Abandon button — pushed to far right */}
-                      {canAbandon && (
-                        <div className="ml-2 pl-2 border-l border-border">
-                          {confirmAbandonQuestId === uq.quest_id ? (
+                      {/* Abandon button — always visible to the right of history */}
+                      <div className="ml-2 pl-2 border-l border-border">
+                        {canAbandon ? (
+                          confirmAbandonQuestId === uq.quest_id ? (
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={(e) => {
@@ -562,9 +423,17 @@ export default function QuestsPage() {
                             >
                               {t("quests.abandon")}
                             </button>
-                          )}
-                        </div>
-                      )}
+                          )
+                        ) : (
+                          <button
+                            disabled
+                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground/40 cursor-not-allowed"
+                            title={t("quests.cannotAbandon")}
+                          >
+                            {t("quests.abandon")}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 

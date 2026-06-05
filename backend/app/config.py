@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
 
+    # ── Upload ───────────────────────────────────────────────
+    upload_dir: str = "uploads"
+    max_avatar_size: int = 2 * 1024 * 1024  # 2 MB
+
     # ── LLM ──────────────────────────────────────────────────
     # Provider preset: "openai" | "deepseek" | "bailian" | "claude" | "custom"
     llm_provider: str = "openai"

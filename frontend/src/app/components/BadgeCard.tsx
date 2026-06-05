@@ -19,7 +19,7 @@ export function BadgeCard({ badge, userBadge }: BadgeCardProps) {
 
   return (
     <div
-      className={`rounded-xl border p-5 transition-all ${
+      className={`rounded-2xl border p-5 shadow-card transition-all duration-300 ${
         earned
           ? "border-success/30 bg-success/5"
           : "border-border bg-background opacity-60"

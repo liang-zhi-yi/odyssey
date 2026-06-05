@@ -24,4 +24,14 @@ export const authService = {
   changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
     return api.put<{ message: string }>("/auth/password", data);
   },
+
+  uploadAvatar(file: File): Promise<{ avatar_url: string; message: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.upload<{ avatar_url: string; message: string }>("/auth/me/avatar", formData);
+  },
+
+  deleteAvatar(): Promise<{ message: string }> {
+    return api.delete<{ message: string }>("/auth/me/avatar");
+  },
 };

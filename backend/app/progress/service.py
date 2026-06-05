@@ -7,7 +7,7 @@ from sqlalchemy import func
 
 from app.progress.models import ProgressLog
 from app.skills.models import Skill, UserSkill
-from app.paths.models import Path, PathSkill
+from app.learning_paths.models import LearningPath, LearningPathMilestone
 from app.core.exceptions import NotFoundException
 
 
@@ -191,32 +191,34 @@ def get_path_growth(
     Raises:
         NotFoundException: If the path doesn't exist.
     """
-    # Verify path exists
-    path = db.query(Path).filter(Path.id == path_id).first()
-    if path is None:
-        raise NotFoundException("Path", path_id)
+    # Verify learning path exists
+    learning_path = db.query(LearningPath).filter(LearningPath.id == path_id).first()
+    if learning_path is None:
+        raise NotFoundException("LearningPath", path_id)
 
-    # Get all skills in this path, ordered by stage_order
-    path_skills = (
-        db.query(PathSkill, Skill.name)
-        .join(Skill, PathSkill.skill_id == Skill.id)
-        .filter(PathSkill.path_id == path_id)
-        .order_by(PathSkill.stage_order)
+    # Get all milestones in this path with skills, ordered by sequence
+    milestones = (
+        db.query(LearningPathMilestone, Skill.name)
+        .outerjoin(Skill, LearningPathMilestone.skill_id == Skill.id)
+        .filter(LearningPathMilestone.learning_path_id == path_id)
+        .order_by(LearningPathMilestone.order_sequence)
         .all()
     )
 
     skills_data: list[dict] = []
-    for ps, skill_name in path_skills:
-        points = get_skill_growth(db, user_id, str(ps.skill_id))
+    for milestone, skill_name in milestones:
+        if milestone.skill_id is None:
+            continue
+        points = get_skill_growth(db, user_id, str(milestone.skill_id))
         skills_data.append({
-            "skill_id": str(ps.skill_id),
-            "skill_name": skill_name,
+            "skill_id": str(milestone.skill_id),
+            "skill_name": skill_name or milestone.title,
             "points": points,
         })
 
     return {
         "path_id": path_id,
-        "path_name": path.name,
+        "path_name": learning_path.title,
         "skills": skills_data,
     }
 

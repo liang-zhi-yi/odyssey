@@ -1,6 +1,6 @@
 """Auth routes — /api/v1/auth/*"""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 
 from app.auth.schemas import (
@@ -10,6 +10,8 @@ from app.auth.schemas import (
     UserResponse,
     UpdateProfileRequest,
     ChangePasswordRequest,
+    AvatarUploadResponse,
+    PublicProfileResponse,
 )
 from app.auth import service
 from app.database import get_db
@@ -47,6 +49,10 @@ def me(current_user: User = Depends(get_current_user)):
         github_username=current_user.github_username,
         avatar_url=current_user.avatar_url,
         bio=current_user.bio,
+        title=current_user.title,
+        location=current_user.location,
+        website=current_user.website,
+        social_links=current_user.social_links,
     )
 
 
@@ -69,3 +75,39 @@ def change_current_user_password(
     """Change the current user's password."""
     service.change_password(db, current_user, req.current_password, req.new_password)
     return {"message": "Password updated successfully"}
+
+
+@router.post("/me/avatar", response_model=AvatarUploadResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Upload or update the current user's avatar image.
+
+    Accepted formats: JPEG, PNG, WebP. Max size: 2 MB.
+    """
+    content = await file.read()
+    avatar_url = service.save_avatar(
+        db, current_user, content, file.content_type or "application/octet-stream", file.filename or "avatar.png"
+    )
+    return AvatarUploadResponse(avatar_url=avatar_url, message="Avatar uploaded successfully")
+
+
+@router.delete("/me/avatar")
+def remove_avatar(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Remove the current user's avatar image."""
+    service.delete_avatar(db, current_user)
+    return {"message": "Avatar removed successfully"}
+
+
+@router.get("/profile/{username}", response_model=PublicProfileResponse)
+def get_public_profile(username: str, db: Session = Depends(get_db)):
+    """Return a user's public profile and skills summary.
+
+    No authentication required — safe for public viewing.
+    """
+    return service.get_public_profile(db, username)

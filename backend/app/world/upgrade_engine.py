@@ -454,6 +454,22 @@ def _recalculate_civilization_tier(
         except Exception as exc:
             logger.warning("Tier advance event failed: %s", exc)
 
+        # Create notification for tier advance
+        try:
+            from app.notifications.service import create_notification
+            create_notification(
+                db,
+                user_id=user_id,
+                type="TIER_ADVANCE",
+                title=f"文明晋级：{old_tier_zh} → {new_tier_zh}！",
+                title_en=f"Civilization Advance: {old_tier_en} → {new_tier_en}!",
+                body=f"你的文明从{old_tier_zh}晋级为{new_tier_zh}，总分：{total_score}",
+                body_en=f"Your civilization has advanced from {old_tier_en} to {new_tier_en}. Total score: {total_score}",
+                link="/world",
+            )
+        except Exception as exc:
+            logger.warning("Tier advance notification failed: %s", exc)
+
         logger.info(
             "Civilization tier advanced: %s → %s (score=%d, user=%s)",
             old_tier, new_tier, total_score, user_id,

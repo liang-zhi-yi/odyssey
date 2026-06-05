@@ -19,11 +19,11 @@ interface ProgressTimelineProps {
 }
 
 const DEFAULT_COLORS = [
-  "oklch(0.55 0.2 260)",   // Indigo/Primary
-  "oklch(0.65 0.2 180)",   // Teal/Accent
-  "oklch(0.6 0.18 145)",   // Green/Success
-  "oklch(0.7 0.15 85)",    // Amber/Warning
-  "oklch(0.55 0.2 20)",    // Red/Destructive
+  "oklch(0.55 0.08 160)",   // Sage/Primary
+  "oklch(0.7 0.12 85)",     // Gold/Accent
+  "oklch(0.55 0.1 150)",    // Moss/Success
+  "oklch(0.65 0.12 45)",    // Terracotta/Warning
+  "oklch(0.5 0.15 25)",     // Red-terracotta/Destructive
 ];
 
 /**
@@ -160,7 +160,7 @@ export function ProgressTimeline({
                 y1={yScale(val)}
                 x2={w - pad.right}
                 y2={yScale(val)}
-                stroke="oklch(0.922 0 0)"
+                stroke="oklch(0.9 0.008 100)"
                 strokeWidth={1}
               />
               <text

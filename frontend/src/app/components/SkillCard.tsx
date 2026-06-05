@@ -5,6 +5,7 @@ import type { UserSkill } from "@/types/skill";
 import type { SkillGrowthPoint } from "@/types/progress";
 import { RANK_LABELS } from "@/types/skill";
 import { useLocale } from "@/hooks/useLocale";
+import { GrowthRing, masteryColor } from "@/app/components/GrowthRing";
 import { Sparkline } from "@/app/components/Sparkline";
 
 interface SkillCardProps {
@@ -13,8 +14,9 @@ interface SkillCardProps {
 }
 
 /**
- * Card displaying a single skill with dimension bars and rank badge.
- * Links to the skill detail page.
+ * Skill card redesigned with organic growth indicators — replaces
+ * flat progress bars with concentric GrowthRings. Color intensity
+ * reflects mastery depth: light sage → deep sage → gold.
  */
 export function SkillCard({ skill, trend }: SkillCardProps) {
   const { t } = useLocale();
@@ -29,51 +31,53 @@ export function SkillCard({ skill, trend }: SkillCardProps) {
   return (
     <Link
       href={`/skills/${skill.skill_id}`}
-      className="block rounded-xl border border-border bg-background p-4 transition-all hover:shadow-md hover:border-primary/30"
+      className="group block rounded-2xl border border-border bg-card p-5 shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/20"
     >
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h4 className="font-semibold text-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="min-w-0">
+          <h4 className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
             {skill.skill_name || skill.skill_id}
           </h4>
         </div>
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+        <span className="flex-shrink-0 ml-2 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
           {t(`skills.rank.${skill.rank}`) || RANK_LABELS[skill.rank] || skill.rank}
         </span>
       </div>
 
-      {/* Dimension bars */}
-      <div className="space-y-1.5">
+      {/* Dimension growth rings */}
+      <div className="flex items-center justify-between gap-1">
         {dimensions.map((d) => (
-          <div key={d.key} className="flex items-center gap-1.5 text-xs">
-            <span className="w-[4.5rem] shrink-0 text-muted-foreground truncate" title={t(`skills.dimensions.${d.key}`)}>
-              {t(`skills.dimensions.${d.key}`)}
-            </span>
-            <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
-              <div
-                className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${d.value}%` }}
-              />
-            </div>
-            <span className="w-7 text-right font-mono text-muted-foreground tabular-nums">
-              {d.value}
+          <div key={d.key} className="flex flex-col items-center gap-1">
+            <GrowthRing value={d.value} size="sm" />
+            <span className="text-[10px] text-muted-foreground leading-tight text-center max-w-[3rem] truncate">
+              {(() => {
+                const label = t(`skills.dimensions.${d.key}`);
+                return label.length > 4 ? label.slice(0, 4) : label;
+              })()}
             </span>
           </div>
         ))}
       </div>
 
-      {/* 30d trend sparkline */}
+      {/* Trend sparkline */}
       {trend && trend.length >= 2 && (
-        <div className="mt-2 flex items-center gap-1.5">
+        <div className="mt-3 flex items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground">{t("skills.trend")}</span>
           <Sparkline points={trend} className="ml-auto" />
         </div>
       )}
 
-      {/* Overall */}
-      <div className="mt-3 flex items-center gap-2 border-t border-border pt-2">
+      {/* Overall score + mastery dot */}
+      <div className="mt-3 flex items-center gap-2.5 border-t border-border pt-3">
+        <span
+          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+          style={{ backgroundColor: masteryColor(skill.overall) }}
+        />
         <span className="text-xs text-muted-foreground">{t("skills.overall")}</span>
-        <span className="text-lg font-bold text-primary tabular-nums">{skill.overall}</span>
+        <span className="ml-auto text-lg font-bold tabular-nums text-foreground">
+          {skill.overall}
+        </span>
       </div>
     </Link>
   );

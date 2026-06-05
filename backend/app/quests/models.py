@@ -37,6 +37,9 @@ class Quest(Base):
     skill_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("skills.id", ondelete="RESTRICT"), nullable=False, index=True
     )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     difficulty: Mapped[QuestDifficulty] = mapped_column(
         default=QuestDifficulty.LEVEL_1, nullable=False
     )
@@ -52,6 +55,7 @@ class Quest(Base):
 
     # Relationships
     skill: Mapped["Skill"] = relationship("Skill", back_populates="quests")
+    owner: Mapped["User | None"] = relationship("User")
     submissions: Mapped[list["QuestSubmission"]] = relationship(
         "QuestSubmission", back_populates="quest", lazy="selectin"
     )

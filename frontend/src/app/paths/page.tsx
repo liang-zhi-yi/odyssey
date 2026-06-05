@@ -1,23 +1,36 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
-import { pathService } from "@/services/path.service";
+import { learningPathService } from "@/services/learningPath.service";
+import { questService } from "@/services/quest.service";
+import { LearningPathCard } from "@/app/components/LearningPathCard";
+import { QuestCard } from "@/app/components/QuestCard";
+import { PathGeneratorForm } from "@/app/components/PathGeneratorForm";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
-import { ApiRequestError } from "@/lib/api";
-import type { GrowthPath, UserPath } from "@/types/path";
+import type { LearningPath, NextCheckpoint } from "@/types/learningPath";
+import type { QuestListItem, UserQuest } from "@/types/quest";
+
+type TabId = "my" | "preset" | "create" | "checkpoint";
+
+const TABS: { id: TabId; key: string }[] = [
+  { id: "my", key: "paths.tabs.my" },
+  { id: "preset", key: "paths.tabs.preset" },
+  { id: "create", key: "paths.tabs.create" },
+  { id: "checkpoint", key: "paths.tabs.checkpoint" },
+];
 
 export default function PathsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { t, locale } = useLocale();
+  const { mutate } = useSWRConfig();
   const router = useRouter();
-  const [selectingId, setSelectingId] = useState<string | null>(null);
-  const [selectError, setSelectError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>("my");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -25,178 +38,313 @@ export default function PathsPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch current active path
+  // Fetch user's learning paths
   const {
-    data: currentPath,
-    isLoading: currentLoading,
-    error: currentError,
-  } = useSWR(isAuthenticated ? "current-path" : null, () =>
-    pathService.getCurrentPath().catch(() => null)
+    data: userPaths = [],
+    isLoading: userPathsLoading,
+    error: userPathsError,
+  } = useSWR(
+    isAuthenticated && activeTab === "my" ? "user-learning-paths" : null,
+    () => learningPathService.listPaths().catch(() => [])
   );
 
-  // Fetch all available paths
+  // Fetch preset paths
   const {
-    data: paths = [],
-    isLoading: pathsLoading,
-    error: pathsError,
-  } = useSWR(isAuthenticated ? "paths" : null, () =>
-    pathService.listPaths()
+    data: presetPaths = [],
+    isLoading: presetPathsLoading,
+    error: presetPathsError,
+  } = useSWR(
+    isAuthenticated && activeTab === "preset" ? "preset-learning-paths" : null,
+    () => learningPathService.listPresetPaths().catch(() => [])
   );
 
-  const handleSelect = useCallback(
-    async (pathId: string) => {
-      setSelectingId(pathId);
-      setSelectError(null);
-      try {
-        await pathService.selectPath({ path_id: pathId });
-        await mutate("current-path");
-      } catch (err) {
-        const message =
-          err instanceof ApiRequestError
-            ? err.message
-            : t("paths.selectError");
-        setSelectError(message);
-      } finally {
-        setSelectingId(null);
-      }
+  // Fetch next checkpoint (for checkpoint tab)
+  const {
+    data: nextCheckpoint,
+    isLoading: checkpointLoading,
+    error: checkpointError,
+  } = useSWR<NextCheckpoint | null>(
+    isAuthenticated && activeTab === "checkpoint" ? "next-checkpoint" : null,
+    () => learningPathService.getNextCheckpoint().catch(() => null)
+  );
+  const hasActivePath = !!(nextCheckpoint && nextCheckpoint.path_id);
+
+  // Fetch path node quests (for checkpoint tab)
+  const {
+    data: pathNodeQuests = [],
+    isLoading: pathNodeLoading,
+    error: pathNodeError,
+  } = useSWR(
+    isAuthenticated && activeTab === "checkpoint" ? "path-node-quests" : null,
+    () => questService.listPathNodeQuests().catch(() => [])
+  );
+
+  // Fetch user quests for status badges on checkpoint quests
+  const { data: userQuests = [] } = useSWR(
+    isAuthenticated && activeTab === "checkpoint" ? "user-quests" : null,
+    () => questService.listUserQuests().catch(() => [])
+  );
+
+  const handleSelectPreset = useCallback(
+    (pathId: string) => {
+      router.push(`/paths/${pathId}`);
     },
-    [t]
+    [router]
+  );
+
+  const handlePathCreated = useCallback(
+    (_pathId: string) => {
+      // Revalidate checkpoint-related caches so the checkpoint tab reflects new data
+      mutate("next-checkpoint");
+      mutate("path-node-quests");
+      // Also revalidate user paths list
+      mutate("user-learning-paths");
+      // Auto-switch to checkpoint tab after a brief delay (let SWR revalidate)
+      setTimeout(() => setActiveTab("checkpoint"), 500);
+    },
+    [mutate]
   );
 
   if (authLoading || !isAuthenticated) {
     return <Loading text={t("auth.validating")} />;
   }
 
-  const difficultyLabel = (level: number) => {
-    if (level <= 2) return { text: t("paths.difficultyLevels.beginner"), color: "bg-success/10 text-success" };
-    if (level <= 4) return { text: t("paths.difficultyLevels.intermediate"), color: "bg-warning/10 text-warning" };
-    return { text: t("paths.difficultyLevels.advanced"), color: "bg-destructive/10 text-destructive" };
-  };
+  const acceptedQuestIds = new Set(userQuests.map((uq: UserQuest) => uq.quest_id));
+  const userQuestMap = new Map(
+    userQuests.map((uq: UserQuest) => [uq.quest_id, uq])
+  );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold">{t("paths.title")}</h1>
+        <h1 className="text-2xl font-semibold">{t("paths.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t("paths.subtitle")}
         </p>
       </div>
 
-      {/* Current active path */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">{t("paths.currentPath")}</h2>
-        {currentLoading ? (
-          <div className="rounded-xl border border-border bg-background p-6 skeleton-shimmer" style={{ height: "100px" }} />
-        ) : currentError ? (
-          <ErrorState message={t("paths.loadPathStatusError")} />
-        ) : currentPath ? (
-          <CurrentPathCard path={currentPath} />
-        ) : (
-          <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              {t("paths.noPathSelectedDesc")}
-            </p>
-          </div>
-        )}
-      </section>
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-lg bg-secondary p-1 w-fit flex-wrap">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+              activeTab === tab.id
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t(tab.key)}
+          </button>
+        ))}
+      </div>
 
-      {/* Available paths */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">{t("paths.availablePaths")}</h2>
-        {selectError && (
-          <div className="mb-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {selectError}
-          </div>
-        )}
-        {pathsLoading ? (
+      {/* ── Tab: My Paths ──────────────────────────────────── */}
+      {activeTab === "my" &&
+        (userPathsLoading ? (
           <Loading variant="skeleton-cards" cardCount={4} />
-        ) : pathsError ? (
-          <ErrorState message={t("paths.loadPathListError")} />
-        ) : paths.length === 0 ? (
-          <EmptyState title={t("paths.noAvailablePaths")} description={t("paths.comingSoonPaths")} />
+        ) : userPathsError ? (
+          <ErrorState message={t("paths.loadMyError")} />
+        ) : userPaths.length === 0 ? (
+          <EmptyState
+            title={t("paths.noPaths")}
+            description={t("paths.noPathsDesc")}
+          />
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 animate-stagger">
-            {paths.map((p: GrowthPath) => {
-              const isActive = currentPath?.path_id === p.id;
-              const diff = difficultyLabel(p.difficulty);
-              return (
-                <div
-                  key={p.id}
-                  className={`rounded-xl border p-5 transition-all card-hover ${
-                    isActive
-                      ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-background"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="font-semibold text-sm">
-                      {locale === "en" && p.name_en ? p.name_en : p.name}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+            {userPaths.map((path: LearningPath) => (
+              <div key={path.id} className="card-hover">
+                <LearningPathCard path={path} />
+              </div>
+            ))}
+          </div>
+        ))}
+
+      {/* ── Tab: Preset Paths ──────────────────────────────── */}
+      {activeTab === "preset" &&
+        (presetPathsLoading ? (
+          <Loading variant="skeleton-cards" cardCount={4} />
+        ) : presetPathsError ? (
+          <ErrorState message={t("paths.loadPresetError")} />
+        ) : presetPaths.length === 0 ? (
+          <EmptyState
+            title={t("paths.noAvailablePaths")}
+            description={t("paths.comingSoon")}
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+            {presetPaths.map((path: LearningPath) => (
+              <div key={path.id} className="card-hover">
+                <LearningPathCard
+                  path={path}
+                  onSelect={handleSelectPreset}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+
+      {/* ── Tab: Create Path ───────────────────────────────── */}
+      {activeTab === "create" && (
+        <PathGeneratorForm onSuccess={handlePathCreated} />
+      )}
+
+      {/* ── Tab: Path Checkpoints ──────────────────────────── */}
+      {activeTab === "checkpoint" && (
+        <>
+          {checkpointLoading ? (
+            <Loading text={t("common.loading")} />
+          ) : checkpointError ? (
+            <ErrorState message={t("quests.loadPathQuestsError")} />
+          ) : !hasActivePath ? (
+            <EmptyState
+              title={t("quests.noPathSelected")}
+              description={t("quests.noPathSelectedDesc")}
+              actionLabel={t("paths.goSelectPath")}
+              actionHref="/paths"
+            />
+          ) : (
+            <>
+              {/* Current checkpoint info */}
+              {nextCheckpoint && (
+                <div className="rounded-xl border border-border bg-background p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="h-5 w-5 text-primary flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
+                    </svg>
+                    <h3 className="text-sm font-semibold">
+                      {nextCheckpoint.path_title}
                     </h3>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {p.is_official && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          {t("paths.official")}
+                  </div>
+
+                  {/* Path breadcrumb */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                    <span className="rounded-md bg-secondary px-2 py-0.5">
+                      {nextCheckpoint.path_title}
+                    </span>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                    <span className="rounded-md bg-secondary px-2 py-0.5">
+                      {locale === "en" && nextCheckpoint.milestone_title_en
+                        ? nextCheckpoint.milestone_title_en
+                        : nextCheckpoint.milestone_title}
+                    </span>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                    <span className="font-medium text-foreground">
+                      {locale === "en" && nextCheckpoint.checkpoint_title_en
+                        ? nextCheckpoint.checkpoint_title_en
+                        : nextCheckpoint.checkpoint_title}
+                    </span>
+                  </div>
+
+                  {/* Current checkpoint highlight */}
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-medium text-primary">
+                          {t("paths.currentCheckpoint")}：
+                          {locale === "en" && nextCheckpoint.checkpoint_title_en
+                            ? nextCheckpoint.checkpoint_title_en
+                            : nextCheckpoint.checkpoint_title}
                         </span>
-                      )}
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${diff.color}`}
-                      >
-                        {diff.text}
+                        {nextCheckpoint.skill_name && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {t("paths.skill")}:{" "}
+                            {nextCheckpoint.skill_name}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {t("quests.requiredScore")} ≥ {nextCheckpoint.required_score}
                       </span>
                     </div>
                   </div>
 
-                  {p.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4">
-                      {locale === "en" && p.description_en
-                        ? p.description_en
-                        : p.description}
-                    </p>
-                  )}
-
-                  {isActive ? (
-                    <div className="rounded-lg bg-success/10 px-3 py-2 text-xs font-medium text-success text-center">
-                      ✅ {t("paths.currentPath")}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleSelect(p.id)}
-                      disabled={selectingId === p.id}
-                      className="w-full rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
+                  {/* Navigate to full path */}
+                  <a
+                    href={`/paths/${nextCheckpoint.path_id}`}
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    {t("paths.viewFullPath")}
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
                     >
-                      {selectingId === p.id ? t("paths.selecting") : t("paths.select")}
-                    </button>
-                  )}
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
+              )}
 
-/** Card displaying the currently active path with progress bar */
-function CurrentPathCard({ path }: { path: UserPath }) {
-  const { t, locale } = useLocale();
-  const displayName =
-    locale === "en" && path.name_en ? path.name_en : path.name;
-  const progressPct = Math.min(100, Math.max(0, Math.round(path.progress * 100)));
-  return (
-    <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">{displayName}</h3>
-        <span className="text-sm font-bold text-primary tabular-nums">
-          {progressPct}%
-        </span>
-      </div>
-      <div className="h-2 rounded-full bg-secondary overflow-hidden">
-        <div
-          className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
+              {/* Path node quests */}
+              {pathNodeLoading ? (
+                <Loading variant="skeleton-cards" cardCount={4} />
+              ) : pathNodeError ? (
+                <ErrorState message={t("quests.loadPathQuestsError")} />
+              ) : pathNodeQuests.length === 0 ? (
+                <EmptyState
+                  title={t("quests.noPathNode")}
+                  description={t("quests.noPathNodeDesc")}
+                />
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+                  {pathNodeQuests.map((quest: QuestListItem) => (
+                    <div key={quest.id} className="relative card-hover">
+                      {acceptedQuestIds.has(quest.id) && (
+                        <span className="absolute -top-1 -right-1 z-10 rounded-full bg-success px-2 py-0.5 text-[10px] font-medium text-success-foreground shadow-sm">
+                          {userQuestMap.get(quest.id)?.status || "ACCEPTED"}
+                        </span>
+                      )}
+                      <QuestCard quest={quest} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }

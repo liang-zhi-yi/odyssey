@@ -81,7 +81,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             key={`ring-${i}`}
             points={ringPoints}
             fill="none"
-            stroke="oklch(0.922 0 0)"
+            stroke="oklch(0.9 0.008 100)"
             strokeWidth={1}
           />
         );
@@ -97,7 +97,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             y1={cy}
             x2={cx + radius * Math.cos(angle)}
             y2={cy + radius * Math.sin(angle)}
-            stroke="oklch(0.922 0 0)"
+            stroke="oklch(0.9 0.008 100)"
             strokeWidth={1}
           />
         );
@@ -111,8 +111,8 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
           const r = (scores[DIMENSIONS[i]] / 100) * radius;
           return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
         }).join(" ")}
-        fill="oklch(0.55 0.2 260 / 0.25)"
-        stroke="oklch(0.55 0.2 260)"
+        fill="oklch(0.55 0.08 160 / 0.25)"
+        stroke="oklch(0.55 0.08 160)"
         strokeWidth={2}
       />
 
@@ -127,7 +127,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             cx={cx + r * Math.cos(angle)}
             cy={cy + r * Math.sin(angle)}
             r={4}
-            fill="oklch(0.55 0.2 260)"
+            fill="oklch(0.55 0.08 160)"
             stroke="white"
             strokeWidth={2}
             style={{ animationDelay: `${500 + i * 100}ms` }}

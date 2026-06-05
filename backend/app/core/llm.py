@@ -156,6 +156,13 @@ def evaluate_submission(
     user_base_url: str | None = None,
     user_model: str | None = None,
     user_provider: str | None = None,
+    # When True, skip json_schema strict mode even if the provider supports it.
+    # Use json_object mode instead — for non-assessment outputs (path generation, etc.).
+    force_json_object: bool = False,
+    # Optional custom JSON schema for structured output (only used when not force_json_object).
+    # When None, defaults to the assessment scoring schema.
+    output_json_schema: dict | None = None,
+    output_schema_name: str = "assessment_output",
 ) -> dict:
     """Call the LLM for assessment with structured JSON output.
 
@@ -164,13 +171,16 @@ def evaluate_submission(
       - DeepSeek / Bailian / Zhipu / Moonshot → json_object
       - Custom   → json_object (with JSON instruction injection)
 
-    The response MUST conform to:
+    The default response schema requires:
       {
         "knowledge":   { "score": 0-100, "justification": "..." },
         "reasoning":   { "score": 0-100, "justification": "..." },
         "application": { "score": 0-100, "justification": "..." },
         "creation":    { "score": 0-100, "justification": "..." }
       }
+
+    Set force_json_object=True to skip the schema enforcement (path generation, etc.).
+    Set output_json_schema to override the default assessment schema.
 
     Returns the parsed dict on success.
     Raises LLMClientError on any failure (timeout, API error, invalid JSON).
@@ -213,9 +223,11 @@ def evaluate_submission(
         client_kwargs["base_url"] = effective_base_url
     client = OpenAI(**client_kwargs)
 
-    # Build messages — inject JSON instruction if provider doesn't enforce it
+    # Build messages — inject JSON instruction when json_object is used
     effective_system = system_prompt
-    if not provider.supports_json_schema:
+    use_json_schema = provider.supports_json_schema and not force_json_object
+    use_json_object = provider.supports_json_object and not use_json_schema
+    if use_json_object and not provider.supports_json_schema:
         effective_system = system_prompt + _JSON_INSTRUCTION
 
     messages = [
@@ -231,16 +243,17 @@ def evaluate_submission(
         "messages": messages,
     }
 
-    if provider.supports_json_schema:
+    if use_json_schema:
+        schema = output_json_schema or _SCORING_JSON_SCHEMA
         create_kwargs["response_format"] = {
             "type": "json_schema",
             "json_schema": {
-                "name": "assessment_output",
+                "name": output_schema_name,
                 "strict": True,
-                "schema": _SCORING_JSON_SCHEMA,
+                "schema": schema,
             },
         }
-    elif provider.supports_json_object:
+    elif use_json_object:
         create_kwargs["response_format"] = {"type": "json_object"}
 
     logger.info(

@@ -45,15 +45,26 @@ const config: Config = {
         },
       },
       borderRadius: {
-        DEFAULT: "0.625rem",
+        DEFAULT: "0.75rem",
+        lg: "1rem",
+        xl: "1.25rem",
+        "2xl": "1.5rem",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
       boxShadow: {
-        card: "0 1px 3px 0 oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06)",
-        "card-hover": "0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.05)",
+        card: "0 2px 8px -2px oklch(0 0 0 / 0.04), 0 1px 4px -1px oklch(0 0 0 / 0.02)",
+        "card-hover": "0 4px 16px -2px oklch(0 0 0 / 0.06), 0 2px 8px -2px oklch(0 0 0 / 0.04), 0 1px 3px -1px oklch(0 0 0 / 0.02)",
+        focus: "0 0 0 3px oklch(0.55 0.08 160 / 0.25)",
+      },
+      backgroundImage: {
+        "hero-texture": "url('/textures/hero-pattern.svg')",
+      },
+      transitionDuration: {
+        DEFAULT: "200ms",
+        slow: "300ms",
       },
     },
   },

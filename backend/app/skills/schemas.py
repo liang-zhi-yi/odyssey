@@ -10,6 +10,7 @@ class SkillResponse(BaseModel):
     description: str | None = None
     description_en: str | None = None
     category: str
+    domain: str = "AI"
 
     model_config = {"from_attributes": True}
 

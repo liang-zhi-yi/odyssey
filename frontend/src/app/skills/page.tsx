@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ import { ScoreCard } from "@/app/components/ScoreCard";
 import { RadarChart } from "@/app/components/RadarChart";
 import { Loading } from "@/app/components/Loading";
 import { EmptyState } from "@/app/components/EmptyState";
+import { DomainPicker } from "@/app/components/DomainPicker";
 import type { UserSkill, Skill } from "@/types/skill";
 import type { DimensionScores } from "@/types/assessment";
 import { computeAggregateScores } from "@/lib/scores";
@@ -21,6 +22,7 @@ export default function SkillsPage() {
   const { t } = useLocale();
   const router = useRouter();
   const [selectedSkill, setSelectedSkill] = useState<UserSkill | null>(null);
+  const [domainFilter, setDomainFilter] = useState<string>("");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -49,7 +51,19 @@ export default function SkillsPage() {
 
   const userSkillMap = new Map(userSkills.map((us) => [us.skill_id, us]));
 
-  // Compute radar scores for selected skill or aggregate
+  // Filter skills by domain
+  const filteredAllSkills = useMemo(() => {
+    if (!domainFilter) return allSkills;
+    return allSkills.filter((s: Skill) => s.domain === domainFilter);
+  }, [allSkills, domainFilter]);
+
+  const filteredUserSkills = useMemo(() => {
+    if (!domainFilter) return userSkills;
+    const filteredIds = new Set(filteredAllSkills.map((s: Skill) => s.id));
+    return userSkills.filter((us) => filteredIds.has(us.skill_id));
+  }, [userSkills, filteredAllSkills, domainFilter]);
+
+  // Compute radar scores for selected skill or aggregate (use all user skills, not filtered)
   const radarScores: DimensionScores = selectedSkill
     ? {
         knowledge: selectedSkill.knowledge,
@@ -60,9 +74,9 @@ export default function SkillsPage() {
     : computeAggregateScores(userSkills);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold">{t("skills.title")}</h1>
+        <h1 className="text-2xl font-semibold">{t("skills.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t("skills.fourDimensionProfile")}
         </p>
@@ -71,7 +85,7 @@ export default function SkillsPage() {
       {/* Selected skill detail / Overview radar */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Radar overview */}
-        <div className="rounded-xl border border-border bg-background p-6 flex flex-col items-center">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-card flex flex-col items-center">
           <h3 className="text-sm font-semibold mb-4">
             {selectedSkill
               ? selectedSkill.skill_name || selectedSkill.skill_id
@@ -94,7 +108,7 @@ export default function SkillsPage() {
             <Loading variant="skeleton-cards" cardCount={6} />
           ) : error ? (
             <ErrorState message={t("skills.loadError")} />
-          ) : userSkills.length === 0 ? (
+          ) : filteredUserSkills.length === 0 ? (
             <EmptyState
               title={t("skills.noSkills")}
               description={t("skills.noSkillDesc")}
@@ -117,8 +131,8 @@ export default function SkillsPage() {
             />
           ) : (
             /* Show skill cards grid */
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 animate-stagger">
-              {userSkills.map((skill) => (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-stagger">
+              {filteredUserSkills.map((skill) => (
                 <div
                   key={skill.skill_id}
                   onClick={() => setSelectedSkill(skill)}
@@ -141,19 +155,24 @@ export default function SkillsPage() {
         </div>
       </div>
 
-      {/* All defined skills reference */}
-      {allSkills.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">{t("skills.allSkillsDirectory")}</h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            {allSkills.map((skill: Skill) => {
+      {/* Domain filter + all defined skills reference */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">{t("skills.allSkillsDirectory")}</h2>
+        </div>
+        <div className="mb-3">
+          <DomainPicker selected={domainFilter} onChange={setDomainFilter} />
+        </div>
+        {filteredAllSkills.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {filteredAllSkills.map((skill: Skill) => {
               const userSkill = userSkillMap.get(skill.id);
               return (
                 <div
                   key={skill.id}
-                  className={`rounded-lg border px-3 py-2 text-xs transition-all ${
+                  className={`rounded-xl border px-3 py-2.5 text-xs transition-all duration-300 ${
                     userSkill
-                      ? "border-primary/30 bg-primary/5 cursor-pointer hover:shadow-sm"
+                      ? "border-primary/30 bg-primary/5 cursor-pointer hover:shadow-card"
                       : "border-border bg-secondary/30"
                   }`}
                   onClick={() => {
@@ -181,8 +200,12 @@ export default function SkillsPage() {
               );
             })}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="text-xs text-muted-foreground py-2">
+            {domainFilter ? t("quests.noQuests") : t("common.noData")}
+          </p>
+        )}
+      </section>
     </div>
   );
 }

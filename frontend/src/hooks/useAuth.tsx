@@ -23,6 +23,10 @@ const DEV_USER: User = {
   github_username: null,
   avatar_url: null,
   bio: "Dev preview mode — backend not connected",
+  title: null,
+  location: null,
+  website: null,
+  social_links: null,
 };
 
 interface AuthState {

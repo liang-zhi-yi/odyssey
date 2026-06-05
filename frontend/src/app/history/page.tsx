@@ -73,16 +73,16 @@ export default function HistoryPage() {
       : [];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold">{t("history.title")}</h1>
+        <h1 className="text-2xl font-semibold">{t("history.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t("history.subtitle")}
         </p>
       </div>
 
       {/* Filter Bar */}
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
         <div className="flex flex-wrap items-end gap-4">
           {/* Skill filter */}
           <div className="flex flex-col gap-1.5">

@@ -50,7 +50,7 @@ export type {
 } from "./assessment";
 export { DIMENSION_LABELS, DIMENSION_WEIGHTS } from "./assessment";
 
-export type { ProgressLog, SkillGrowthPoint } from "./progress";
+export type { ProgressLog, SkillGrowthPoint, PathGrowthResponse } from "./progress";
 
 export type { Credential, UserCredential } from "./credential";
 
@@ -64,11 +64,25 @@ export type {
 export type { CreateProjectRequest, Project } from "./project";
 
 export type {
-  GrowthPath,
-  SelectPathRequest,
-  SelectPathResponse,
-  UserPath,
-} from "./path";
+  LearningPath,
+  LearningPathDetail,
+  LearningPathMilestone,
+  PathCheckpoint,
+  GeneratedQuest,
+  CreateLearningPathRequest,
+  UpdateLearningPathRequest,
+  GeneratePathResponse,
+  GenerateQuestsResponse,
+  ToggleMilestoneResponse,
+  NextCheckpoint,
+  UserMemoryEntry,
+  UpsertMemoryRequest,
+  PathMetadata,
+} from "./learningPath";
+export {
+  PATH_STATUS_LABELS,
+  PATH_STATUS_LABELS_ZH,
+} from "./learningPath";
 
 export type { UserSettings, UpdateSettingsRequest } from "./settings";
 
@@ -102,3 +116,15 @@ export {
   CIVILIZATION_TIER_LABELS,
   EVENT_TYPE_LABELS,
 } from "./world";
+
+export type {
+  ChatRequest,
+  ChatResponse,
+  AgentMessage,
+  AgentCard,
+  CardType,
+  ConversationListItem,
+  ChatMessage,
+  HistoryResponse,
+} from "./agent";
+export { CARD_TYPE_LABELS } from "./agent";

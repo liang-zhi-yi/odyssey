@@ -7,20 +7,25 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
 import { progressService } from "@/services/progress.service";
-import { pathService } from "@/services/path.service";
-import { DashboardOverview } from "@/app/components/DashboardOverview";
-import { SkillCard } from "@/app/components/SkillCard";
-import { RecentActivity } from "@/app/components/RecentActivity";
-import { ProgressTimeline } from "@/app/components/ProgressTimeline";
+import { questService } from "@/services/quest.service";
+import { learningPathService } from "@/services/learningPath.service";
+import { worldService } from "@/services/world.service";
+import { analyticsService } from "@/services/analytics.service";
+import { DashboardHero } from "@/app/components/DashboardHero";
+import { SkillGrowthRadar } from "@/app/components/SkillGrowthRadar";
+import { ActiveQuestsWidget } from "@/app/components/ActiveQuestsWidget";
+import { GrowthInsightsWidget } from "@/app/components/GrowthInsightsWidget";
+import { PathProgressTimeline } from "@/app/components/PathProgressTimeline";
+import { WorldSnapshotWidget } from "@/app/components/WorldSnapshotWidget";
+import { StreakWidget } from "@/app/components/StreakWidget";
+import { InsightCard } from "@/app/components/InsightCard";
 import { Loading } from "@/app/components/Loading";
-import { ErrorState } from "@/app/components/ErrorState";
-import { EmptyState } from "@/app/components/EmptyState";
 import type { UserSkill } from "@/types/skill";
-import type { UserPath, GrowthPath, PathGrowthResponse } from "@/types/path";
+import type { LearningPath } from "@/types/learningPath";
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
 
@@ -30,7 +35,9 @@ export default function DashboardPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch user skills
+  // ─── Data fetching ───────────────────────────────────────
+
+  // User skills
   const {
     data: userSkills = [],
     isLoading: skillsLoading,
@@ -39,7 +46,7 @@ export default function DashboardPage() {
     skillService.listUserSkills()
   );
 
-  // Fetch trends for sparklines (only when userSkills are loaded)
+  // Skill trends for sparklines
   const skillIds = userSkills.map(s => s.skill_id);
   const { data: trendsData } = useSWR(
     skillIds.length > 0 ? `skill-trends-${skillIds.join("-")}` : null,
@@ -51,38 +58,24 @@ export default function DashboardPage() {
     }
   );
 
-  // Fetch current path
-  const {
-    data: currentPath,
-    isLoading: pathLoading,
-  } = useSWR(isAuthenticated ? "current-path" : null, () =>
-    pathService.getCurrentPath().catch(() => null)
-  );
-
-  // Fetch available paths
+  // Learning paths
   const {
     data: allPaths = [],
     isLoading: allPathsLoading,
   } = useSWR(isAuthenticated ? "all-paths" : null, () =>
-    pathService.listPaths()
+    learningPathService.listPaths()
   );
 
-  // Auto-select current path when it loads
+  const currentPath: LearningPath | null =
+    allPaths.find((p) => p.status === "ACTIVE") ?? allPaths[0] ?? null;
+
   useEffect(() => {
-    if (currentPath?.path_id && !selectedPathId) {
-      setSelectedPathId(currentPath.path_id);
+    if (currentPath?.id && !selectedPathId) {
+      setSelectedPathId(currentPath.id);
     }
   }, [currentPath, selectedPathId]);
 
-  // Fetch recent progress logs
-  const {
-    data: progressLogs = [],
-    isLoading: logsLoading,
-  } = useSWR(isAuthenticated ? "progress-logs" : null, () =>
-    progressService.listProgressLogs({ limit: 10 })
-  );
-
-  // Fetch path growth data for selected path
+  // Path growth data
   const {
     data: pathGrowth,
     isLoading: pathGrowthLoading,
@@ -91,114 +84,186 @@ export default function DashboardPage() {
     () => progressService.getPathGrowth(selectedPathId!)
   );
 
-  // Resolve display name based on locale
-  const resolveName = (zh: string, en: string | null | undefined) =>
-    locale === "en" && en ? en : zh;
-
-  // Build datasets from path growth response
   const pathDatasets = pathGrowth?.skills
     .filter((s) => s.points.length > 0)
-    .map((s, i) => ({
+    .map((s) => ({
       name: s.skill_name,
       points: s.points,
     })) || [];
 
-  // Selected path info
-  const selectedPath = allPaths.find((p) => p.id === selectedPathId);
+  // User quests (for active quests widget)
+  const {
+    data: userQuests = [],
+    isLoading: questsLoading,
+  } = useSWR(isAuthenticated ? "user-quests-dashboard" : null, () =>
+    questService.listUserQuests().catch(() => [])
+  );
+
+  // World data
+  const {
+    data: worldData,
+    isLoading: worldLoading,
+  } = useSWR(isAuthenticated ? "world-dashboard" : null, () =>
+    worldService.getWorld().catch(() => null)
+  );
+
+  // AI insights
+  const {
+    data: insightsData,
+    isLoading: insightsLoading,
+  } = useSWR(isAuthenticated ? "analytics-insights" : null, () =>
+    analyticsService.getInsights().catch(() => null)
+  );
+
+  // ─── Derived values ──────────────────────────────────────
+
+  const questsCompleted = userQuests.filter(
+    (q) => q.status === "PASSED"
+  ).length;
+
+  const worldTier = (worldData?.tier ? parseInt(worldData.tier_score as unknown as string, 10) || 1 : 0);
+  const buildingCount = worldData?.buildings?.length ?? 0;
+  const regionCount = worldData?.regions?.length ?? 0;
+
+  // ─── Auth guard ──────────────────────────────────────────
 
   if (authLoading || !isAuthenticated) {
     return <Loading text={t("auth.validating")} />;
   }
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t("dashboard.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("dashboard.subtitle")}
-        </p>
-      </div>
+  const isAnyLoading = skillsLoading || allPathsLoading;
 
-      {/* Overview stats */}
-      <DashboardOverview
+  // ─── Render ──────────────────────────────────────────────
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8 animate-fade-in">
+      {/* ── Hero Section ─────────────────────────────────── */}
+      <DashboardHero
         userSkills={userSkills}
-        currentPath={currentPath || null}
-        isLoading={skillsLoading || pathLoading}
+        currentPath={currentPath}
+        worldTier={worldTier}
+        questsCompleted={questsCompleted}
+        isLoading={isAnyLoading}
       />
 
-      {/* Skills grid */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">{t("dashboard.skillsSection")}</h2>
-        {skillsLoading ? (
-          <Loading variant="skeleton-cards" cardCount={3} />
-        ) : skillsError ? (
-            <ErrorState message={t("dashboard.loadSkillsError")} />
-          ) : userSkills.length === 0 ? (
-          <EmptyState
-            title={t("dashboard.noSkillData")}
-            description={t("dashboard.noSkillDesc")}
-            actionLabel={t("dashboard.browseQuests")}
-            actionHref="/quests"
-          />
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
-            {userSkills.map((skill) => (
-              <SkillCard key={skill.skill_id} skill={skill} trend={trendsData?.[skill.skill_id] || []} />
+      {/* ── AI Insights (conditional) ─────────────────────── */}
+      {!insightsLoading &&
+        insightsData?.insights &&
+        insightsData.insights.length > 0 && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {insightsData.insights.slice(0, 3).map((insight, i) => (
+              <InsightCard key={i} insight={insight} />
             ))}
           </div>
         )}
-      </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent activity */}
-        <section>
-          <h2 className="text-lg font-semibold mb-3">{t("dashboard.recentActivity")}</h2>
-          <div className="rounded-xl border border-border bg-background p-4">
-            <RecentActivity logs={progressLogs} isLoading={logsLoading} />
-          </div>
-        </section>
+      {/* ── Bento Grid ────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Large: Skill radar (2 cols × 1 row) */}
+        <div className="md:col-span-2 lg:col-span-2">
+          <SkillGrowthRadar
+            userSkills={userSkills}
+            isLoading={skillsLoading}
+          />
+        </div>
 
-        {/* Path Growth Curve */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">
-              {selectedPathId ? t("dashboard.pathGrowth") : t("dashboard.selectPathChart")}
-            </h2>
+        {/* Medium: Active quests (1 col) */}
+        <div className="lg:col-span-1">
+          <ActiveQuestsWidget
+            quests={userQuests}
+            isLoading={questsLoading}
+          />
+        </div>
 
-            {/* Path switcher */}
-            {allPaths.length > 0 && (
-              <select
-                value={selectedPathId || ""}
-                onChange={(e) => setSelectedPathId(e.target.value || null)}
-                className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option value="">{t("dashboard.selectPath")}</option>
-                {allPaths.map((p: GrowthPath) => (
-                  <option key={p.id} value={p.id}>
-                    {resolveName(p.name, p.name_en)}
-                  </option>
+        {/* Medium: Growth insights (1 col) */}
+        <div className="lg:col-span-1">
+          <GrowthInsightsWidget
+            insights={insightsData?.insights || []}
+            isLoading={insightsLoading}
+          />
+        </div>
+
+        {/* Wide: Path progress timeline (full row) */}
+        <div className="md:col-span-2 lg:col-span-4">
+          <PathProgressTimeline
+            allPaths={allPaths}
+            selectedPathId={selectedPathId}
+            onSelectPath={setSelectedPathId}
+            pathDatasets={pathDatasets}
+            pathName={pathGrowth?.path_name}
+            isLoading={pathGrowthLoading || allPathsLoading}
+          />
+        </div>
+
+        {/* Small: World snapshot (1 col) */}
+        <div className="lg:col-span-1">
+          <WorldSnapshotWidget
+            worldTier={worldTier}
+            buildingCount={buildingCount}
+            regionCount={regionCount}
+            isLoading={worldLoading}
+          />
+        </div>
+
+        {/* Small: Streak / activity (1 col) */}
+        <div className="lg:col-span-1">
+          <StreakWidget
+            streakDays={0}
+            totalQuests={questsCompleted}
+            isLoading={questsLoading}
+          />
+        </div>
+
+        {/* Medium: Recent skills (2 cols) */}
+        <div className="md:col-span-2 lg:col-span-2">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+            <h3 className="text-lg font-semibold mb-4">{t("dashboard.recentSkills")}</h3>
+            {skillsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-4 w-full rounded-md bg-muted skeleton-shimmer" />
                 ))}
-              </select>
-            )}
-          </div>
-
-          <div className="rounded-xl border border-border bg-background p-4">
-            {!selectedPathId ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-sm text-muted-foreground">
-                  {t("dashboard.clickPathHint")}
-                </p>
               </div>
+            ) : userSkills.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                {t("dashboard.noSkillData")}
+              </p>
             ) : (
-              <ProgressTimeline
-                datasets={pathDatasets}
-                skillName={pathGrowth?.path_name}
-                isLoading={pathGrowthLoading || allPathsLoading}
-              />
+              <div className="space-y-2">
+                {userSkills.slice(0, 5).map((skill) => (
+                  <div
+                    key={skill.skill_id}
+                    className="flex items-center justify-between rounded-xl px-3 py-2 transition-colors hover:bg-secondary/50"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="h-2 w-2 flex-shrink-0 rounded-full"
+                        style={{
+                          backgroundColor: skillMasteryColor(skill.overall),
+                        }}
+                      />
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {skill.skill_name}
+                      </span>
+                    </div>
+                    <span className="ml-2 text-sm font-semibold tabular-nums text-muted-foreground flex-shrink-0">
+                      {skill.overall}%
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );
+}
+
+/** Return a mastery-level color based on score percentage. */
+function skillMasteryColor(score: number): string {
+  if (score >= 75) return "oklch(0.7 0.12 85)";   // Gold — master
+  if (score >= 50) return "oklch(0.55 0.08 160)";   // Sage — proficient
+  if (score >= 25) return "oklch(0.6 0.1 155)";     // Light sage — developing
+  return "oklch(0.85 0.005 90)";                     // Warm gray — beginner
 }

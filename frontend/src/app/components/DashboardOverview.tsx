@@ -2,12 +2,12 @@
 
 import { Loading } from "./Loading";
 import type { UserSkill } from "@/types/skill";
-import type { UserPath } from "@/types/path";
+import type { LearningPath } from "@/types/learningPath";
 import { useLocale } from "@/hooks/useLocale";
 
 interface DashboardOverviewProps {
   userSkills: UserSkill[];
-  currentPath: UserPath | null;
+  currentPath: LearningPath | null;
   isLoading: boolean;
 }
 
@@ -23,7 +23,7 @@ export function DashboardOverview({
   currentPath,
   isLoading,
 }: DashboardOverviewProps) {
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
 
   if (isLoading) {
     return <Loading text={t("common.loading")} />;
@@ -41,12 +41,7 @@ export function DashboardOverview({
       ? userSkills.reduce((best, s) => (s.overall > best.overall ? s : best))
       : null;
 
-  const pathDisplayName =
-    currentPath
-      ? locale === "en" && currentPath.name_en
-        ? currentPath.name_en
-        : currentPath.name
-      : null;
+  const pathDisplayName = currentPath?.title ?? null;
 
   const stats = [
     {
@@ -62,7 +57,7 @@ export function DashboardOverview({
     {
       label: t("dashboard.activePath"),
       value: pathDisplayName || t("dashboard.notSelected"),
-      sub: currentPath ? t("paths.progress") + ` ${currentPath.progress}%` : t("dashboard.selectPath"),
+      sub: currentPath ? t("paths.progress") + ` ${currentPath.progress_pct}%` : t("dashboard.selectPath"),
     },
     {
       label: t("dashboard.topRank"),

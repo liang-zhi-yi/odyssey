@@ -3,9 +3,39 @@
 export interface Skill {
   id: string;
   name: string;
+  name_en?: string | null;
   description: string | null;
+  description_en?: string | null;
   category: string;
+  domain: string;
 }
+
+export type SkillDomain =
+  | "AI"
+  | "PROGRAMMING"
+  | "PRODUCT"
+  | "DESIGN"
+  | "WRITING"
+  | "RESEARCH"
+  | "BUSINESS"
+  | "MANAGEMENT"
+  | "LANGUAGE"
+  | "FITNESS"
+  | "CAREER";
+
+export const ALL_DOMAINS: SkillDomain[] = [
+  "AI",
+  "PROGRAMMING",
+  "PRODUCT",
+  "DESIGN",
+  "WRITING",
+  "RESEARCH",
+  "BUSINESS",
+  "MANAGEMENT",
+  "LANGUAGE",
+  "FITNESS",
+  "CAREER",
+];
 
 export interface UserSkill {
   skill_id: string;

@@ -74,6 +74,22 @@ def check_and_award_credentials(
                     "Skill credential awarded — user=%s credential=%s",
                     user_id, credential.name,
                 )
+                # Create notification for credential earned
+                try:
+                    from app.notifications.service import create_notification
+                    skill_name = user_skill.skill.name if user_skill.skill else "Unknown"
+                    create_notification(
+                        db,
+                        user_id=user_id,
+                        type="CREDENTIAL_EARNED",
+                        title=f"获得证书：{credential.name}",
+                        title_en=f"Credential Earned: {credential.name}",
+                        body=f"恭喜！你的{skill_name}技能四项维度均达到60分以上，获得{credential.name}证书。",
+                        body_en=f"Congratulations! All four dimensions of {skill_name} reached 60+. You earned the {credential.name} credential.",
+                        link="/credentials",
+                    )
+                except Exception as exc:
+                    logger.warning("Credential notification failed: %s", exc)
 
     # ── 2. Agent Engineer meta-credential ───────────────────────────
     all_user_skills = (
@@ -99,6 +115,21 @@ def check_and_award_credentials(
                     "Meta-credential awarded — user=%s credential=%s",
                     user_id, AGENT_ENGINEER_CREDENTIAL,
                 )
+                # Create notification for Agent Engineer meta-credential
+                try:
+                    from app.notifications.service import create_notification
+                    create_notification(
+                        db,
+                        user_id=user_id,
+                        type="CREDENTIAL_EARNED",
+                        title=f"获得复合证书：{AGENT_ENGINEER_CREDENTIAL}",
+                        title_en=f"Compound Credential Earned: {AGENT_ENGINEER_CREDENTIAL}",
+                        body=f"恭喜！你已掌握全部四项核心AI技能，获得{AGENT_ENGINEER_CREDENTIAL}复合证书！",
+                        body_en=f"Congratulations! You've mastered all 4 core AI skills and earned the {AGENT_ENGINEER_CREDENTIAL} compound credential!",
+                        link="/credentials",
+                    )
+                except Exception as exc:
+                    logger.warning("Meta-credential notification failed: %s", exc)
 
     return awarded
 
