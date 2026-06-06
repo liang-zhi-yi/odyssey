@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
-import type { GeneratePathResponse } from "@/types/learningPath";
+import type { GeneratePathResponse, TargetedBuilding } from "@/types/learningPath";
 
 interface PathGeneratorFormProps {
   onSuccess?: (pathId: string) => void;
@@ -25,6 +25,7 @@ export function PathGeneratorForm({ onSuccess }: PathGeneratorFormProps) {
   const [generationResult, setGenerationResult] =
     useState<GeneratePathResponse | null>(null);
   const [createdPathId, setCreatedPathId] = useState<string | null>(null);
+  const [targetedBuildings, setTargetedBuildings] = useState<TargetedBuilding[] | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +46,11 @@ export function PathGeneratorForm({ onSuccess }: PathGeneratorFormProps) {
       });
 
       setCreatedPathId(result.id);
+
+      // Store targeted buildings from the response
+      if (result.targeted_buildings) {
+        setTargetedBuildings(result.targeted_buildings);
+      }
 
       // Notify parent so checkpoint tab can refresh
       onSuccess?.(result.id);
@@ -80,6 +86,7 @@ export function PathGeneratorForm({ onSuccess }: PathGeneratorFormProps) {
     setError(null);
     setGenerationResult(null);
     setCreatedPathId(null);
+    setTargetedBuildings(null);
   };
 
   if (generationResult) {
@@ -145,6 +152,31 @@ export function PathGeneratorForm({ onSuccess }: PathGeneratorFormProps) {
             </div>
           )}
         </div>
+
+        {/* Targeted buildings preview */}
+        {targetedBuildings && targetedBuildings.length > 0 && (
+          <div className="rounded-lg bg-primary/5 border border-primary/10 p-3 space-y-1.5">
+            <p className="text-xs font-medium text-primary">
+              🏗️ {t("pathGenerator.drivesBuildings") || "This path will grow:"}
+            </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {targetedBuildings.map((tb) => (
+                <span
+                  key={tb.building_id}
+                  className="inline-flex items-center gap-1 rounded bg-background border border-border px-2 py-1 text-xs"
+                >
+                  <span>{tb.building_icon}</span>
+                  <span className="font-medium">{tb.building_name}</span>
+                  {tb.remaining_milestones > 0 && (
+                    <span className="text-[10px] text-muted-foreground">
+                      {tb.remaining_milestones} milestones
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-2">
           <button

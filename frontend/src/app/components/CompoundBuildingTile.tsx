@@ -38,13 +38,13 @@ export function CompoundBuildingTile({
         cursor-pointer select-none
         ${isLocked
           ? "border-dashed border-muted-foreground/25 bg-muted/15 opacity-45"
-          : "bg-gradient-to-br from-yellow-600/30 via-amber-700/25 to-yellow-800/20 border-yellow-400/50 bg-amber-950/40"
+          : "bg-gradient-to-br from-[oklch(0.78_0.1_85_/_0.25)] via-[oklch(0.75_0.08_80_/_0.2)] to-[oklch(0.72_0.06_75_/_0.15)] border-[oklch(0.72_0.12_85_/_0.5)] bg-[oklch(0.9_0.04_85_/_0.3)]"
         }
         ${isSelected
-          ? "ring-2 ring-yellow-400 ring-offset-4 ring-offset-background scale-115 z-50 shadow-xl shadow-yellow-500/20 shadow-black/40"
-          : "hover:scale-108 hover:shadow-lg hover:shadow-yellow-500/10 hover:shadow-black/30 hover:z-30"
+          ? "ring-2 ring-[oklch(0.72_0.12_85)] ring-offset-4 ring-offset-background scale-115 z-50 shadow-xl shadow-[oklch(0.72_0.12_85_/_0.2)] shadow-black/40"
+          : "hover:scale-108 hover:shadow-lg hover:shadow-[oklch(0.72_0.12_85_/_0.1)] hover:shadow-black/30 hover:z-30"
         }
-        ${isUpgrading ? "animate-pulse" : ""}
+        ${isUpgrading ? "animate-warm-pulse" : ""}
         ${!isLocked ? "shadow-md shadow-black/20" : ""}
       `}
       style={{
@@ -63,12 +63,12 @@ export function CompoundBuildingTile({
             style={{
               clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
               background:
-                "conic-gradient(from 0deg, transparent, rgba(250,204,21,0.2), transparent, rgba(250,204,21,0.1), transparent)",
+                "conic-gradient(from 0deg, transparent, oklch(0.72 0.12 85 / 0.2), transparent, oklch(0.72 0.12 85 / 0.1), transparent)",
               animation: "spin 6s linear infinite",
             }}
           />
           {/* Top edge highlight */}
-          <div className="absolute top-1 left-1/2 -translate-x-1/2 h-[2px] w-[55%] rounded-full bg-gradient-to-r from-transparent via-yellow-300/60 to-transparent" />
+          <div className="absolute top-1 left-1/2 -translate-x-1/2 h-[2px] w-[55%] rounded-full bg-gradient-to-r from-transparent via-[oklch(0.72_0.12_85)]/60 to-transparent" />
         </>
       )}
 
@@ -84,7 +84,7 @@ export function CompoundBuildingTile({
       {/* Upgrading indicator */}
       {isUpgrading && (
         <div className="absolute -top-1 -right-1 z-10">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-500 text-[10px] text-white shadow-md animate-bounce">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85)] text-[10px] text-white shadow-md animate-bounce">
             ⬆
           </span>
         </div>
@@ -93,13 +93,13 @@ export function CompoundBuildingTile({
       {/* Active status dot */}
       {!isLocked && (
         <div className="absolute top-3 right-3 z-10">
-          <span className={`flex h-2 w-2 rounded-full ${isUpgrading ? "bg-yellow-300 animate-pulse" : "bg-yellow-400 shadow-sm shadow-yellow-400/50"}`} />
+          <span className={`flex h-2 w-2 rounded-full ${isUpgrading ? "bg-[oklch(0.75_0.1_85)] animate-pulse" : "bg-[oklch(0.72_0.12_85)] shadow-sm shadow-[oklch(0.72_0.12_85_/_0.5)]"}`} />
         </div>
       )}
 
       {/* ── Compound synergy badge ── */}
       <div className="absolute -top-0.5 -left-0.5 z-10">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500/20 border border-yellow-400/40 text-xs shadow-sm">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85_/_0.15)] border border-[oklch(0.72_0.12_85_/_0.35)] text-xs shadow-sm">
           🔗
         </span>
       </div>
@@ -132,7 +132,7 @@ export function CompoundBuildingTile({
           mt-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold
           ${isLocked
             ? "bg-muted/30 text-muted-foreground/60"
-            : "bg-yellow-500/20 text-yellow-300"
+            : "bg-[oklch(0.72_0.12_85_/_0.15)] text-[oklch(0.72_0.12_85)]"
           }
         `}
       >
@@ -142,7 +142,7 @@ export function CompoundBuildingTile({
       {/* ── Selection highlight ── */}
       {isSelected && (
         <div
-          className="absolute inset-0 ring-4 ring-yellow-400/40 animate-pulse pointer-events-none"
+          className="absolute inset-0 ring-4 ring-[oklch(0.72_0.12_85)]/40 animate-warm-pulse pointer-events-none"
           style={{
             clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
           }}
@@ -170,7 +170,7 @@ function Sparkle({
 }) {
   return (
     <div
-      className="absolute w-1 h-1 rounded-full bg-yellow-200/80 pointer-events-none"
+      className="absolute w-1 h-1 rounded-full bg-[oklch(0.85_0.1_90)]/80 pointer-events-none"
       style={{
         top, left, right, bottom,
         animation: `sparkle 2s ${delay} ease-in-out infinite`,

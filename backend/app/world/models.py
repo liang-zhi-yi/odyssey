@@ -52,8 +52,14 @@ class BuildingTemplate(Base):
     region_en: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
+    civilization_type: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
+    era: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
     max_level: Mapped[int] = mapped_column(
-        Integer, default=5, nullable=False
+        Integer, default=10, nullable=False
     )
     level_names: Mapped[dict] = mapped_column(
         JSON, nullable=False
@@ -138,6 +144,24 @@ class World(Base):
     tier_score: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
+    era: Mapped[str] = mapped_column(
+        String(50), default="WILDERNESS", nullable=False
+    )
+    era_score: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    knowledge_points: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    tech_points: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    population: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    exploration_progress: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
@@ -183,8 +207,14 @@ class CompoundBuildingTemplate(Base):
     region_en: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
+    civilization_type: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
+    era: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
     max_level: Mapped[int] = mapped_column(
-        Integer, default=5, nullable=False
+        Integer, default=10, nullable=False
     )
     level_names: Mapped[dict] = mapped_column(
         JSON, nullable=False

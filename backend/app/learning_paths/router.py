@@ -77,7 +77,16 @@ def _build_checkpoint_response(c) -> CheckpointResponse:
     )
 
 
-def _build_path_response(p) -> LearningPathResponse:
+def _build_path_response(p, db=None) -> LearningPathResponse:
+    # Resolve targeted buildings from path milestones → skill → building
+    targeted_buildings = None
+    if db is not None:
+        try:
+            from app.world.path_bridge import get_path_building_targets
+            targeted_buildings = get_path_building_targets(db, p.id)
+        except Exception:
+            pass
+
     return LearningPathResponse(
         id=p.id,
         user_id=p.user_id,
@@ -92,6 +101,7 @@ def _build_path_response(p) -> LearningPathResponse:
         progress_pct=p.progress_pct,
         path_metadata=p.path_metadata,
         milestone_count=len(p.milestones) if p.milestones else 0,
+        targeted_buildings=targeted_buildings,
         created_at=p.created_at,
         updated_at=p.updated_at,
     )
@@ -110,7 +120,7 @@ def list_learning_paths(
     user_paths = service.list_learning_paths(
         db, str(current_user.id), path_type=path_type, status=status
     )
-    return [_build_path_response(p) for p in user_paths]
+    return [_build_path_response(p, db) for p in user_paths]
 
 
 @router.get("/learning-paths/presets", response_model=list[LearningPathResponse])
@@ -119,7 +129,7 @@ def list_preset_paths(
 ):
     """List official preset learning path templates."""
     paths = service.list_preset_paths(db)
-    return [_build_path_response(p) for p in paths]
+    return [_build_path_response(p, db) for p in paths]
 
 
 @router.post("/learning-paths", response_model=LearningPathDetailResponse)
@@ -137,7 +147,7 @@ def create_learning_path(
         service.generate_path_structure(db, str(path.id), str(current_user.id))
         db.refresh(path)
 
-    return _build_detail_response(path)
+    return _build_detail_response(path, db)
 
 
 @router.get("/learning-paths/next-checkpoint")
@@ -158,7 +168,7 @@ def get_learning_path(
 ):
     """Get a single learning path with milestones and checkpoints."""
     path = service.get_learning_path(db, path_id)
-    return _build_detail_response(path)
+    return _build_detail_response(path, db)
 
 
 @router.put("/learning-paths/{path_id}", response_model=LearningPathResponse)
@@ -172,8 +182,7 @@ def update_learning_path(
     path = service.update_learning_path(
         db, path_id, str(current_user.id), body.model_dump(exclude_none=True)
     )
-    return _build_path_response(path)
-
+    return _build_path_response(path, db)
 
 @router.delete("/learning-paths/{path_id}")
 def delete_learning_path(
@@ -315,7 +324,16 @@ def clear_memory(
     return {"deleted": count}
 
 
-def _build_detail_response(path) -> LearningPathDetailResponse:
+def _build_detail_response(path, db=None) -> LearningPathDetailResponse:
+    # Resolve targeted buildings from path milestones
+    targeted_buildings = None
+    if db is not None:
+        try:
+            from app.world.path_bridge import get_path_building_targets
+            targeted_buildings = get_path_building_targets(db, path.id)
+        except Exception:
+            pass
+
     return LearningPathDetailResponse(
         id=path.id,
         user_id=path.user_id,
@@ -330,6 +348,7 @@ def _build_detail_response(path) -> LearningPathDetailResponse:
         progress_pct=path.progress_pct,
         path_metadata=path.path_metadata,
         milestone_count=len(path.milestones) if path.milestones else 0,
+        targeted_buildings=targeted_buildings,
         created_at=path.created_at,
         updated_at=path.updated_at,
         milestones=[_build_milestone_response(m) for m in (path.milestones or [])],

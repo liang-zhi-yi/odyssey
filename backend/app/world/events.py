@@ -192,6 +192,26 @@ def event_milestone_reached(
     )
 
 
+def event_era_advance(
+    db: Session,
+    user_id: UUID,
+    from_era_zh: str,
+    from_era_en: str,
+    to_era_zh: str,
+    to_era_en: str,
+    to_era_icon: str = "⭐",
+) -> WorldEvent:
+    """Log a civilization era advance event."""
+    title = f"时代进阶：{from_era_zh} → {to_era_zh} {to_era_icon}！"
+    title_en = f"Era Advance: {from_era_en} → {to_era_en} {to_era_icon}!"
+    desc = f"你的文明从{from_era_zh}正式进入{to_era_zh}，新的文明类型和建筑已解锁"
+    desc_en = f"Your civilization has advanced from {from_era_en} to {to_era_en}. New civilization types and buildings are now available."
+    return create_world_event(
+        db, user_id, WorldEventType.ERA_ADVANCE,
+        title, title_en, desc, desc_en,
+    )
+
+
 def event_path_milestone_completed(
     db: Session,
     user_id: UUID,

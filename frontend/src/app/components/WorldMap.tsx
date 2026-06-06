@@ -44,8 +44,8 @@ export function WorldMap({
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
     for (const b of buildings) {
-      const gx = b.template?.position_x ?? 0;
-      const gy = b.template?.position_y ?? 0;
+      const gx = Number(b.template?.position_x ?? 0) || 0;
+      const gy = Number(b.template?.position_y ?? 0) || 0;
       const sx = (gx - gy) * (TILE_W / 2);
       const sy = (gx + gy) * (TILE_H / 2);
       if (sx < minX) minX = sx; if (sx > maxX) maxX = sx;
@@ -54,8 +54,8 @@ export function WorldMap({
     }
 
     for (const cb of compoundBuildings) {
-      const gx = cb.template?.position_x ?? 0;
-      const gy = cb.template?.position_y ?? 0;
+      const gx = Number(cb.template?.position_x ?? 0) || 0;
+      const gy = Number(cb.template?.position_y ?? 0) || 0;
       const sx = (gx - gy) * (TILE_W / 2);
       const sy = (gx + gy) * (TILE_H / 2);
       if (sx < minX) minX = sx; if (sx > maxX) maxX = sx;
@@ -84,18 +84,25 @@ export function WorldMap({
     );
   }
 
-  // Terrain colors for ground tiles
+  // Warm-theme terrain colors (sage green, warm gold, warm gray)
   const terrainColors = [
-    "from-emerald-900/20 to-emerald-800/10",
-    "from-green-800/15 to-emerald-900/8",
-    "from-teal-900/20 to-green-800/10",
-    "from-stone-800/15 to-stone-700/8",
+    "from-[oklch(0.85_0.04_145_/_0.18)] to-[oklch(0.82_0.03_150_/_0.08)]",
+    "from-[oklch(0.88_0.03_110_/_0.15)] to-[oklch(0.85_0.04_145_/_0.06)]",
+    "from-[oklch(0.82_0.03_120_/_0.18)] to-[oklch(0.8_0.02_130_/_0.08)]",
+    "from-[oklch(0.84_0.02_95_/_0.15)] to-[oklch(0.82_0.02_100_/_0.06)]",
+  ];
+  // Pre-computed text-color equivalents for the polygon fill (no runtime .replace needed)
+  const terrainTextColors = [
+    "text-[oklch(0.85_0.04_145_/_0.18)]",
+    "text-[oklch(0.88_0.03_110_/_0.15)]",
+    "text-[oklch(0.82_0.03_120_/_0.18)]",
+    "text-[oklch(0.84_0.02_95_/_0.15)]",
   ];
 
   return (
     <div className="relative flex items-center justify-center p-6 overflow-hidden">
-      {/* Ambient background glow */}
-      <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
+      {/* Ambient warm background glow */}
+      <div className="absolute inset-0 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.08)] via-transparent to-transparent opacity-50 pointer-events-none" />
 
       <div
         className="relative"
@@ -142,7 +149,7 @@ export function WorldMap({
                 <polygon
                   points={`${cx},${cy - size} ${cx + size * 1.3},${cy} ${cx},${cy + size} ${cx - size * 1.3},${cy}`}
                   fill="currentColor"
-                  className={terrainColors[terrainIdx].replace("from-", "text-").split(" ")[0]}
+                  className={terrainTextColors[terrainIdx] ?? terrainTextColors[0]}
                   opacity="0.15"
                   stroke="currentColor"
                   strokeOpacity="0.08"
@@ -152,7 +159,7 @@ export function WorldMap({
                 <polygon
                   points={`${cx},${cy - size * 0.5} ${cx + size * 0.6},${cy} ${cx},${cy + size * 0.5} ${cx - size * 0.6},${cy}`}
                   fill="currentColor"
-                  className={terrainColors[terrainIdx].replace("from-", "text-").split(" ")[0]}
+                  className={terrainTextColors[terrainIdx] ?? terrainTextColors[0]}
                   opacity="0.08"
                 />
               </g>
@@ -169,7 +176,7 @@ export function WorldMap({
                 cy={sy + offsetY}
                 r={55}
                 fill="none"
-                stroke="#f59e0b"
+                stroke="#d4a843"
                 strokeWidth="1.5"
                 strokeOpacity="0.15"
                 strokeDasharray="6 12"
@@ -203,7 +210,7 @@ export function WorldMap({
                     y1={pos.sy + offsetY}
                     x2={other.sx + offsetX}
                     y2={other.sy + offsetY}
-                    stroke={isCompoundLine ? "#f59e0b" : "currentColor"}
+                    stroke={isCompoundLine ? "#d4a843" : "currentColor"}
                     strokeOpacity={isCompoundLine ? (bothActive ? 0.35 : 0.12) : bothActive ? 0.12 : 0.05}
                     strokeWidth={isCompoundLine ? 2 : 1}
                     strokeDasharray={bothActive ? "6 3" : "4 6"}

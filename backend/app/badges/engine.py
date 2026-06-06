@@ -3,10 +3,15 @@ Badge check engine — evaluates badge criteria and awards badges.
 
 Criteria types:
   - quest_complete: User has completed at least {count} assessments
-  - all_dims_threshold: All 4 dimensions >= {threshold} for a skill (skill_id optional)
   - assessment_passed: User has passed at least {count} assessments (overall >= 40)
+  - all_dims_threshold: All 4 dimensions >= {threshold} for a skill (skill_id optional)
   - rank_achieved: User has at least one skill at {rank}
   - all_skills_active: User has all 4 skills with overall > 0
+  - buildings_unlocked: User has {count}+ active buildings of {civ_type}
+  - era_reached: User's world era is at or beyond {era}
+  - compound_built: Specific compound building is active (by {name})
+  - all_civ_buildings: All buildings of {civ_type} at level >= {level}
+  - civilization_level: World civilization_level >= {level}
 """
 import logging
 from uuid import UUID
@@ -17,9 +22,31 @@ from sqlalchemy import func
 from app.badges.models import BadgeDefinition, UserBadge
 from app.skills.models import UserSkill
 from app.submissions.models import QuestSubmission
-from app.core.enums import SubmissionStatus, SkillRank
+from app.world.models import (
+    UserBuilding,
+    BuildingTemplate,
+    UserCompoundBuilding,
+    CompoundBuildingTemplate,
+    World,
+)
+from app.core.enums import SubmissionStatus, SkillRank, BuildingStatus
 
 logger = logging.getLogger(__name__)
+
+# ── Era ordinal mapping for comparison ────────────────────────────────────
+
+ERA_ORDER = [
+    "WILDERNESS", "AGRICULTURE", "ACADEMY", "INDUSTRY",
+    "INFORMATION", "AI", "INTELLIGENCE", "DIGITAL", "FUTURE",
+]
+
+
+def _era_rank(era_str: str) -> int:
+    """Return numeric rank of an era for >= comparison."""
+    try:
+        return ERA_ORDER.index(era_str)
+    except ValueError:
+        return -1
 
 
 def check_and_award_badges(
@@ -116,13 +143,18 @@ def _evaluate_criteria(
     Returns:
         Tuple of (earned: bool, progress: dict | None).
     """
-    criteria = badge.criteria
+    criteria = dict(badge.criteria) if badge.criteria else {}
     criteria_type = criteria.get("type", "")
 
     if criteria_type == "composite":
         return _eval_composite(db, user_id, criteria)
     elif criteria_type == "single":
-        return _eval_single(db, user_id, criteria), None
+        # Resolve the actual criteria type from type_detail, if present.
+        # Seed data uses {"type": "single", "type_detail": "buildings_unlocked", ...}
+        # to distinguish the dispatch field from the condition type.
+        actual = dict(criteria)
+        actual["type"] = criteria.get("type_detail", criteria.get("type", ""))
+        return _eval_single(db, user_id, actual), None
 
     return False, None
 
@@ -235,5 +267,110 @@ def _eval_single(db: Session, user_id: UUID, condition: dict) -> bool:
         if len(user_skills) < 4:
             return False
         return all((us.overall_score or 0) > 0 for us in user_skills)
+
+    elif cond_type == "buildings_unlocked":
+        # At least {count} active buildings of {civ_type}
+        count = condition.get("count", 1)
+        civ_type = condition.get("civ_type")
+
+        query = (
+            db.query(func.count(UserBuilding.id))
+            .join(BuildingTemplate, UserBuilding.building_template_id == BuildingTemplate.id)
+            .filter(
+                UserBuilding.user_id == user_id,
+                UserBuilding.status != BuildingStatus.LOCKED,
+            )
+        )
+        if civ_type:
+            query = query.filter(BuildingTemplate.civilization_type == civ_type)
+
+        total = query.scalar()
+        return total >= count
+
+    elif cond_type == "era_reached":
+        # User's world era is at least {era}
+        target_era = condition.get("era", "WILDERNESS")
+        world = db.query(World).filter(World.user_id == user_id).first()
+        if not world:
+            return False
+        return _era_rank(world.era) >= _era_rank(target_era)
+
+    elif cond_type == "compound_built":
+        # Specific compound building is active (non-LOCKED)
+        compound_name = condition.get("name", "")
+        if not compound_name:
+            return False
+
+        exists = (
+            db.query(UserCompoundBuilding)
+            .join(
+                CompoundBuildingTemplate,
+                UserCompoundBuilding.compound_template_id == CompoundBuildingTemplate.id,
+            )
+            .filter(
+                UserCompoundBuilding.user_id == user_id,
+                UserCompoundBuilding.status != BuildingStatus.LOCKED,
+                CompoundBuildingTemplate.name == compound_name,
+            )
+            .first()
+        )
+        return exists is not None
+
+    elif cond_type == "all_civ_buildings":
+        # All buildings of {civ_type} are at level >= {level}
+        civ_type = condition.get("civ_type")
+        level = condition.get("level", 10)
+
+        if not civ_type:
+            return False
+
+        templates = (
+            db.query(BuildingTemplate.id)
+            .filter(BuildingTemplate.civilization_type == civ_type)
+            .all()
+        )
+        template_ids = [t[0] for t in templates]
+        if not template_ids:
+            return False
+
+        matching = (
+            db.query(func.count(UserBuilding.id))
+            .filter(
+                UserBuilding.user_id == user_id,
+                UserBuilding.building_template_id.in_(template_ids),
+                UserBuilding.level >= level,
+            )
+            .scalar()
+        )
+        return matching >= len(template_ids)
+
+    elif cond_type == "civilization_level":
+        # World civilization_level >= {level}
+        target_level = condition.get("level", 100)
+        world = db.query(World).filter(World.user_id == user_id).first()
+        if not world:
+            return False
+        return world.civilization_level >= target_level
+
+    elif cond_type == "all_buildings_max_level":
+        # Every building template has a user_building at its max_level
+        templates = db.query(BuildingTemplate).all()
+        if not templates:
+            return False
+
+        user_buildings = (
+            db.query(UserBuilding)
+            .filter(UserBuilding.user_id == user_id)
+            .all()
+        )
+        building_by_template = {
+            ub.building_template_id: ub for ub in user_buildings
+        }
+
+        for t in templates:
+            ub = building_by_template.get(t.id)
+            if not ub or ub.level < t.max_level:
+                return False
+        return True
 
     return False

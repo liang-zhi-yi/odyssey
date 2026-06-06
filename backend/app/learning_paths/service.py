@@ -383,7 +383,7 @@ def toggle_milestone(
         datetime.now(timezone.utc) if milestone.is_completed else None
     )
 
-    # When milestone is completed, generate a world event to bridge Paths ↔ World
+    # When milestone is completed, generate a world event + resource boost
     if milestone.is_completed:
         building_name = None
         if milestone.skill_id:
@@ -403,6 +403,13 @@ def toggle_milestone(
             path_title=path.title,
             building_name=building_name,
         )
+
+        # Bridge: grant resources + sync buildings via path_bridge
+        try:
+            from app.world.path_bridge import on_milestone_completed
+            on_milestone_completed(db, UUID(user_id), milestone.id)
+        except Exception as exc:
+            logger.warning("Path bridge milestone hook failed: %s", exc)
 
     # Recalculate path progress
     all_milestones = (

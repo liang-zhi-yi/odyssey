@@ -44,7 +44,7 @@ export default function RootLayout({
         <Providers>
           <HtmlLang />
           <Navbar />
-          <main className="mx-auto max-w-7xl px-6 py-8 pb-16">
+          <main className="mx-auto max-w-7xl px-6 py-8 pb-16 page-enter">
             <ErrorBoundary>{children}</ErrorBoundary>
           </main>
           <AgentSidebar />

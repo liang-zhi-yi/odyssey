@@ -9,7 +9,10 @@ export type WorldEventType =
   | "REGION_UNLOCK"
   | "TIER_ADVANCE"
   | "MILESTONE_REACHED"
-  | "PATH_MILESTONE_COMPLETED";
+  | "PATH_MILESTONE_COMPLETED"
+  | "ERA_ADVANCE"
+  | "EXPLORATION_UNLOCK"
+  | "RESOURCE_BOOST";
 export type CivilizationTierValue =
   | "SETTLER"
   | "VILLAGE"
@@ -17,7 +20,30 @@ export type CivilizationTierValue =
   | "CITY"
   | "METROPOLIS"
   | "CIVILIZATION";
-export type MilestoneCategory = "FOUNDATION" | "EXPANSION" | "MASTERY";
+export type CivilizationEra =
+  | "WILDERNESS"
+  | "AGRICULTURE"
+  | "ACADEMY"
+  | "INDUSTRY"
+  | "INFORMATION"
+  | "AI"
+  | "INTELLIGENCE"
+  | "DIGITAL"
+  | "FUTURE";
+export type CivilizationType =
+  | "KNOWLEDGE"
+  | "ENGINEERING"
+  | "AI"
+  | "BUSINESS"
+  | "DESIGN"
+  | "MEDIA"
+  | "SCIENCE"
+  | "LANGUAGE"
+  | "HEALTH"
+  | "FINANCE"
+  | "DIGITAL"
+  | "SOCIETY";
+export type MilestoneCategory = "FOUNDATION" | "EXPANSION" | "MASTERY" | "ERA";
 
 // ── Phase 3: Regular buildings ──────────────────────────────────────
 
@@ -31,6 +57,8 @@ export interface BuildingTemplate {
   icon: string;
   region: string;
   region_en: string | null;
+  civilization_type: CivilizationType | null;
+  era: CivilizationEra | null;
   max_level: number;
   level_names: Record<string, { zh: string; en: string }>;
   position_x: number;
@@ -80,6 +108,8 @@ export interface CompoundBuildingTemplate {
   icon: string;
   region: string;
   region_en: string | null;
+  civilization_type: CivilizationType | null;
+  era: CivilizationEra | null;
   max_level: number;
   level_names: Record<string, { zh: string; en: string }>;
   required_skills: { skill_name: string; min_level: number }[];
@@ -191,6 +221,15 @@ export interface World {
   tier_name: string;
   tier_score: number;
   next_tier_at: number;
+  era: CivilizationEra;
+  era_name: string;
+  era_icon: string;
+  era_score: number;
+  next_era_at: number | null;
+  knowledge_points: number;
+  tech_points: number;
+  population: number;
+  exploration_progress: number;
   created_at: string;
   updated_at: string;
   regions: RegionInfo[];
@@ -221,6 +260,11 @@ export const LEVEL_LABELS: Record<number, { zh: string; en: string }> = {
   3: { zh: "学院", en: "Academy" },
   4: { zh: "研究院", en: "Institute" },
   5: { zh: "堡垒", en: "Citadel" },
+  6: { zh: "圣殿", en: "Sanctuary" },
+  7: { zh: "奇观", en: "Wonder" },
+  8: { zh: "联盟", en: "Alliance" },
+  9: { zh: "帝国", en: "Empire" },
+  10: { zh: "核心", en: "Core" },
 };
 
 export const BUILDING_STATUS_LABELS: Record<BuildingStatus, { zh: string; en: string }> = {
@@ -239,6 +283,33 @@ export const CIVILIZATION_TIER_LABELS: Record<CivilizationTierValue, { zh: strin
   CIVILIZATION: { zh: "文明", en: "Civilization", icon: "🌍" },
 };
 
+export const ERA_LABELS: Record<CivilizationEra, { zh: string; en: string; icon: string }> = {
+  WILDERNESS: { zh: "荒野时代", en: "Wilderness Era", icon: "🏕️" },
+  AGRICULTURE: { zh: "农耕时代", en: "Agriculture Era", icon: "🌾" },
+  ACADEMY: { zh: "学院时代", en: "Academy Era", icon: "📖" },
+  INDUSTRY: { zh: "工业时代", en: "Industry Era", icon: "⚙️" },
+  INFORMATION: { zh: "信息时代", en: "Information Era", icon: "💻" },
+  AI: { zh: "AI时代", en: "AI Era", icon: "🤖" },
+  INTELLIGENCE: { zh: "智能时代", en: "Intelligence Era", icon: "🧠" },
+  DIGITAL: { zh: "数字文明时代", en: "Digital Civilization Era", icon: "🌐" },
+  FUTURE: { zh: "未来文明时代", en: "Future Civilization Era", icon: "🚀" },
+};
+
+export const CIVILIZATION_TYPE_LABELS: Record<CivilizationType, { zh: string; en: string }> = {
+  KNOWLEDGE: { zh: "知识文明", en: "Knowledge" },
+  ENGINEERING: { zh: "工程文明", en: "Engineering" },
+  AI: { zh: "AI文明", en: "AI" },
+  BUSINESS: { zh: "商业文明", en: "Business" },
+  DESIGN: { zh: "设计文明", en: "Design" },
+  MEDIA: { zh: "媒体文明", en: "Media" },
+  SCIENCE: { zh: "科学文明", en: "Science" },
+  LANGUAGE: { zh: "语言文明", en: "Language" },
+  HEALTH: { zh: "健康文明", en: "Health" },
+  FINANCE: { zh: "金融文明", en: "Finance" },
+  DIGITAL: { zh: "数字文明", en: "Digital" },
+  SOCIETY: { zh: "社会文明", en: "Society" },
+};
+
 export const EVENT_TYPE_LABELS: Record<WorldEventType, { zh: string; en: string; icon: string }> = {
   BUILDING_UPGRADE: { zh: "建筑升级", en: "Building Upgrade", icon: "⬆️" },
   COMPOUND_UNLOCK: { zh: "复合建筑解锁", en: "Compound Unlock", icon: "🔓" },
@@ -247,6 +318,9 @@ export const EVENT_TYPE_LABELS: Record<WorldEventType, { zh: string; en: string;
   TIER_ADVANCE: { zh: "文明晋级", en: "Tier Advance", icon: "⭐" },
   MILESTONE_REACHED: { zh: "里程碑达成", en: "Milestone", icon: "🎯" },
   PATH_MILESTONE_COMPLETED: { zh: "路径里程碑", en: "Path Milestone", icon: "🛤️" },
+  ERA_ADVANCE: { zh: "时代进阶", en: "Era Advance", icon: "⏳" },
+  EXPLORATION_UNLOCK: { zh: "探索解锁", en: "Exploration Unlock", icon: "🔍" },
+  RESOURCE_BOOST: { zh: "资源增益", en: "Resource Boost", icon: "📈" },
 };
 
 // ── Civilization Direction ──────────────────────────────────────────────

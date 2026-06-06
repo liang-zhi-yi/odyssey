@@ -83,6 +83,7 @@ class LearningPathResponse(BaseModel):
     progress_pct: int
     path_metadata: dict | None = None
     milestone_count: int | None = None
+    targeted_buildings: list[dict] | None = None
     created_at: datetime
     updated_at: datetime
 

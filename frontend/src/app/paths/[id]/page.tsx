@@ -409,7 +409,74 @@ export default function PathDetailPage() {
         </div>
       </div>
 
-      {/* ── Milestones ─────────────────────────────────────── */}
+      {/* ── World Impact — Targeted Buildings ────────────────── */}
+      {path.targeted_buildings && path.targeted_buildings.length > 0 && (
+        <section className="rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-5 space-y-3 animate-fade-in-up">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🌍</span>
+            <h2 className="text-sm font-semibold text-[oklch(0.35_0.02_80)]">
+              {locale === "zh" ? "世界影响" : "World Impact"}
+            </h2>
+            <span className="text-[10px] text-[oklch(0.55_0.02_85)] bg-[oklch(0.96_0.008_90)] rounded-full px-2 py-0.5">
+              {path.targeted_buildings.length}{" "}
+              {locale === "zh" ? "栋建筑" : "buildings"}
+            </span>
+          </div>
+          <p className="text-xs text-[oklch(0.55_0.02_85)]">
+            {locale === "zh"
+              ? "完成此路径的里程碑将提升以下建筑等级"
+              : "Completing milestones in this path will upgrade these buildings"}
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {path.targeted_buildings.map((tb) => {
+              const buildingName =
+                locale === "en" && tb.building_name_en
+                  ? tb.building_name_en
+                  : tb.building_name;
+              const regionName =
+                locale === "en" && tb.region_en ? tb.region_en : tb.region;
+              return (
+                <a
+                  key={tb.building_id}
+                  href={`/world?building=${tb.building_id}`}
+                  className="flex items-center gap-3 rounded-lg border border-[oklch(0.88_0.02_90)] bg-[oklch(0.97_0.005_92)] px-3 py-2.5 transition-all hover:shadow-card hover:border-[oklch(0.72_0.12_85_/_0.25)] group"
+                >
+                  <span className="text-2xl transition-transform group-hover:scale-110">
+                    {tb.building_icon || "🏛️"}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[oklch(0.3_0.02_80)] truncate">
+                      {buildingName}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {regionName && (
+                        <span className="text-[10px] text-[oklch(0.55_0.02_85)]">
+                          {regionName}
+                        </span>
+                      )}
+                      {tb.remaining_milestones > 0 && (
+                        <span className="text-[10px] font-medium text-[oklch(0.65_0.05_145)]">
+                          +{tb.remaining_milestones}{" "}
+                          {locale === "zh" ? "里程碑" : "milestones"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono text-[oklch(0.55_0.02_85)]">
+                    Lv.{tb.max_level}
+                  </span>
+                  <svg
+                    className="w-3 h-3 text-[oklch(0.5_0.02_85)] shrink-0 transition-transform group-hover:translate-x-0.5"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <section>
         <h2 className="text-lg font-semibold mb-3">
           {locale === "zh" ? "里程碑" : "Milestones"}
@@ -430,6 +497,7 @@ export default function PathDetailPage() {
             pathId={pathId}
             milestones={path.milestones}
             onToggle={handleToggleMilestone}
+            targetedBuildings={path.targeted_buildings ?? null}
           />
         )}
       </section>

@@ -7,12 +7,15 @@ import type {
   LearningPathMilestone,
   PathCheckpoint,
   GeneratedQuest,
+  TargetedBuilding,
 } from "@/types/learningPath";
 
 interface PathMilestoneListProps {
   pathId: string;
   milestones: LearningPathMilestone[];
   onToggle?: (milestoneId: string) => void;
+  /** Optional: targeted buildings from path → skill mapping */
+  targetedBuildings?: TargetedBuilding[] | null;
 }
 
 function resolveName(
@@ -44,6 +47,7 @@ export function PathMilestoneList({
   pathId,
   milestones,
   onToggle,
+  targetedBuildings,
 }: PathMilestoneListProps) {
   const { locale } = useLocale();
   const [expandedMilestone, setExpandedMilestone] = useState<string | null>(
@@ -146,11 +150,25 @@ export function PathMilestoneList({
                   <h4 className="text-sm font-semibold">
                     {resolveName(milestone.title, milestone.title_en, locale)}
                   </h4>
-                  {milestone.skill_name && (
-                    <span className="text-xs text-muted-foreground">
-                      {milestone.skill_name}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {milestone.skill_name && (
+                      <span className="text-xs text-muted-foreground">
+                        🎯 {milestone.skill_name}
+                      </span>
+                    )}
+                    {/* Building indicator from targetedBuildings */}
+                    {milestone.skill_id && targetedBuildings && (() => {
+                      const tb = targetedBuildings.find(
+                        (b) => b.skill_id === milestone.skill_id
+                      );
+                      return tb ? (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] text-primary/70 bg-primary/5 rounded px-1.5 py-0.5">
+                          <span>{tb.building_icon}</span>
+                          <span>{locale === "en" && tb.building_name_en ? tb.building_name_en : tb.building_name}</span>
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
               </div>
 

@@ -22,35 +22,81 @@ from app.world.models import (
     UserMilestone,
 )
 from app.skills.models import UserSkill, Skill
-from app.core.enums import BuildingStatus, TIER_RANGES
+from app.core.enums import BuildingStatus, TIER_RANGES, ERA_RANGES
 
 logger = logging.getLogger(__name__)
 
 # ── Level helpers ──────────────────────────────────────────────────────
 
 def score_to_level(overall_score: int | None) -> int:
-    """Map a UserSkill overall score to a building level (1-5)."""
+    """Map a UserSkill overall score to a building level (1-10).
+
+    Thresholds (each level requires 10 points):
+      1: 0-9, 2: 10-19, 3: 20-29, 4: 30-39, 5: 40-49,
+      6: 50-59, 7: 60-69, 8: 70-79, 9: 80-89, 10: 90-100
+    """
     if overall_score is None:
         return 1
-    if overall_score <= 20:
+    if overall_score <= 10:
         return 1
-    elif overall_score <= 40:
+    elif overall_score <= 20:
         return 2
-    elif overall_score <= 60:
+    elif overall_score <= 30:
         return 3
-    elif overall_score <= 80:
+    elif overall_score <= 40:
         return 4
-    else:
+    elif overall_score <= 50:
         return 5
+    elif overall_score <= 60:
+        return 6
+    elif overall_score <= 70:
+        return 7
+    elif overall_score <= 80:
+        return 8
+    elif overall_score <= 90:
+        return 9
+    else:
+        return 10
 
 
 def score_to_next_level(overall_score: int | None) -> int:
     """Return the score threshold needed for the next building level."""
     current = score_to_level(overall_score)
-    if current >= 5:
+    if current >= 10:
         return 101  # Max level — no next
-    thresholds = [0, 21, 41, 61, 81]
+    thresholds = [0, 11, 21, 31, 41, 51, 61, 71, 81, 91]
     return thresholds[current]
+
+
+def score_to_era(era_score: int) -> dict:
+    """Look up era info from cumulative era_score.
+
+    Returns: {"era": str, "era_name_zh": str, "era_name_en": str,
+               "era_icon": str, "next_era_at": int|None}
+    """
+    era_value = "WILDERNESS"
+    era_name_zh = "荒野时代"
+    era_name_en = "Wilderness Era"
+    era_icon = "🏕️"
+    next_era_at: int | None = None
+
+    for era_enum, min_s, zh, en, icon, _ in ERA_RANGES:
+        if era_score >= min_s:
+            era_value = era_enum.value
+            era_name_zh = zh
+            era_name_en = en
+            era_icon = icon
+        else:
+            next_era_at = min_s
+            break
+
+    return {
+        "era": era_value,
+        "era_name_zh": era_name_zh,
+        "era_name_en": era_name_en,
+        "era_icon": era_icon,
+        "next_era_at": next_era_at,
+    }
 
 
 def score_to_compound_level(skill_scores: list[int]) -> int:
@@ -91,8 +137,14 @@ def score_to_tier(tier_score: int) -> dict:
     }
 
 
-LEVEL_LABELS_ZH = {1: "基地", 2: "工坊", 3: "学院", 4: "研究院", 5: "堡垒"}
-LEVEL_LABELS_EN = {1: "Foundation", 2: "Workshop", 3: "Academy", 4: "Institute", 5: "Citadel"}
+LEVEL_LABELS_ZH = {
+    1: "基地", 2: "工坊", 3: "学院", 4: "研究院", 5: "堡垒",
+    6: "圣殿", 7: "奇观", 8: "联盟", 9: "帝国", 10: "核心",
+}
+LEVEL_LABELS_EN = {
+    1: "Foundation", 2: "Workshop", 3: "Academy", 4: "Institute", 5: "Citadel",
+    6: "Sanctuary", 7: "Wonder", 8: "Alliance", 9: "Empire", 10: "Core",
+}
 
 
 # ── World lifecycle ────────────────────────────────────────────────────
@@ -255,6 +307,9 @@ def get_world_state(db: Session, user_id: UUID) -> dict:
     # Tier info
     tier_info = score_to_tier(world.tier_score)
 
+    # Era info
+    era_info = score_to_era(world.era_score)
+
     stats = {
         "total_buildings": total,
         "active_buildings": active_count,
@@ -294,6 +349,8 @@ def get_world_state(db: Session, user_id: UUID) -> dict:
                 "icon": tpl.icon,
                 "region": tpl.region,
                 "region_en": tpl.region_en,
+                "civilization_type": tpl.civilization_type,
+                "era": tpl.era,
                 "max_level": tpl.max_level,
                 "level_names": tpl.level_names,
                 "position_x": tpl.position_x,
@@ -326,6 +383,8 @@ def get_world_state(db: Session, user_id: UUID) -> dict:
                 "icon": ctpl.icon,
                 "region": ctpl.region,
                 "region_en": ctpl.region_en,
+                "civilization_type": ctpl.civilization_type,
+                "era": ctpl.era,
                 "max_level": ctpl.max_level,
                 "level_names": ctpl.level_names,
                 "position_x": ctpl.position_x,
@@ -365,6 +424,15 @@ def get_world_state(db: Session, user_id: UUID) -> dict:
         "tier_name": tier_info["tier_name_zh"],
         "tier_score": world.tier_score,
         "next_tier_at": tier_info["next_tier_at"],
+        "era": era_info["era"],
+        "era_name": era_info["era_name_zh"],
+        "era_icon": era_info["era_icon"],
+        "era_score": world.era_score,
+        "next_era_at": era_info["next_era_at"],
+        "knowledge_points": world.knowledge_points or 0,
+        "tech_points": world.tech_points or 0,
+        "population": world.population or 0,
+        "exploration_progress": world.exploration_progress or 0,
         "created_at": world.created_at,
         "updated_at": world.updated_at,
         "regions": regions,

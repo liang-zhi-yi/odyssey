@@ -42,6 +42,13 @@ Odyssey Agent is NOT a general-purpose chatbot — it's a **domain-specific grow
 - Typed interfaces everywhere (TypeScript strict, Python type hints).
 - Follow existing patterns — match the surrounding code's density, naming, and idiom.
 
+### Defensive Patterns (from Phase 6 bug discoveries)
+
+- **Loud else in dispatch chains**: Every `if/elif` chain that dispatches on JSON or external data MUST have an `else` that logs a warning. Silent fallthrough to `return False` is the worst failure mode — it took explicit verification to discover all 16 badges were broken [[LRN-20260606-008]]
+- **Schema alignment**: When seed data and evaluation engine share a JSON schema (criteria, config, thresholds), define the schema in ONE place. Having the seed author and engine author interpret `type` differently causes bugs that produce zero errors [[LRN-20260606-004]]
+- **Incremental verification**: Build a verification script in Phase 0 and extend it per phase. Don't wait until the end to discover that plan estimates don't match implementation [[LRN-20260606-006]]
+- **API client error handling (content-type + shape alignment)**: (1) Always check `content-type` before parsing error responses as JSON — Next.js proxy errors return HTML, not JSON. (2) Match the backend's error response shape: `{ error: { code, message } }` not `{ code, message }`. (3) Handle FastAPI 422 `{ detail: [...] }` format. (4) Only auto-redirect 401→login when a token WAS sent; login/register 401 means bad credentials [[LRN-20260606-009]] [[LRN-20260606-010]]
+
 ---
 
 ## Development Operations (from .learnings/)
@@ -66,6 +73,8 @@ Run this verification sequence before declaring work complete: [[LRN-20260605-00
 - Use `$env:PYTHONIOENCODING = "utf-8"` before running Python scripts with emoji [[LRN-20260604-003]]
 - Use PowerShell here-strings (`@""@`) for inline multi-line Python [[LRN-20260605-003]]
 - Standalone Python scripts must `import app.models` before ORM operations [[LRN-20260604-004]]
+- **PowerShell CWD persists across tool calls** — always use absolute paths (`Set-Location C:\Users\hungt\Desktop\odyssey\frontend`) or absolute executable paths. Never rely on CWD from a previous call. [[ERR-20260606-001]]
+- Prefer PowerShell over Bash for all Windows operations (file navigation, npm/node, Python). Bash uses `/usr/bin/bash` which can't resolve Windows paths. [[ERR-20260605-002]]
 
 ---
 

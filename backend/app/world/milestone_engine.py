@@ -24,6 +24,21 @@ from app.core.enums import BuildingStatus, CivilizationTier
 
 logger = logging.getLogger(__name__)
 
+# ── Era ordinal mapping ───────────────────────────────────────────────────
+
+ERA_ORDER = [
+    "WILDERNESS", "AGRICULTURE", "ACADEMY", "INDUSTRY",
+    "INFORMATION", "AI", "INTELLIGENCE", "DIGITAL", "FUTURE",
+]
+
+
+def _era_rank(era_str: str) -> int:
+    """Return numeric rank of an era for >= comparison."""
+    try:
+        return ERA_ORDER.index(era_str)
+    except ValueError:
+        return -1
+
 
 def check_and_award_milestones(
     db: Session, user_id: UUID
@@ -114,6 +129,11 @@ def _collect_world_state(db: Session, user_id: UUID) -> dict:
         "unlocked_regions": unlocked_regions,
         "region_count": len(unlocked_regions),
         "tier": world.tier if world else "SETTLER",
+        "era": world.era if world else "WILDERNESS",
+        "knowledge_points": world.knowledge_points if world else 0,
+        "tech_points": world.tech_points if world else 0,
+        "population": world.population if world else 0,
+        "civilization_level": world.civilization_level if world else 1,
     }
 
 
@@ -161,6 +181,24 @@ def _evaluate(criteria_type: str, criteria: dict, state: dict) -> bool:
             1 for ub in state["all_buildings"] if ub.level >= level
         )
         return matching >= count
+
+    elif criteria_type == "era_reached":
+        # e.g. { "type": "era_reached", "era": "ACADEMY" }
+        target_era = criteria.get("era", "WILDERNESS")
+        current_era = state["era"]
+        return _era_rank(current_era) >= _era_rank(target_era)
+
+    elif criteria_type == "resources_accumulated":
+        # e.g. { "type": "resources_accumulated", "resource": "knowledge_points", "count": 1000 }
+        resource = criteria.get("resource", "knowledge_points")
+        count = criteria.get("count", 100)
+        current = state.get(resource, 0)
+        return current >= count
+
+    elif criteria_type == "civilization_level_reached":
+        # e.g. { "type": "civilization_level_reached", "level": 10 }
+        target_level = criteria.get("level", 10)
+        return state["civilization_level"] >= target_level
 
     logger.warning("Unknown milestone criteria type: %s", criteria_type)
     return False

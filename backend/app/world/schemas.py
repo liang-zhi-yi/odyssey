@@ -21,6 +21,8 @@ class BuildingTemplateResponse(BaseModel):
     icon: str
     region: str
     region_en: str | None = None
+    civilization_type: str | None = None
+    era: str | None = None
     max_level: int
     level_names: dict
     position_x: int
@@ -74,6 +76,8 @@ class CompoundBuildingTemplateResponse(BaseModel):
     icon: str
     region: str
     region_en: str | None = None
+    civilization_type: str | None = None
+    era: str | None = None
     max_level: int
     level_names: dict
     required_skills: list[dict]
@@ -193,6 +197,15 @@ class WorldResponse(BaseModel):
     tier_name: str = "定居者"
     tier_score: int = 0
     next_tier_at: int = 0
+    era: str = "WILDERNESS"
+    era_name: str = "荒野时代"
+    era_icon: str = "🏕️"
+    era_score: int = 0
+    next_era_at: int | None = None
+    knowledge_points: int = 0
+    tech_points: int = 0
+    population: int = 0
+    exploration_progress: int = 0
     created_at: datetime
     updated_at: datetime
     regions: list[RegionResponse]

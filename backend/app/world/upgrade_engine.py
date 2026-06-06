@@ -22,7 +22,7 @@ from app.world.models import (
     WorldEvent,
 )
 from app.skills.models import UserSkill, Skill
-from app.core.enums import BuildingStatus, TIER_RANGES
+from app.core.enums import BuildingStatus, TIER_RANGES, ERA_RANGES
 from app.world import events as event_service
 from app.world.milestone_engine import check_and_award_milestones
 
@@ -30,19 +30,61 @@ logger = logging.getLogger(__name__)
 
 
 def score_to_level(overall_score: int | None) -> int:
-    """Map UserSkill overall score → building level (1-5)."""
+    """Map UserSkill overall score → building level (1-10).
+
+    Thresholds (each level requires 10 points):
+      1: 0-9, 2: 10-19, 3: 20-29, 4: 30-39, 5: 40-49,
+      6: 50-59, 7: 60-69, 8: 70-79, 9: 80-89, 10: 90-100
+    """
     if overall_score is None or overall_score <= 0:
         return 1
-    if overall_score <= 20:
+    if overall_score <= 10:
         return 1
-    elif overall_score <= 40:
+    elif overall_score <= 20:
         return 2
-    elif overall_score <= 60:
+    elif overall_score <= 30:
         return 3
-    elif overall_score <= 80:
+    elif overall_score <= 40:
         return 4
-    else:
+    elif overall_score <= 50:
         return 5
+    elif overall_score <= 60:
+        return 6
+    elif overall_score <= 70:
+        return 7
+    elif overall_score <= 80:
+        return 8
+    elif overall_score <= 90:
+        return 9
+    else:
+        return 10
+
+
+def score_to_era(era_score: int):
+    """Determine era and era info from cumulative era_score."""
+    era_value = "WILDERNESS"
+    era_name_zh = "荒野时代"
+    era_name_en = "Wilderness Era"
+    era_icon = "🏕️"
+    next_era_at: int | None = None
+
+    for era_enum, min_s, zh, en, icon, _ in ERA_RANGES:
+        if era_score >= min_s:
+            era_value = era_enum.value
+            era_name_zh = zh
+            era_name_en = en
+            era_icon = icon
+        else:
+            next_era_at = min_s
+            break
+
+    return {
+        "era": era_value,
+        "era_name_zh": era_name_zh,
+        "era_name_en": era_name_en,
+        "era_icon": era_icon,
+        "next_era_at": next_era_at,
+    }
 
 
 def sync_buildings_after_assessment(
@@ -382,10 +424,11 @@ def _get_unlocked_region_names(db: Session, user_id: UUID, count: int) -> set[st
 def _recalculate_civilization_tier(
     db: Session, world: World, user_id: UUID
 ) -> None:
-    """Update tier and tier_score based on building levels + compound bonuses + milestones.
+    """Update tier, tier_score, era, era_score, and resources based on building levels.
 
     Formula:
       tier_score = regular_building_levels + compound_building_levels × 2 + milestones_unlocked
+      era_score   = tier_score + knowledge_points + tech_points + population + exploration_progress
     """
     # Regular building levels
     active_buildings = (
@@ -419,6 +462,23 @@ def _recalculate_civilization_tier(
 
     total_score = regular_total + compound_total + milestone_count
 
+    # Resource accumulation: grant small amounts on each recalculation
+    # Resources grow from assessments and building upgrades
+    resource_boost = max(1, len([ub for ub in active_buildings if ub.level >= 3]))
+    world.knowledge_points = (world.knowledge_points or 0) + resource_boost
+    world.tech_points = (world.tech_points or 0) + max(1, len(active_compounds))
+    world.population = (world.population or 0) + max(1, len(active_buildings) // 3)
+
+    # era_score = tier_score + accumulated resources
+    world.tier_score = total_score
+    world.era_score = (
+        total_score
+        + (world.knowledge_points or 0)
+        + (world.tech_points or 0)
+        + (world.population or 0)
+        + (world.exploration_progress or 0)
+    )
+
     # Look up tier from TIER_RANGES
     old_tier = world.tier
     new_tier = "SETTLER"
@@ -432,7 +492,11 @@ def _recalculate_civilization_tier(
             new_tier_en = en
 
     world.tier = new_tier
-    world.tier_score = total_score
+
+    # ── Era calculation from era_score ─────────────────────────────────
+    old_era = world.era
+    era_info = score_to_era(world.era_score)
+    world.era = era_info["era"]
 
     # Also update legacy civilization_level for backward compatibility
     world.civilization_level = max(1, 1 + total_score // 3)
@@ -473,4 +537,45 @@ def _recalculate_civilization_tier(
         logger.info(
             "Civilization tier advanced: %s → %s (score=%d, user=%s)",
             old_tier, new_tier, total_score, user_id,
+        )
+
+    # Generate era advance event
+    if world.era != old_era:
+        old_era_zh = "荒野时代"
+        old_era_en = "Wilderness Era"
+        for era_enum, min_s, zh, en, icon, _ in ERA_RANGES:
+            if era_enum.value == old_era:
+                old_era_zh = zh
+                old_era_en = en
+                break
+
+        try:
+            event_service.event_era_advance(
+                db, user_id,
+                old_era_zh, old_era_en,
+                era_info["era_name_zh"], era_info["era_name_en"],
+                era_info["era_icon"],
+            )
+        except Exception as exc:
+            logger.warning("Era advance event failed: %s", exc)
+
+        # Create notification for era advance
+        try:
+            from app.notifications.service import create_notification
+            create_notification(
+                db,
+                user_id=user_id,
+                type="ERA_ADVANCE",
+                title=f"时代进阶：{old_era_zh} → {era_info['era_name_zh']}！",
+                title_en=f"Era Advance: {old_era_en} → {era_info['era_name_en']}!",
+                body=f"你的文明从{old_era_zh}进入了{era_info['era_name_zh']}，时代得分：{world.era_score}",
+                body_en=f"Your civilization has advanced from {old_era_en} to {era_info['era_name_en']}. Era score: {world.era_score}",
+                link="/world",
+            )
+        except Exception as exc:
+            logger.warning("Era advance notification failed: %s", exc)
+
+        logger.info(
+            "Era advanced: %s → %s (era_score=%d, user=%s)",
+            old_era, world.era, world.era_score, user_id,
         )

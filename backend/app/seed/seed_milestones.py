@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from app.world.models import MilestoneDefinition
 
 MILESTONE_SEEDS = [
+    # ═══════════════════════════════════════════════════════════════════════
+    # Foundation & Expansion (order 1-6)
+    # ═══════════════════════════════════════════════════════════════════════
     {
         "name": "First Steps",
         "name_en": "First Steps",
@@ -68,6 +71,158 @@ MILESTONE_SEEDS = [
         "category": "MASTERY",
         "order_sequence": 6,
         "criteria": {"type": "all_buildings_level", "level": 4, "count": 4},
+    },
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # Era-Gated Milestones (order 7-13)
+    # ═══════════════════════════════════════════════════════════════════════
+    {
+        "name": "知识播种者",
+        "name_en": "Knowledge Sower",
+        "description": "进入农耕时代 — 播下知识的种子，开启文明成长。",
+        "description_en": "Enter the Agriculture Era — sow the seeds of knowledge.",
+        "icon": "🌾",
+        "category": "ERA",
+        "order_sequence": 7,
+        "criteria": {"type": "era_reached", "era": "AGRICULTURE"},
+    },
+    {
+        "name": "学术奠基人",
+        "name_en": "Academic Founder",
+        "description": "进入学院时代 — 系统化学习的奠基者。",
+        "description_en": "Enter the Academy Era — founder of systematic learning.",
+        "icon": "📖",
+        "category": "ERA",
+        "order_sequence": 8,
+        "criteria": {"type": "era_reached", "era": "ACADEMY"},
+    },
+    {
+        "name": "工程先驱",
+        "name_en": "Engineering Pioneer",
+        "description": "进入工业时代 — 工程与自动化的先驱。",
+        "description_en": "Enter the Industry Era — pioneer of engineering and automation.",
+        "icon": "⚙️",
+        "category": "ERA",
+        "order_sequence": 9,
+        "criteria": {"type": "era_reached", "era": "INDUSTRY"},
+    },
+    {
+        "name": "数字先锋",
+        "name_en": "Digital Vanguard",
+        "description": "进入信息时代 — 数字与信息革命的先锋。",
+        "description_en": "Enter the Information Era — vanguard of the digital revolution.",
+        "icon": "💻",
+        "category": "ERA",
+        "order_sequence": 10,
+        "criteria": {"type": "era_reached", "era": "INFORMATION"},
+    },
+    {
+        "name": "AI拓荒者",
+        "name_en": "AI Trailblazer",
+        "description": "进入AI时代 — 人工智能领域的拓荒者。",
+        "description_en": "Enter the AI Era — trailblazer in artificial intelligence.",
+        "icon": "🤖",
+        "category": "ERA",
+        "order_sequence": 11,
+        "criteria": {"type": "era_reached", "era": "AI"},
+    },
+    {
+        "name": "智能文明缔造者",
+        "name_en": "Intelligence Founder",
+        "description": "进入智能时代 — 智能文明的缔造者。",
+        "description_en": "Enter the Intelligence Era — founder of intelligent civilization.",
+        "icon": "🧠",
+        "category": "ERA",
+        "order_sequence": 12,
+        "criteria": {"type": "era_reached", "era": "INTELLIGENCE"},
+    },
+    {
+        "name": "数字文明建设者",
+        "name_en": "Digital Civilization Builder",
+        "description": "进入数字文明时代 — 数字世界的建设者。",
+        "description_en": "Enter the Digital Civilization Era — builder of the digital world.",
+        "icon": "🌐",
+        "category": "ERA",
+        "order_sequence": 13,
+        "criteria": {"type": "era_reached", "era": "DIGITAL"},
+    },
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # Resource Milestones (order 14-17)
+    # ═══════════════════════════════════════════════════════════════════════
+    {
+        "name": "知识积累者",
+        "name_en": "Knowledge Accumulator",
+        "description": "累计获得500知识点 — 知识的力量正在汇聚。",
+        "description_en": "Accumulate 500 knowledge points — the power of knowledge is gathering.",
+        "icon": "📝",
+        "category": "RESOURCE",
+        "order_sequence": 14,
+        "criteria": {"type": "resources_accumulated", "resource": "knowledge_points", "count": 500},
+    },
+    {
+        "name": "科技投资者",
+        "name_en": "Tech Investor",
+        "description": "累计获得500科技点 — 科技是第一生产力。",
+        "description_en": "Accumulate 500 tech points — technology is the primary productive force.",
+        "icon": "🔬",
+        "category": "RESOURCE",
+        "order_sequence": 15,
+        "criteria": {"type": "resources_accumulated", "resource": "tech_points", "count": 500},
+    },
+    {
+        "name": "人口增长者",
+        "name_en": "Population Grower",
+        "description": "人口达到1000 — 你的文明正在吸引更多人加入。",
+        "description_en": "Population reaches 1000 — your civilization is attracting more people.",
+        "icon": "👥",
+        "category": "RESOURCE",
+        "order_sequence": 16,
+        "criteria": {"type": "resources_accumulated", "resource": "population", "count": 1000},
+    },
+    {
+        "name": "知识殿堂",
+        "name_en": "Knowledge Vault",
+        "description": "累计获得5000知识点 — 一座知识殿堂已经建成。",
+        "description_en": "Accumulate 5000 knowledge points — a knowledge vault has been built.",
+        "icon": "🏫",
+        "category": "RESOURCE",
+        "order_sequence": 17,
+        "criteria": {"type": "resources_accumulated", "resource": "knowledge_points", "count": 5000},
+    },
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # Civilization Level Milestones (order 18-20)
+    # ═══════════════════════════════════════════════════════════════════════
+    {
+        "name": "文明初成",
+        "name_en": "Civilization Taking Shape",
+        "description": "文明等级达到10级 — 你的文明已初具规模。",
+        "description_en": "Civilization reaches level 10 — your civilization is taking shape.",
+        "icon": "🏘️",
+        "category": "EXPANSION",
+        "order_sequence": 18,
+        "criteria": {"type": "civilization_level_reached", "level": 10},
+    },
+    {
+        "name": "文明崛起",
+        "name_en": "Rising Civilization",
+        "description": "文明等级达到50级 — 你的文明正在崛起。",
+        "description_en": "Civilization reaches level 50 — your civilization is rising.",
+        "icon": "🏰",
+        "category": "MASTERY",
+        "order_sequence": 19,
+        "criteria": {"type": "civilization_level_reached", "level": 50},
+    },
+    {
+        "name": "未来文明",
+        "name_en": "Future Civilization",
+        "description": "进入未来文明时代 — 你已抵达文明的终极形态。",
+        "description_en": "Enter the Future Civilization Era — the ultimate form of civilization.",
+        "icon": "🚀",
+        "category": "ERA",
+        "order_sequence": 20,
+        "criteria": {"type": "era_reached", "era": "FUTURE"},
     },
 ]
 

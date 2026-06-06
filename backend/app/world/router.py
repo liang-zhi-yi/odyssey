@@ -128,3 +128,16 @@ def get_tech_tree(
     with prerequisite progress."""
     data = world_service.get_tech_tree(db, current_user.id)
     return TechTreeResponse(**data)
+
+
+# ── Buildings Summary ──────────────────────────────────────────────────
+
+@router.get("/world/buildings/unlocked-summary")
+def get_buildings_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get building counts grouped by civilization type and era,
+    plus recommendations for locked buildings."""
+    from app.world.path_bridge import get_unlocked_buildings_summary
+    return get_unlocked_buildings_summary(db, current_user.id)

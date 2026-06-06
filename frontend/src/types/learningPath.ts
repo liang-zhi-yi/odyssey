@@ -5,6 +5,22 @@
   recommended_skills?: string[];
 }
 
+/** A building targeted by a learning path's milestones */
+export interface TargetedBuilding {
+  building_id: string;
+  building_name: string;
+  building_name_en: string | null;
+  building_icon: string;
+  skill_id: string;
+  skill_name: string | null;
+  region: string;
+  region_en: string | null;
+  max_level: number;
+  civilization_type: string | null;
+  era: string | null;
+  remaining_milestones: number;
+}
+
 export interface LearningPath {
   id: string;
   user_id: string;
@@ -19,6 +35,7 @@ export interface LearningPath {
   progress_pct: number;
   path_metadata: PathMetadata | null;
   milestone_count: number | null;
+  targeted_buildings: TargetedBuilding[] | null;
   created_at: string;
   updated_at: string;
 }

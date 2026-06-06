@@ -56,7 +56,7 @@ export function BuildingDetailPanel({ building, onClose }: BuildingDetailPanelPr
                 {displayName}
               </h3>
               {isCompound && (
-                <span className="text-xs rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 font-medium">
+                <span className="text-xs rounded-full bg-[oklch(0.72_0.12_85_/_0.12)] text-[oklch(0.5_0.08_80)] px-2 py-0.5 font-medium">
                   {t("world.compoundBuilding")}
                 </span>
               )}
@@ -124,6 +124,18 @@ function RegularDetail({
     tpl?.skill_id ? `quests-skill-${tpl.skill_id}` : null,
     () => questService.listQuests({ skill_id: tpl!.skill_id }),
     { dedupingInterval: 60000 }
+  );
+
+  // Fetch civilization direction for Related Paths
+  const { data: civDirection } = useSWR(
+    "world-civ-direction-panel",
+    () => worldService.getCivilizationDirection().catch(() => null),
+    { revalidateOnFocus: false, dedupingInterval: 120000 }
+  );
+
+  // Find paths that target this building
+  const relatedPaths = (civDirection?.active_paths ?? []).filter((ap) =>
+    ap.targeted_buildings?.some((tb) => tb.building_id === detail.id)
   );
 
   return (
@@ -195,6 +207,42 @@ function RegularDetail({
       {/* Related Quests */}
       {tpl?.skill_id && (
         <RelatedQuests quests={relatedQuests} skillName={tpl?.name ?? ""} locale={locale} />
+      )}
+
+      {/* Related Paths */}
+      {relatedPaths.length > 0 && (
+        <div className="border-t border-border pt-3 mt-1">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            {locale === "en" ? "Related Paths" : "相关学习路径"}
+          </h4>
+          <div className="space-y-1.5">
+            {relatedPaths.slice(0, 3).map((ap) => (
+              <Link
+                key={ap.path_id}
+                href={`/paths/${ap.path_id}`}
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-secondary/60"
+              >
+                <span className="text-sm">🗺️</span>
+                <span className="flex-1 truncate text-foreground font-medium">
+                  {ap.path_title}
+                </span>
+                <span className="text-[10px] text-[oklch(0.65_0.05_145)] font-medium">
+                  {ap.progress_pct}%
+                </span>
+                <svg className="h-3 w-3 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </Link>
+            ))}
+            {relatedPaths.length > 3 && (
+              <p className="text-[10px] text-muted-foreground text-center pt-1">
+                {locale === "en"
+                  ? `+${relatedPaths.length - 3} more paths`
+                  : `还有 ${relatedPaths.length - 3} 条路径`}
+              </p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

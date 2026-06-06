@@ -7,214 +7,245 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
 import { worldService } from "@/services/world.service";
-import { SkillCard } from "@/app/components/SkillCard";
-import { ScoreCard } from "@/app/components/ScoreCard";
-import { RadarChart } from "@/app/components/RadarChart";
+import { progressService } from "@/services/progress.service";
+import { questService } from "@/services/quest.service";
+import { SkillTreeSidebar } from "@/app/components/SkillTreeSidebar";
+import { SkillDetailPanel } from "@/app/components/SkillDetailPanel";
 import { Loading } from "@/app/components/Loading";
-import { EmptyState } from "@/app/components/EmptyState";
-import { DomainPicker } from "@/app/components/DomainPicker";
-import type { UserSkill, Skill } from "@/types/skill";
-import type { DimensionScores } from "@/types/assessment";
-import { computeAggregateScores } from "@/lib/scores";
 import { ErrorState } from "@/app/components/ErrorState";
+import type { Skill, UserSkill } from "@/types/skill";
+import type { SkillGrowthPoint, ProgressLog } from "@/types/progress";
+import type { QuestListItem, UserQuest } from "@/types/quest";
 
+/**
+ * Skills page — redesigned as a dual-column layout:
+ *   Left:  SkillTreeSidebar (civilization stats + domain tree + search)
+ *   Right: SkillDetailPanel (selected skill detail / welcome state)
+ *
+ * No infinite card grid. One skill at a time, focus on depth.
+ */
 export default function SkillsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
-  const [selectedSkill, setSelectedSkill] = useState<UserSkill | null>(null);
-  const [domainFilter, setDomainFilter] = useState<string>("");
 
+  // ── State ──────────────────────────────────────────────────────
+  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  // Default: first domain expanded
+  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(
+    new Set(["ai", "engineering", "knowledge"])
+  );
+
+  // ── Auth guard ─────────────────────────────────────────────────
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.replace("/login");
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch all defined skills
-  const { data: allSkills = [] } = useSWR(
+  // ── Data fetching ──────────────────────────────────────────────
+
+  // All defined skills (skill tree)
+  const { data: allSkills = [], error: skillsError } = useSWR(
     isAuthenticated ? "all-skills" : null,
-    () => skillService.listSkills()
+    () => skillService.listSkills(),
+    { revalidateOnFocus: false, dedupingInterval: 300000 }
   );
 
-  // Fetch user's skill states
-  const {
-    data: userSkills = [],
-    isLoading,
-    error,
-  } = useSWR(isAuthenticated ? "user-skills" : null, () =>
-    skillService.listUserSkills()
+  // User's skill states
+  const { data: userSkills = [], isLoading: userSkillsLoading } = useSWR(
+    isAuthenticated ? "user-skills" : null,
+    () => skillService.listUserSkills(),
+    { revalidateOnFocus: false, dedupingInterval: 120000 }
   );
 
-  // Fetch world state for building links on skill cards
+  // World state (for civilization stats + building info)
   const { data: worldData } = useSWR(
     isAuthenticated ? "world" : null,
     () => worldService.getWorld().catch(() => null),
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
-  const worldBuildings = worldData?.buildings ?? [];
+
+  // ── Conditional fetches (only when a skill is selected) ─────────
+
+  const selectedSkill = useMemo(
+    () => allSkills.find((s: Skill) => s.id === selectedSkillId) ?? null,
+    [allSkills, selectedSkillId]
+  );
+
+  const selectedUserSkill = useMemo(
+    () =>
+      selectedSkillId
+        ? userSkills.find((us: UserSkill) => us.skill_id === selectedSkillId) ?? null
+        : null,
+    [userSkills, selectedSkillId]
+  );
+
+  // Growth curve for selected skill
+  const { data: growthPoints = [] } = useSWR(
+    isAuthenticated && selectedSkillId
+      ? `skill-growth-${selectedSkillId}`
+      : null,
+    () => progressService.getSkillGrowth(selectedSkillId!),
+    { revalidateOnFocus: false }
+  );
+
+  // 30-day trend for selected skill
+  const { data: trendPoints = [] } = useSWR(
+    isAuthenticated && selectedSkillId
+      ? `skill-trend-${selectedSkillId}`
+      : null,
+    () => skillService.getSkillTrend(selectedSkillId!, 30).catch(() => [] as SkillGrowthPoint[]),
+    { revalidateOnFocus: false }
+  );
+
+  // Recent progress logs for selected skill
+  const { data: recentLogs = [] } = useSWR(
+    isAuthenticated && selectedSkillId
+      ? `progress-logs-${selectedSkillId}`
+      : null,
+    () =>
+      progressService
+        .listProgressLogs({ skill_id: selectedSkillId!, limit: 10 })
+        .catch(() => [] as ProgressLog[]),
+    { revalidateOnFocus: false }
+  );
+
+  // Quests for selected skill
+  const { data: skillQuests = [] } = useSWR(
+    isAuthenticated && selectedSkillId
+      ? `quests-skill-${selectedSkillId}`
+      : null,
+    () =>
+      questService
+        .listQuests({ skill_id: selectedSkillId! })
+        .catch(() => [] as QuestListItem[]),
+    { revalidateOnFocus: false }
+  );
+
+  // User's completed quests (global, filtered later)
+  const { data: userQuests = [] } = useSWR(
+    isAuthenticated ? "user-quests" : null,
+    () => questService.listUserQuests().catch(() => [] as UserQuest[]),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+
+  // ── Derived data ───────────────────────────────────────────────
+
+  // Related skills in the same domain
+  const relatedSkills = useMemo(() => {
+    if (!selectedSkill) return [];
+    const domain = selectedSkill.domain;
+    return allSkills
+      .filter((s: Skill) => s.domain === domain)
+      .map((s: Skill) => ({
+        skill: s,
+        userSkill: userSkills.find((us: UserSkill) => us.skill_id === s.id),
+      }));
+  }, [allSkills, userSkills, selectedSkill]);
+
+  // Completed quests for the selected skill
+  const completedQuests = useMemo(() => {
+    if (!selectedSkillId) return [];
+    return userQuests.filter(
+      (q: UserQuest) =>
+        q.status === "PASSED" || q.status === "SUBMITTED"
+    );
+  }, [userQuests, selectedSkillId]);
+
+  // ── Callbacks ──────────────────────────────────────────────────
+
+  const handleSelectSkill = (skillId: string) => {
+    setSelectedSkillId(skillId);
+    // Auto-expand the domain containing this skill
+    const skill = allSkills.find((s: Skill) => s.id === skillId);
+    if (skill) {
+      const domainKey = getDomainKey(skill.domain);
+      if (domainKey) {
+        setExpandedDomains((prev) => new Set(prev).add(domainKey));
+      }
+    }
+  };
+
+  const handleToggleDomain = (domainKey: string) => {
+    setExpandedDomains((prev) => {
+      const next = new Set(prev);
+      if (next.has(domainKey)) {
+        next.delete(domainKey);
+      } else {
+        next.add(domainKey);
+      }
+      return next;
+    });
+  };
+
+  // ── Loading / Error states ─────────────────────────────────────
 
   if (authLoading || !isAuthenticated) {
     return <Loading text={t("auth.validating")} />;
   }
 
-  const userSkillMap = new Map(userSkills.map((us) => [us.skill_id, us]));
+  if (skillsError) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-12">
+        <ErrorState message={t("skills.loadError")} />
+      </div>
+    );
+  }
 
-  // Filter skills by domain
-  const filteredAllSkills = useMemo(() => {
-    if (!domainFilter) return allSkills;
-    return allSkills.filter((s: Skill) => s.domain === domainFilter);
-  }, [allSkills, domainFilter]);
-
-  const filteredUserSkills = useMemo(() => {
-    if (!domainFilter) return userSkills;
-    const filteredIds = new Set(filteredAllSkills.map((s: Skill) => s.id));
-    return userSkills.filter((us) => filteredIds.has(us.skill_id));
-  }, [userSkills, filteredAllSkills, domainFilter]);
-
-  // Compute radar scores for selected skill or aggregate (use all user skills, not filtered)
-  const radarScores: DimensionScores = selectedSkill
-    ? {
-        knowledge: selectedSkill.knowledge,
-        reasoning: selectedSkill.reasoning,
-        application: selectedSkill.application,
-        creation: selectedSkill.creation,
-      }
-    : computeAggregateScores(userSkills);
+  // ── Render ─────────────────────────────────────────────────────
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("skills.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("skills.fourDimensionProfile")}
-        </p>
-      </div>
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Left: Skill Tree Sidebar */}
+      <SkillTreeSidebar
+        skills={allSkills}
+        userSkills={userSkills}
+        worldData={worldData ?? null}
+        selectedSkillId={selectedSkillId}
+        searchQuery={searchQuery}
+        expandedDomains={expandedDomains}
+        onSelectSkill={handleSelectSkill}
+        onToggleDomain={handleToggleDomain}
+        onSearchChange={setSearchQuery}
+      />
 
-      {/* Selected skill detail / Overview radar */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Radar overview */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-card flex flex-col items-center">
-          <h3 className="text-sm font-semibold mb-4">
-            {selectedSkill
-              ? selectedSkill.skill_name || selectedSkill.skill_id
-              : t("skills.aggregateRadar")}
-          </h3>
-          <RadarChart scores={radarScores} size={240} />
-          {selectedSkill && (
-            <button
-              onClick={() => setSelectedSkill(null)}
-              className="mt-4 text-xs text-primary hover:underline"
-            >
-              {t("skills.viewOverview")}
-            </button>
-          )}
-        </div>
-
-        {/* Score cards or skill list */}
-        <div className="lg:col-span-2">
-          {isLoading ? (
-            <Loading variant="skeleton-cards" cardCount={6} />
-          ) : error ? (
-            <ErrorState message={t("skills.loadError")} />
-          ) : filteredUserSkills.length === 0 ? (
-            <EmptyState
-              title={t("skills.noSkills")}
-              description={t("skills.noSkillDesc")}
-              actionLabel={t("skills.browseQuests")}
-              actionHref="/quests"
-            />
-          ) : selectedSkill ? (
-            /* Show detailed score card for selected skill */
-            <ScoreCard
-              title={selectedSkill.skill_name || selectedSkill.skill_id}
-              overall={selectedSkill.overall}
-              scores={{
-                knowledge: selectedSkill.knowledge,
-                reasoning: selectedSkill.reasoning,
-                application: selectedSkill.application,
-                creation: selectedSkill.creation,
-              }}
-              rank={selectedSkill.rank}
-              size={200}
-            />
-          ) : (
-            /* Show skill cards grid */
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-stagger">
-              {filteredUserSkills.map((skill) => (
-                <div
-                  key={skill.skill_id}
-                  onClick={() => setSelectedSkill(skill)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelectedSkill(skill);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={t("skills.viewSkillDetail", { name: skill.skill_name || skill.skill_id })}
-                  className="cursor-pointer card-hover"
-                >
-                  <SkillCard skill={skill} worldBuildings={worldBuildings} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Domain filter + all defined skills reference */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">{t("skills.allSkillsDirectory")}</h2>
-        </div>
-        <div className="mb-3">
-          <DomainPicker selected={domainFilter} onChange={setDomainFilter} />
-        </div>
-        {filteredAllSkills.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {filteredAllSkills.map((skill: Skill) => {
-              const userSkill = userSkillMap.get(skill.id);
-              return (
-                <div
-                  key={skill.id}
-                  className={`rounded-xl border px-3 py-2.5 text-xs transition-all duration-300 ${
-                    userSkill
-                      ? "border-primary/30 bg-primary/5 cursor-pointer hover:shadow-card"
-                      : "border-border bg-secondary/30"
-                  }`}
-                  onClick={() => {
-                    if (userSkill) setSelectedSkill(userSkill);
-                  }}
-                  onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && userSkill) {
-                      e.preventDefault();
-                      setSelectedSkill(userSkill);
-                    }
-                  }}
-                  tabIndex={userSkill ? 0 : undefined}
-                  role={userSkill ? "button" : undefined}
-                  aria-label={userSkill ? t("skills.viewSkillDetail", { name: skill.name }) : undefined}
-                >
-                  <p className="font-medium truncate">{skill.name}</p>
-                  {userSkill ? (
-                    <p className="text-primary font-bold mt-0.5 tabular-nums">
-                      {userSkill.overall}
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground mt-0.5">{t("skills.inactive")}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground py-2">
-            {domainFilter ? t("quests.noQuests") : t("common.noData")}
-          </p>
-        )}
-      </section>
+      {/* Right: Skill Detail Panel */}
+      <SkillDetailPanel
+        selectedSkill={selectedSkill}
+        selectedUserSkill={selectedUserSkill}
+        growthPoints={growthPoints}
+        trendPoints={trendPoints}
+        worldData={worldData ?? null}
+        recentLogs={recentLogs}
+        relatedSkills={relatedSkills}
+        completedQuests={completedQuests}
+        recommendedQuests={skillQuests}
+        allUserSkills={userSkills}
+        onSelectSkill={handleSelectSkill}
+      />
     </div>
   );
+}
+
+// ── Helpers ───────────────────────────────────────────────────────
+
+/** Map Skill domain to civilization group key */
+function getDomainKey(domain: string): string | null {
+  const mapping: Record<string, string> = {
+    AI: "ai",
+    PROGRAMMING: "engineering",
+    RESEARCH: "knowledge",
+    BUSINESS: "business",
+    DESIGN: "design",
+    LANGUAGE: "language",
+    SCIENCE: "science",
+    HEALTH: "health",
+    FINANCE: "finance",
+    MANAGEMENT: "society",
+    CAREER: "society",
+    MEDIA: "society",
+  };
+  return mapping[domain] ?? null;
 }

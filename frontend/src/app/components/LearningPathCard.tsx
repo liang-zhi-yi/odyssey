@@ -61,22 +61,35 @@ export function LearningPathCard({
       ? PATH_STATUS_LABELS_ZH[path.status] ?? path.status
       : PATH_STATUS_LABELS[path.status] ?? path.status;
 
-  // Resolve target buildings from path metadata
-  const targetSkills: string[] = path.path_metadata?.recommended_skills ?? [];
-  const targetBuildings = worldBuildings
-    ? targetSkills
-        .map((skillName) => {
-          const b = worldBuildings.find(
-            (wb) =>
-              wb.template?.name === skillName ||
-              wb.template?.name_en === skillName
-          );
-          return b?.template
-            ? { name: b.template.name, name_en: b.template.name_en, icon: b.template.icon, level: b.level }
-            : null;
-        })
-        .filter(Boolean) as { name: string; name_en: string | null; icon: string; level: number }[]
-    : [];
+  // Resolve target buildings: prefer API-provided targeted_buildings, fallback to worldBuildings
+  const targetBuildings =
+    path.targeted_buildings && path.targeted_buildings.length > 0
+      ? path.targeted_buildings.map((tb) => ({
+          name: tb.building_name,
+          name_en: tb.building_name_en,
+          icon: tb.building_icon,
+          level: 0, // API returns building info, not user level
+          skill_name: tb.skill_name,
+          remaining_milestones: tb.remaining_milestones,
+        }))
+      : (() => {
+          // Fallback: resolve from path metadata + worldBuildings prop
+          const targetSkills: string[] = path.path_metadata?.recommended_skills ?? [];
+          return worldBuildings
+            ? targetSkills
+                .map((skillName) => {
+                  const b = worldBuildings.find(
+                    (wb) =>
+                      wb.template?.name === skillName ||
+                      wb.template?.name_en === skillName
+                  );
+                  return b?.template
+                    ? { name: b.template.name, name_en: b.template.name_en, icon: b.template.icon, level: b.level, skill_name: null, remaining_milestones: 0 }
+                    : null;
+                })
+                .filter(Boolean) as { name: string; name_en: string | null; icon: string; level: number; skill_name: string | null; remaining_milestones: number }[]
+            : [];
+        })();
 
   return (
     <Link
@@ -138,18 +151,22 @@ export function LearningPathCard({
       {targetBuildings.length > 0 && (
         <div className="mt-2 flex items-center gap-1 flex-wrap">
           <span className="text-[10px] text-muted-foreground/60">
-            {locale === "zh" ? "目标:" : "Targets:"}
+            {locale === "zh" ? "驱动:" : "Drives:"}
           </span>
           {targetBuildings.map((b) => (
             <span
               key={b.name}
+              title={b.skill_name ? `Skill: ${b.skill_name}` : undefined}
               className="inline-flex items-center gap-0.5 rounded bg-secondary/60 px-1.5 py-0.5 text-[10px] text-muted-foreground"
             >
               <span>{b.icon}</span>
               <span className="truncate max-w-[5rem]">
                 {locale === "en" && b.name_en ? b.name_en : b.name}
               </span>
-              <span className="tabular-nums">Lv.{b.level}</span>
+              {b.level > 0 && <span className="tabular-nums">Lv.{b.level}</span>}
+              {b.remaining_milestones > 0 && (
+                <span className="text-[9px] opacity-60">+{b.remaining_milestones}</span>
+              )}
             </span>
           ))}
         </div>

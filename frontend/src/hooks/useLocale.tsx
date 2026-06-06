@@ -76,6 +76,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     (key: string, vars?: Record<string, string | number>): string => {
       if (!loaded) return key;
       let value = resolveDotPath(messages, key) ?? key;
+      // Safety: ensure value is always a string before calling replace
+      if (typeof value !== "string") {
+        value = String(value ?? key ?? "");
+      }
       if (vars) {
         for (const [k, v] of Object.entries(vars)) {
           value = value.replace(`{${k}}`, String(v));
