@@ -48,6 +48,8 @@ Odyssey Agent is NOT a general-purpose chatbot — it's a **domain-specific grow
 - **Schema alignment**: When seed data and evaluation engine share a JSON schema (criteria, config, thresholds), define the schema in ONE place. Having the seed author and engine author interpret `type` differently causes bugs that produce zero errors [[LRN-20260606-004]]
 - **Incremental verification**: Build a verification script in Phase 0 and extend it per phase. Don't wait until the end to discover that plan estimates don't match implementation [[LRN-20260606-006]]
 - **API client error handling (content-type + shape alignment)**: (1) Always check `content-type` before parsing error responses as JSON — Next.js proxy errors return HTML, not JSON. (2) Match the backend's error response shape: `{ error: { code, message } }` not `{ code, message }`. (3) Handle FastAPI 422 `{ detail: [...] }` format. (4) Only auto-redirect 401→login when a token WAS sent; login/register 401 means bad credentials [[LRN-20260606-009]] [[LRN-20260606-010]]
+- **Cross-module service contracts**: When calling a service function from another module, verify BOTH the function name AND the return dict shape against the actual source. Don't assume naming conventions (e.g., `list_user_projects` vs `list_projects`) or flat key structures (e.g., `{status}` vs `{quest_submission: {status}}`). Mismatches silently return empty data — always test with real data [[LRN-20260607-002]]
+- **Python .format() in large templates**: Any single-brace `{word}` in a `.format()` template string is treated as a placeholder. Literal braces (e.g., in example text or JSON examples) must be escaped as `{{word}}`. After writing a template, grep for `\{[^\{]` to find unescaped single braces [[LRN-20260607-001]]
 
 ---
 

@@ -111,6 +111,17 @@ PROVIDERS: dict[str, Provider] = {
               "Or set LLM_PROVIDER=openrouter with LLM_MODEL=anthropic/claude-sonnet-4-6.",
     ),
 
+    # ── Ollama (local) ────────────────────────────────────────────
+    "ollama": Provider(
+        name="Ollama (本地模型)",
+        base_url="http://localhost:11434/v1",
+        default_model="qwen2.5:7b",
+        supports_json_schema=False,
+        supports_json_object=True,
+        notes="Local LLM via Ollama. Install Ollama, pull a model, "
+              "and set LLM_MODEL to your model name (e.g. qwen2.5:7b, llama3.1:8b).",
+    ),
+
     # ── Custom / self-hosted ───────────────────────────────────────
     "custom": Provider(
         name="Custom",

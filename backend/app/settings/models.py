@@ -47,7 +47,12 @@ class UserSettings(Base):
     llm_model: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    # Path generation LLM config (separate from assessment LLM)
+    # Unified model toggle: if true, Path generation uses the path_llm_* fields.
+    # If false (default), Path generation shares the primary LLM config above.
+    use_path_llm_override: Mapped[bool] = mapped_column(
+        default=False, nullable=False
+    )
+    # Path generation LLM config (only used when use_path_llm_override=True)
     path_llm_provider: Mapped[str | None] = mapped_column(
         String(50), nullable=True
     )

@@ -1,4 +1,4 @@
-"""Settings service — per-user LLM configuration."""
+"""Settings service — unified LLM configuration with optional path override."""
 from sqlalchemy.orm import Session
 
 from app.settings.models import UserSettings
@@ -33,6 +33,7 @@ def get_settings(db: Session, user_id: str) -> dict:
         "llm_api_key_masked": _mask_api_key(settings.llm_api_key),
         "llm_base_url": settings.llm_base_url,
         "llm_model": settings.llm_model,
+        "use_path_llm_override": settings.use_path_llm_override,
         "path_llm_provider": settings.path_llm_provider,
         "path_llm_api_key_masked": _mask_api_key(settings.path_llm_api_key),
         "path_llm_base_url": settings.path_llm_base_url,
@@ -53,7 +54,7 @@ def update_settings(
         settings = UserSettings(user_id=user_id)
         db.add(settings)
 
-    # Validate provider if provided
+    # ── Primary LLM config (shared by Agent + Path by default) ──
     if "llm_provider" in data and data["llm_provider"] is not None:
         provider_key = data["llm_provider"].strip().lower()
         if provider_key not in PROVIDERS:
@@ -74,7 +75,11 @@ def update_settings(
     if "llm_model" in data:
         settings.llm_model = data["llm_model"] or None
 
-    # Path LLM fields
+    # ── Path override toggle ──
+    if "use_path_llm_override" in data and data["use_path_llm_override"] is not None:
+        settings.use_path_llm_override = data["use_path_llm_override"]
+
+    # ── Path LLM override config (only used when use_path_llm_override=True) ──
     if "path_llm_provider" in data and data["path_llm_provider"] is not None:
         provider_key = data["path_llm_provider"].strip().lower()
         if provider_key not in PROVIDERS:
@@ -103,8 +108,42 @@ def update_settings(
         "llm_api_key_masked": _mask_api_key(settings.llm_api_key),
         "llm_base_url": settings.llm_base_url,
         "llm_model": settings.llm_model,
+        "use_path_llm_override": settings.use_path_llm_override,
         "path_llm_provider": settings.path_llm_provider,
         "path_llm_api_key_masked": _mask_api_key(settings.path_llm_api_key),
         "path_llm_base_url": settings.path_llm_base_url,
         "path_llm_model": settings.path_llm_model,
+    }
+
+
+def get_effective_llm_config(db: Session, user_id: str, *, for_path: bool = False) -> dict:
+    """Get the effective LLM config for Agent chat or Path generation.
+
+    If for_path=True and use_path_llm_override=True, returns path-specific config.
+    Otherwise returns the primary shared config.
+    """
+    settings = (
+        db.query(UserSettings)
+        .filter(UserSettings.user_id == user_id)
+        .first()
+    )
+
+    if not settings:
+        return {}
+
+    # If Path generation and override is enabled, use path-specific config
+    if for_path and settings.use_path_llm_override:
+        return {
+            "provider": settings.path_llm_provider or settings.llm_provider,
+            "api_key": settings.path_llm_api_key or settings.llm_api_key,
+            "base_url": settings.path_llm_base_url or settings.llm_base_url,
+            "model": settings.path_llm_model or settings.llm_model,
+        }
+
+    # Default: shared primary config
+    return {
+        "provider": settings.llm_provider,
+        "api_key": settings.llm_api_key,
+        "base_url": settings.llm_base_url,
+        "model": settings.llm_model,
     }

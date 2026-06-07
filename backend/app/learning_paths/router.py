@@ -296,6 +296,10 @@ def _build_path_rewards_preview(path, db=None) -> PathRewardsPreview | None:
             "projected_tier_name": projected_tier_info["tier_name_zh"],
         },
     )
+
+
+def _build_milestone_response(m) -> MilestoneResponse:
+    """Build a MilestoneResponse from a LearningPathMilestone ORM object."""
     skill_name = m.skill.name if m.skill else None
     return MilestoneResponse(
         id=m.id,
