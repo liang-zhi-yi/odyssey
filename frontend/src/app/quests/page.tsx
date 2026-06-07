@@ -8,16 +8,15 @@ import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
 import { skillService } from "@/services/skill.service";
 import { submissionService } from "@/services/submission.service";
-import { QuestCard } from "@/app/components/QuestCard";
+import { QuestCenterCard } from "@/app/components/QuestCenterCard";
+import { QuestStatusBadge } from "@/app/components/QuestStatusBadge";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
 import { DomainPicker } from "@/app/components/DomainPicker";
 import type { Skill } from "@/types/skill";
 import {
-  SUBMISSION_STATUS_LABELS,
   DIFFICULTY_LABELS,
-  QUEST_TYPE_LABELS,
   type QuestListItem,
   type UserQuest,
 } from "@/types/quest";
@@ -250,15 +249,15 @@ export default function QuestsPage() {
           return (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
             {filteredQuests.map((quest: QuestListItem) => (
-              <div key={quest.id} className="relative card-hover">
-                {acceptedQuestIds.has(quest.id) && (
-                  <span className="absolute -top-1 -right-1 z-10 rounded-full bg-success px-2 py-0.5 text-[10px] font-medium text-success-foreground shadow-sm">
-                    {SUBMISSION_STATUS_LABELS[
-                      userQuestMap.get(quest.id)?.status || "ACCEPTED"
-                    ] || "ACCEPTED"}
-                  </span>
-                )}
-                <QuestCard quest={quest} />
+              <div key={quest.id} className="card-hover">
+                <QuestCenterCard
+                  quest={quest}
+                  userQuest={
+                    acceptedQuestIds.has(quest.id)
+                      ? userQuestMap.get(quest.id)
+                      : undefined
+                  }
+                />
               </div>
             ))}
           </div>
@@ -304,15 +303,15 @@ export default function QuestsPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
               {recommendedQuests.map((quest: QuestListItem) => (
-                <div key={quest.id} className="relative card-hover">
-                  {acceptedQuestIds.has(quest.id) && (
-                    <span className="absolute -top-1 -right-1 z-10 rounded-full bg-success px-2 py-0.5 text-[10px] font-medium text-success-foreground shadow-sm">
-                      {SUBMISSION_STATUS_LABELS[
-                        userQuestMap.get(quest.id)?.status || "ACCEPTED"
-                      ] || "ACCEPTED"}
-                    </span>
-                  )}
-                  <QuestCard quest={quest} />
+                <div key={quest.id} className="card-hover">
+                  <QuestCenterCard
+                    quest={quest}
+                    userQuest={
+                      acceptedQuestIds.has(quest.id)
+                        ? userQuestMap.get(quest.id)
+                        : undefined
+                    }
+                  />
                 </div>
               ))}
             </div>
@@ -358,21 +357,7 @@ export default function QuestsPage() {
                     {/* Action buttons */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {/* Status badge */}
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          uq.status === "PASSED"
-                            ? "bg-success/10 text-success"
-                            : uq.status === "FAILED"
-                            ? "bg-destructive/10 text-destructive"
-                            : uq.status === "ASSESSING"
-                            ? "bg-warning/10 text-warning"
-                            : uq.status === "ABANDONED"
-                            ? "bg-muted/30 text-muted-foreground"
-                            : "bg-secondary text-muted-foreground"
-                        }`}
-                      >
-                        {t(`quests.status.${uq.status}` as any)}
-                      </span>
+                      <QuestStatusBadge status={uq.status} size="sm" />
 
                       {/* History button */}
                       <button
@@ -461,19 +446,10 @@ export default function QuestsPage() {
                                     {new Date(item.submitted_at).toLocaleDateString()}
                                   </span>
                                 )}
-                                <span
-                                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                    item.status === "PASSED"
-                                      ? "bg-success/10 text-success"
-                                      : item.status === "FAILED"
-                                      ? "bg-destructive/10 text-destructive"
-                                      : item.status === "ASSESSING"
-                                      ? "bg-warning/10 text-warning"
-                                      : "bg-secondary text-muted-foreground"
-                                  }`}
-                                >
-                                  {t(`quests.status.${item.status}` as any)}
-                                </span>
+                                <QuestStatusBadge
+                                  status={item.status as any}
+                                  size="sm"
+                                />
                               </div>
                             </div>
 

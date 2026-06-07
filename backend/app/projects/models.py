@@ -49,6 +49,9 @@ class Project(Base):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="projects")
+    related_skill: Mapped["Skill | None"] = relationship(
+        "Skill", foreign_keys=[related_skill_id]
+    )
     quest_submission: Mapped["QuestSubmission | None"] = relationship(
         "QuestSubmission", back_populates="projects"
     )

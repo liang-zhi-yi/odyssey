@@ -11,11 +11,14 @@ import { worldService } from "@/services/world.service";
 import { LearningPathCard } from "@/app/components/LearningPathCard";
 import { QuestCard } from "@/app/components/QuestCard";
 import { PathGeneratorForm } from "@/app/components/PathGeneratorForm";
+import { CivilizationPlanner } from "@/app/components/CivilizationPlanner";
+import { CivilizationStatsBar } from "@/app/components/CivilizationStatsBar";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
-import type { LearningPath, NextCheckpoint } from "@/types/learningPath";
+import type { LearningPath, NextCheckpoint, PathStatsSummary } from "@/types/learningPath";
 import type { QuestListItem, UserQuest } from "@/types/quest";
+import type { World, CivilizationDirection } from "@/types/world";
 
 type TabId = "my" | "preset" | "create" | "checkpoint";
 
@@ -87,12 +90,35 @@ export default function PathsPage() {
   );
 
   // Fetch world state for building pills on learning path cards
-  const { data: worldData } = useSWR(
+  const {
+    data: worldData,
+    isLoading: worldLoading,
+  } = useSWR<World | null>(
     isAuthenticated ? "world" : null,
     () => worldService.getWorld().catch(() => null),
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
   const worldBuildings = worldData?.buildings ?? [];
+
+  // Fetch civilization direction for planner
+  const {
+    data: directionData,
+    isLoading: directionLoading,
+  } = useSWR<CivilizationDirection | null>(
+    isAuthenticated ? "civilization-direction" : null,
+    () => worldService.getCivilizationDirection().catch(() => null),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+
+  // Fetch path stats summary for civilization overview bar
+  const {
+    data: pathStats,
+    isLoading: statsLoading,
+  } = useSWR<PathStatsSummary | null>(
+    isAuthenticated ? "path-stats-summary" : null,
+    () => learningPathService.getPathStatsSummary().catch(() => null),
+    { revalidateOnFocus: true, dedupingInterval: 30000 }
+  );
 
   const handleSelectPreset = useCallback(
     (pathId: string) => {
@@ -150,8 +176,11 @@ export default function PathsPage() {
       </div>
 
       {/* ── Tab: My Paths ──────────────────────────────────── */}
-      {activeTab === "my" &&
-        (userPathsLoading ? (
+      {activeTab === "my" && (
+        <>
+          {/* Civilization Stats Overview — only on My Paths tab */}
+          <CivilizationStatsBar stats={pathStats ?? null} isLoading={statsLoading} />
+          {userPathsLoading ? (
           <Loading variant="skeleton-cards" cardCount={4} />
         ) : userPathsError ? (
           <ErrorState message={t("paths.loadMyError")} />
@@ -168,7 +197,9 @@ export default function PathsPage() {
               </div>
             ))}
           </div>
-        ))}
+        )}
+        </>
+      )}
 
       {/* ── Tab: Preset Paths ──────────────────────────────── */}
       {activeTab === "preset" &&
@@ -195,9 +226,18 @@ export default function PathsPage() {
           </div>
         ))}
 
-      {/* ── Tab: Create Path ───────────────────────────────── */}
+      {/* ── Tab: Create Path (Civilization Planner) ──────────── */}
       {activeTab === "create" && (
-        <PathGeneratorForm onSuccess={handlePathCreated} />
+        <CivilizationPlanner
+          world={worldData ?? null}
+          direction={directionData ?? null}
+          isWorldLoading={worldLoading}
+          isDirectionLoading={directionLoading}
+          activePathsCount={(userPaths as LearningPath[]).filter(
+            (p) => p.status === "ACTIVE"
+          ).length}
+          onPathCreated={handlePathCreated}
+        />
       )}
 
       {/* ── Tab: Path Checkpoints ──────────────────────────── */}

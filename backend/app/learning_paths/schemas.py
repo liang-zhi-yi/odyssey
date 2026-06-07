@@ -92,8 +92,57 @@ class LearningPathResponse(BaseModel):
 
 class LearningPathDetailResponse(LearningPathResponse):
     milestones: list[MilestoneResponse] = []
+    roadmap_nodes: list["MilestoneNodeResponse"] = []
+    rewards_preview: "PathRewardsPreview | None" = None
 
     model_config = {"from_attributes": True}
+
+
+# ── Roadmap / Civilization Development View ─────────────────────────────
+
+class MilestoneNodeResponse(BaseModel):
+    """Roadmap node for the civilization development map view."""
+    id: UUID
+    title: str
+    title_en: str | None = None
+    order_sequence: int
+    estimated_hours: int = 4  # default 4 hours per milestone
+    status: str = "LOCKED"  # LOCKED | ACTIVE | COMPLETED
+    skill_name: str | None = None
+    associated_building: dict | None = None  # { name, name_en, icon, region }
+    progress_pct: int = 0  # 0–100
+    checkpoints: list[CheckpointResponse] | None = None
+
+
+class PathRewardsPreview(BaseModel):
+    """Preview of buildings that will be unlocked/upgraded after completing the path."""
+    buildings: list[dict] = []  # [{ name, icon, current_level, projected_level }]
+    civilization_level_projection: int | None = None
+    tier_projection: dict | None = None  # { current_tier, projected_tier }
+
+
+# ── Stats Summary ──────────────────────────────────────────────────────
+
+class PathStatsSummary(BaseModel):
+    """Top-level stats for the paths page civilization overview."""
+    civilization_level: int
+    civilization_name: str
+    era: str
+    era_icon: str
+    unlocked_buildings: int
+    total_buildings: int
+    completed_quests: int
+    total_skill_value: int  # sum of all UserSkill overall scores
+
+
+# ── AI Mentor ──────────────────────────────────────────────────────────
+
+class MentorSuggestionResponse(BaseModel):
+    """AI mentor panel suggestions."""
+    current_suggestion: str  # "You're close to upgrading 语言学院 — complete 2 more quests!"
+    recommended_quests: list[dict] = []  # [{ quest_id, title, skill_name, reward_summary }]
+    estimated_growth: dict | None = None  # { building_upgrades: [...], tier_projection: str }
+    actions: list[dict] = []  # [{ label, url, type: "continue" | "plan" | "chat" }]
 
 
 class CreateLearningPathRequest(BaseModel):

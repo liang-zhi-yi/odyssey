@@ -7,9 +7,121 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.quests.models import Quest
 from app.submissions.models import QuestSubmission
-from app.core.enums import SubmissionStatus
+from app.core.enums import SubmissionStatus, QuestDifficulty, QuestType
 from app.core.exceptions import ConflictException, NotFoundException
 
+
+# ── Reward calculation ──────────────────────────────────────────────────
+
+# Reward base values by difficulty level
+DIFFICULTY_REWARD_MAP = {
+    "LEVEL_1": {"knowledge": 5, "reasoning": 3, "application": 2, "creation": 2, "building_exp": 10, "civ": 30},
+    "LEVEL_2": {"knowledge": 8, "reasoning": 6, "application": 5, "creation": 4, "building_exp": 25, "civ": 60},
+    "LEVEL_3": {"knowledge": 12, "reasoning": 10, "application": 10, "creation": 8, "building_exp": 50, "civ": 120},
+    "LEVEL_4": {"knowledge": 18, "reasoning": 15, "application": 15, "creation": 12, "building_exp": 80, "civ": 200},
+}
+
+# Type multipliers adjust dimension weights based on quest_type
+QUEST_TYPE_MULTIPLIERS = {
+    "KNOWLEDGE": {"knowledge": 1.5, "reasoning": 0.8, "application": 0.5, "creation": 0.5},
+    "APPLICATION": {"knowledge": 0.8, "reasoning": 1.0, "application": 1.5, "creation": 0.7},
+    "PROJECT": {"knowledge": 1.0, "reasoning": 1.0, "application": 1.0, "creation": 1.0},
+    "MASTERY": {"knowledge": 1.2, "reasoning": 1.2, "application": 1.2, "creation": 1.5},
+}
+
+
+def calculate_reward_preview(difficulty: str, quest_type: str) -> dict:
+    """Calculate estimated reward preview for a quest.
+
+    Based on difficulty level and quest type, returns the 4-dimension
+    knowledge/reasoning/application/creation gains, building EXP, and
+    civilization contribution value.
+    """
+    base = DIFFICULTY_REWARD_MAP.get(difficulty, DIFFICULTY_REWARD_MAP["LEVEL_1"])
+    multipliers = QUEST_TYPE_MULTIPLIERS.get(quest_type, QUEST_TYPE_MULTIPLIERS["APPLICATION"])
+
+    return {
+        "knowledge": round(base["knowledge"] * multipliers.get("knowledge", 1.0)),
+        "reasoning": round(base["reasoning"] * multipliers.get("reasoning", 1.0)),
+        "application": round(base["application"] * multipliers.get("application", 1.0)),
+        "creation": round(base["creation"] * multipliers.get("creation", 1.0)),
+        "building_exp": base["building_exp"],
+        "civilization_contribution": base["civ"],
+    }
+
+
+def get_building_for_skill(db: Session, skill_id: str | UUID) -> dict | None:
+    """Resolve the BuildingTemplate associated with a skill."""
+    from app.world.models import BuildingTemplate
+    from app.skills.models import UserSkill
+
+    skill_id = UUID(str(skill_id)) if isinstance(skill_id, str) else skill_id
+    tpl = db.query(BuildingTemplate).filter(BuildingTemplate.skill_id == skill_id).first()
+    if not tpl:
+        return None
+
+    return {
+        "id": str(tpl.id),
+        "name": tpl.name,
+        "name_en": tpl.name_en,
+        "icon": tpl.icon,
+        "region": tpl.region,
+        "region_en": tpl.region_en,
+        "max_level": tpl.max_level,
+    }
+
+
+def get_building_context(db: Session, skill_id: str | UUID, user_id: str | UUID | None = None) -> dict | None:
+    """Get building context including current user level if available."""
+    from app.world.models import BuildingTemplate, UserBuilding
+    from app.skills.models import UserSkill
+
+    skill_id = UUID(str(skill_id)) if isinstance(skill_id, str) else skill_id
+    tpl = db.query(BuildingTemplate).filter(BuildingTemplate.skill_id == skill_id).first()
+    if not tpl:
+        return None
+
+    result = {
+        "id": str(tpl.id),
+        "name": tpl.name,
+        "name_en": tpl.name_en,
+        "icon": tpl.icon,
+        "region": tpl.region,
+        "region_en": tpl.region_en,
+        "max_level": tpl.max_level,
+    }
+
+    if user_id:
+        user_id = UUID(str(user_id)) if isinstance(user_id, str) else user_id
+        ub = db.query(UserBuilding).filter(
+            UserBuilding.user_id == user_id,
+            UserBuilding.building_template_id == tpl.id,
+        ).first()
+        us = db.query(UserSkill).filter(
+            UserSkill.user_id == user_id,
+            UserSkill.skill_id == skill_id,
+        ).first()
+
+        current_score = us.overall_score if us else 0
+        from app.world.upgrade_engine import score_to_level
+        next_thresholds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        next_level_at = None
+        for t in next_thresholds:
+            if current_score < t:
+                next_level_at = t
+                break
+
+        result.update({
+            "current_level": ub.level if ub else 1,
+            "current_score": current_score,
+            "next_level_at": next_level_at,
+            "status": ub.status.value if ub and hasattr(ub.status, 'value') else "LOCKED",
+        })
+
+    return result
+
+
+# ── CRUD ────────────────────────────────────────────────────────────────
 
 def get_quests(
     db: Session,

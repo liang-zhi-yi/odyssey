@@ -6,6 +6,9 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
+import { PathRoadmap } from "@/app/components/PathRoadmap";
+import { AIMentorPanel } from "@/app/components/AIMentorPanel";
+import { PathRewardsPreview } from "@/app/components/PathRewardsPreview";
 import { PathMilestoneList } from "@/app/components/PathMilestoneList";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -14,6 +17,7 @@ import {
   PATH_STATUS_LABELS,
   PATH_STATUS_LABELS_ZH,
   type LearningPathDetail,
+  type MentorSuggestion,
 } from "@/types/learningPath";
 
 export default function PathDetailPage() {
@@ -30,6 +34,7 @@ export default function PathDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [viewMode, setViewMode] = useState<"roadmap" | "milestones">("roadmap");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -46,6 +51,16 @@ export default function PathDetailPage() {
     isAuthenticated && pathId ? `learning-path-${pathId}` : null,
     () => learningPathService.getPath(pathId),
     { revalidateOnFocus: true }
+  );
+
+  // Fetch mentor suggestions
+  const {
+    data: mentorSuggestion,
+    isLoading: mentorLoading,
+  } = useSWR<MentorSuggestion | null>(
+    isAuthenticated && pathId ? `mentor-suggestions-${pathId}` : null,
+    () => learningPathService.getMentorSuggestions(pathId).catch(() => null),
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
 
   if (authLoading || !isAuthenticated) {
@@ -477,29 +492,130 @@ export default function PathDetailPage() {
           </div>
         </section>
       )}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">
-          {locale === "zh" ? "里程碑" : "Milestones"}
-        </h2>
-        {path.milestones.length === 0 ? (
-          <EmptyState
-            title={
-              locale === "zh" ? "暂无里程碑" : "No Milestones Yet"
-            }
-            description={
-              locale === "zh"
-                ? "AI 生成或预设路径将自动创建里程碑"
-                : "Milestones will be created automatically by AI generation or preset paths"
-            }
-          />
+      {/* ── View Toggle & Content ────────────────────────────── */}
+      <section className="space-y-4">
+        {/* View toggle */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            {locale === "zh" ? "发展路线图" : "Development Roadmap"}
+          </h2>
+          <div className="flex gap-1 rounded-lg bg-secondary p-0.5">
+            <button
+              onClick={() => setViewMode("roadmap")}
+              className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                viewMode === "roadmap"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {locale === "zh" ? "路线图" : "Roadmap"}
+            </button>
+            <button
+              onClick={() => setViewMode("milestones")}
+              className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                viewMode === "milestones"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {locale === "zh" ? "里程碑列表" : "List"}
+            </button>
+          </div>
+        </div>
+
+        {viewMode === "roadmap" ? (
+          /* ── Roadmap View ────────────────────────────────── */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main roadmap column */}
+            <div className="lg:col-span-2">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+                {path.roadmap_nodes && path.roadmap_nodes.length > 0 ? (
+                  <PathRoadmap nodes={path.roadmap_nodes} pathId={pathId} />
+                ) : path.milestones.length > 0 ? (
+                  /* Fallback: build basic roadmap nodes from milestones */
+                  <PathRoadmap
+                    nodes={path.milestones.map((m, idx) => ({
+                      id: m.id,
+                      title: m.title,
+                      title_en: m.title_en,
+                      order_sequence: m.order_sequence,
+                      estimated_hours: 4,
+                      status: m.is_completed
+                        ? "COMPLETED"
+                        : idx === path.milestones.filter((x) => x.is_completed).length
+                        ? "ACTIVE"
+                        : "LOCKED",
+                      skill_name: m.skill_name,
+                      associated_building: path.targeted_buildings?.[0]
+                        ? {
+                            id: path.targeted_buildings[0].building_id,
+                            name: path.targeted_buildings[0].building_name,
+                            name_en: path.targeted_buildings[0].building_name_en,
+                            icon: path.targeted_buildings[0].building_icon,
+                            region: path.targeted_buildings[0].region,
+                            region_en: path.targeted_buildings[0].region_en,
+                            max_level: path.targeted_buildings[0].max_level,
+                          }
+                        : null,
+                      progress_pct: m.is_completed ? 100 : 0,
+                      checkpoints: m.checkpoints,
+                    } as any))}
+                    pathId={pathId}
+                  />
+                ) : (
+                  <EmptyState
+                    title={
+                      locale === "zh" ? "暂无里程碑" : "No Milestones Yet"
+                    }
+                    description={
+                      locale === "zh"
+                        ? "AI 生成或预设路径将自动创建里程碑和路线图"
+                        : "Milestones and roadmap will be created automatically by AI generation or preset paths"
+                    }
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Side panel: AI Mentor */}
+            <div className="lg:col-span-1">
+              <AIMentorPanel
+                suggestion={mentorSuggestion ?? null}
+                isLoading={mentorLoading}
+                pathId={pathId}
+              />
+            </div>
+          </div>
         ) : (
-          <PathMilestoneList
-            pathId={pathId}
-            milestones={path.milestones}
-            onToggle={handleToggleMilestone}
-            targetedBuildings={path.targeted_buildings ?? null}
-          />
+          /* ── Classic Milestone List View ────────────────── */
+          <>
+            {path.milestones.length === 0 ? (
+              <EmptyState
+                title={
+                  locale === "zh" ? "暂无里程碑" : "No Milestones Yet"
+                }
+                description={
+                  locale === "zh"
+                    ? "AI 生成或预设路径将自动创建里程碑"
+                    : "Milestones will be created automatically by AI generation or preset paths"
+                }
+              />
+            ) : (
+              <PathMilestoneList
+                pathId={pathId}
+                milestones={path.milestones}
+                onToggle={handleToggleMilestone}
+                targetedBuildings={path.targeted_buildings ?? null}
+              />
+            )}
+          </>
         )}
+
+        {/* Path Rewards Preview (shown in both views) */}
+        <PathRewardsPreview
+          rewards={path.rewards_preview ?? null}
+          isLoading={false}
+        />
       </section>
     </div>
   );

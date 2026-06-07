@@ -29,6 +29,16 @@ export interface AssessmentCompleted {
   feedback: string | null;
   suggestions: string | null;
   justifications: Record<string, string> | null;
+  /** Pre-assessment scores for before/after comparison (Phase 5+) */
+  before_scores?: DimensionScores | null;
+}
+
+/** Score comparison for a single dimension — before vs after */
+export interface ScoreDelta {
+  dimension: keyof DimensionScores;
+  before: number;
+  after: number;
+  delta: number; // positive = growth, negative = decline (rare), zero = unchanged
 }
 
 /** Returned when assessment FAILED */

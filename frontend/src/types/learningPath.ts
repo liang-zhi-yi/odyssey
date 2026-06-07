@@ -81,6 +81,88 @@ export interface LearningPathMilestone {
 
 export interface LearningPathDetail extends LearningPath {
   milestones: LearningPathMilestone[];
+  roadmap_nodes: MilestoneNode[];
+  rewards_preview: PathRewardsPreview | null;
+}
+
+// ── Roadmap / Civilization Development View ──────────────────────
+
+export interface MilestoneNode {
+  id: string;
+  title: string;
+  title_en: string | null;
+  order_sequence: number;
+  estimated_hours: number;
+  status: "LOCKED" | "ACTIVE" | "COMPLETED";
+  skill_name: string | null;
+  associated_building: {
+    id: string;
+    name: string;
+    name_en: string | null;
+    icon: string;
+    region: string;
+    region_en: string | null;
+    max_level: number;
+  } | null;
+  progress_pct: number;
+  checkpoints: PathCheckpoint[] | null;
+}
+
+export interface PathRewardsPreview {
+  buildings: {
+    name: string;
+    name_en: string | null;
+    icon: string;
+    current_level: number;
+    current_score: number;
+    projected_level: number;
+    projected_score: number;
+    region: string;
+    max_level: number;
+  }[];
+  civilization_level_projection: number | null;
+  tier_projection: {
+    current_tier: string;
+    current_tier_name: string;
+    projected_tier: string;
+    projected_tier_name: string;
+  } | null;
+}
+
+// ── Stats Summary ────────────────────────────────────────────────
+
+export interface PathStatsSummary {
+  civilization_level: number;
+  civilization_name: string;
+  era: string;
+  era_icon: string;
+  unlocked_buildings: number;
+  total_buildings: number;
+  completed_quests: number;
+  total_skill_value: number;
+}
+
+// ── AI Mentor ────────────────────────────────────────────────────
+
+export interface MentorSuggestion {
+  current_suggestion: string;
+  recommended_quests: {
+    quest_id: string;
+    title: string;
+    skill_name: string | null;
+    difficulty: string;
+  }[];
+  estimated_growth: {
+    building_name: string;
+    building_icon: string;
+    current_level: number;
+    projected_level: number;
+  } | null;
+  actions: {
+    label: string;
+    url: string;
+    type: "continue" | "plan" | "chat";
+  }[];
 }
 
 export interface CreateLearningPathRequest {

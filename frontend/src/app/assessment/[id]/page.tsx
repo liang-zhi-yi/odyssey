@@ -47,11 +47,16 @@ export default function AssessmentPage() {
   const completedResult: AssessmentCompleted | null =
     data?.status === "COMPLETED" ? (data as AssessmentCompleted) : null;
 
+  // Extract before_scores for comparison (Phase 5+)
+  const beforeScores = completedResult?.before_scores ?? null;
+
   // Extract error from failed result
   const resultError =
     data?.status === "FAILED"
       ? (data as { error?: string | null }).error || t("assessment.failed")
       : error;
+
+  const isCompleted = completedResult != null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
@@ -59,9 +64,15 @@ export default function AssessmentPage() {
       <BackButton label={t("submission.backOneLevel")} />
 
       <div>
-        <h1 className="text-2xl font-bold">{t("assessment.title")}</h1>
+        <h1 className="text-2xl font-bold">
+          {isCompleted
+            ? t("assessment.completed") || "评估完成"
+            : t("assessment.title")}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {t("assessment.processingSubtitle")}
+          {isCompleted
+            ? t("assessment.completedSubtitle") || "你的能力已更新"
+            : t("assessment.processingSubtitle")}
         </p>
       </div>
 
@@ -70,6 +81,7 @@ export default function AssessmentPage() {
         elapsed={elapsed}
         result={completedResult}
         error={resultError}
+        beforeScores={beforeScores}
       />
     </div>
   );

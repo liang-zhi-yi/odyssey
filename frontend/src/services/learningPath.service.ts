@@ -10,6 +10,8 @@ import type {
   NextCheckpoint,
   UserMemoryEntry,
   UpsertMemoryRequest,
+  PathStatsSummary,
+  MentorSuggestion,
 } from "@/types/learningPath";
 
 export const learningPathService = {
@@ -89,5 +91,14 @@ export const learningPathService = {
 
   clearMemory(): Promise<void> {
     return api.delete("/memory");
+  },
+
+  // -- Stats & Mentor --
+  getPathStatsSummary(): Promise<PathStatsSummary> {
+    return api.get<PathStatsSummary>("/learning-paths/stats-summary");
+  },
+
+  getMentorSuggestions(pathId: string): Promise<MentorSuggestion> {
+    return api.get<MentorSuggestion>(`/learning-paths/${pathId}/mentor-suggestions`);
   },
 };

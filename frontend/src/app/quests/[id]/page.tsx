@@ -9,11 +9,12 @@ import { questService } from "@/services/quest.service";
 import { submissionService } from "@/services/submission.service";
 import { assessmentService } from "@/services/assessment.service";
 import { QuestDetail } from "@/app/components/QuestDetail";
+import { RewardBadge } from "@/app/components/RewardBadge";
+import { QuestStatusBadge } from "@/app/components/QuestStatusBadge";
 import { SubmissionForm } from "@/app/components/SubmissionForm";
 import { Loading } from "@/app/components/Loading";
 import { BackButton } from "@/app/components/BackButton";
 import type { QuestDetail as QuestDetailType } from "@/types/quest";
-import type { SubmissionDetail } from "@/types/submission";
 import type { SubmissionHistoryItem } from "@/types/submission";
 import { ApiRequestError } from "@/lib/api";
 
@@ -21,7 +22,7 @@ export default function QuestDetailPage() {
   const { id: questId } = useParams<{ id: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -177,6 +178,52 @@ export default function QuestDetailPage() {
         alreadyAccepted={alreadyAccepted && !isAbandoned}
       />
 
+      {/* ── Associated Building ──────────────────────── */}
+      {quest?.associated_building && (
+        <section>
+          <div className="rounded-xl border border-[#C4A77D]/20 bg-[#C4A77D]/5 p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">
+                {quest.associated_building.icon || "🏛️"}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">
+                  {t("quests.associatedBuilding") || "关联建筑"}
+                </p>
+                <p className="text-sm font-semibold text-[#8B7355]">
+                  {locale === "en" && quest.associated_building!.name_en
+                    ? quest.associated_building!.name_en
+                    : quest.associated_building!.name}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-muted-foreground">
+                  {t("world.level") || "等级"}
+                </p>
+                <p className="text-lg font-bold text-[#8B7355] tabular-nums">
+                  Lv.{quest.associated_building.current_level}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Reward Preview ────────────────────────────── */}
+      {quest?.reward_preview && (
+        <section>
+          <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">🎁</span>
+              <h3 className="text-sm font-semibold">
+                {t("quests.rewardPreview") || "预计收益"}
+              </h3>
+            </div>
+            <RewardBadge reward={quest.reward_preview} variant="expanded" />
+          </div>
+        </section>
+      )}
+
       {/* ── ABANDONED state ──────────────────────────── */}
       {isAbandoned && (
         <section>
@@ -307,17 +354,9 @@ export default function QuestDetailPage() {
         <section>
           <div className="rounded-xl border border-border bg-background p-6">
             <h2 className="text-lg font-semibold mb-2">{t("quests.submissionStatus")}</h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
               {t("quests.alreadySubmitted")}{" "}
-              <span
-                className={`font-medium ${
-                  isPassed
-                    ? "text-success"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {t(`quests.status.${userQuest!.status}` as any)}
-              </span>
+              <QuestStatusBadge status={userQuest!.status} size="sm" />
             </p>
           </div>
         </section>
@@ -350,17 +389,10 @@ export default function QuestDetailPage() {
                         {new Date(item.submitted_at).toLocaleDateString()}
                       </span>
                     )}
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        item.status === "PASSED"
-                          ? "bg-success/10 text-success"
-                          : item.status === "FAILED"
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-secondary text-muted-foreground"
-                      }`}
-                    >
-                      {t(`quests.status.${item.status}` as any)}
-                    </span>
+                    <QuestStatusBadge
+                      status={item.status as any}
+                      size="sm"
+                    />
                   </div>
                 </div>
               ))}

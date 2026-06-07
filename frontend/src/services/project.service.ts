@@ -13,4 +13,14 @@ export const projectService = {
   listProjects(): Promise<Project[]> {
     return api.get<Project[]>("/projects");
   },
+
+  /** Get a single project by ID with full enriched relations */
+  getProject(projectId: string): Promise<Project> {
+    return api.get<Project>(`/projects/${projectId}`);
+  },
+
+  /** Delete a project by ID */
+  deleteProject(projectId: string): Promise<void> {
+    return api.delete(`/projects/${projectId}`);
+  },
 };

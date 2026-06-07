@@ -12,6 +12,27 @@ export interface BuildingContext {
   next_level_at: number;
 }
 
+/** Associated building info (from enhanced quest detail / world-aware recommendations) */
+export interface AssociatedBuilding {
+  id: string;
+  name: string;
+  name_en: string | null;
+  icon: string;
+  current_level: number;
+  next_level_at?: number;
+  region?: string;
+}
+
+/** Estimated reward preview for completing a quest */
+export interface QuestRewardPreview {
+  knowledge: number;
+  reasoning: number;
+  application: number;
+  creation: number;
+  building_exp: number;
+  civilization_contribution: number;
+}
+
 export interface QuestListItem {
   id: string;
   title: string;
@@ -23,6 +44,10 @@ export interface QuestListItem {
   expected_deliverable: DeliverableType;
   /** Optional: building context from world-aware recommendations */
   building_context?: BuildingContext | null;
+  /** Enhanced: associated building info */
+  associated_building?: AssociatedBuilding | null;
+  /** Enhanced: reward preview */
+  reward_preview?: QuestRewardPreview | null;
 }
 
 export interface QuestDetail {
@@ -36,6 +61,10 @@ export interface QuestDetail {
   difficulty: QuestDifficulty;
   quest_type: QuestType;
   expected_deliverable: DeliverableType;
+  /** Enhanced: associated building */
+  associated_building?: AssociatedBuilding | null;
+  /** Enhanced: reward preview */
+  reward_preview?: QuestRewardPreview | null;
 }
 
 export interface AcceptQuestResponse {
