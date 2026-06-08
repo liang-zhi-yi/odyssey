@@ -32,9 +32,9 @@ export default function SkillsPage() {
   // ── State ──────────────────────────────────────────────────────
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  // Default: first domain expanded
+  // Default: all domains collapsed
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(
-    new Set(["ai", "engineering", "knowledge"])
+    new Set()
   );
 
   // ── Auth guard ─────────────────────────────────────────────────

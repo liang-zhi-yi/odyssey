@@ -350,3 +350,26 @@ export interface CivilizationDirection {
   summary: string;
   suggested_focus: string;
 }
+
+// ── Civilization domain grouping (shared across Skills & Quests pages) ───
+
+export interface CivilizationGroup {
+  key: string;
+  label: string;
+  labelEn: string;
+  icon: string;
+  domains: string[];
+}
+
+export const CIVILIZATION_GROUPS: CivilizationGroup[] = [
+  { key: "ai", label: "AI文明", labelEn: "AI Civilization", icon: "🤖", domains: ["AI"] },
+  { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "⚙️", domains: ["PROGRAMMING"] },
+  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "📚", domains: ["RESEARCH"] },
+  { key: "business", label: "商业文明", labelEn: "Business", icon: "💼", domains: ["BUSINESS"] },
+  { key: "design", label: "设计文明", labelEn: "Design", icon: "🎨", domains: ["DESIGN"] },
+  { key: "language", label: "语言文明", labelEn: "Language", icon: "🗣️", domains: ["LANGUAGE"] },
+  { key: "science", label: "科学文明", labelEn: "Science", icon: "🔬", domains: ["SCIENCE"] },
+  { key: "health", label: "健康文明", labelEn: "Health", icon: "💪", domains: ["HEALTH"] },
+  { key: "finance", label: "金融文明", labelEn: "Finance", icon: "💰", domains: ["FINANCE"] },
+  { key: "society", label: "社会文明", labelEn: "Society", icon: "🌐", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
+];

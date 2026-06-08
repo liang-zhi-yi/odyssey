@@ -363,7 +363,7 @@ export default function PersonalPage() {
             <div className="mb-4 pb-4 border-b border-border">
               <p className="text-lg font-bold text-foreground">
                 {displayName}{" "}
-                <span className="text-sm font-normal text-muted-foreground">Civilization</span>
+                <span className="text-sm font-normal text-muted-foreground">{locale === "en" ? "Civilization" : "文明"}</span>
               </p>
             </div>
             <div className="space-y-3">

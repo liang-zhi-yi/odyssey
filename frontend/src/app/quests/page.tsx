@@ -1,19 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
 import { skillService } from "@/services/skill.service";
-import { submissionService } from "@/services/submission.service";
 import { QuestCenterCard } from "@/app/components/QuestCenterCard";
 import { QuestStatusBadge } from "@/app/components/QuestStatusBadge";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
-import { DomainPicker } from "@/app/components/DomainPicker";
+import { CIVILIZATION_GROUPS } from "@/types/world";
 import type { Skill } from "@/types/skill";
 import {
   DIFFICULTY_LABELS,
@@ -21,14 +20,12 @@ import {
   type UserQuest,
   type CivilizationQuestGroup,
 } from "@/types/quest";
-import type { SubmissionHistoryItem } from "@/types/submission";
 
-type TabId = "all" | "recommended" | "mine" | "civilization";
+type TabId = "all" | "recommended" | "civilization";
 
 const TAB_KEYS: { id: TabId; key: string }[] = [
   { id: "all", key: "quests.allQuests" },
   { id: "recommended", key: "quests.dailyRecommendations" },
-  { id: "mine", key: "quests.myQuests" },
   { id: "civilization", key: "quests.civilizationQuests" },
 ];
 
@@ -38,15 +35,8 @@ export default function QuestsPage() {
   const router = useRouter();
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
-  const [domainFilter, setDomainFilter] = useState<string>("");
+  const [civFilter, setCivFilter] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabId>("all");
-
-  // My Quests management state
-  const [abandoningQuestId, setAbandoningQuestId] = useState<string | null>(null);
-  const [confirmAbandonQuestId, setConfirmAbandonQuestId] = useState<string | null>(null);
-  const [expandedHistoryQuestId, setExpandedHistoryQuestId] = useState<string | null>(null);
-  const [historyData, setHistoryData] = useState<Record<string, SubmissionHistoryItem[]>>({});
-  const [loadingHistory, setLoadingHistory] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -116,52 +106,28 @@ export default function QuestsPage() {
     userQuests.map((uq: UserQuest) => [uq.quest_id, uq])
   );
 
-  // Build skill_id → domain map for client-side domain filtering
+  // Build skill_id → domain map for client-side civilization filtering
   const skillDomainMap = new Map<string, string>(
     skills.map((s: Skill) => [s.id, s.domain])
   );
 
-  // Client-side domain filter helper
-  const filterByDomain = (list: QuestListItem[]) => {
-    if (!domainFilter) return list;
-    return list.filter((q) => skillDomainMap.get(q.skill_id) === domainFilter);
-  };
-
-  // ── Handlers for My Quests management ──────────────────
-  const handleAbandon = async (questId: string) => {
-    setAbandoningQuestId(questId);
-    try {
-      await questService.abandonQuest(questId);
-      await Promise.all([
-        mutate("user-quests"),
-        mutate("recommended-quests"),
-      ]);
-      setConfirmAbandonQuestId(null);
-    } finally {
-      setAbandoningQuestId(null);
+  // Build domain → civilization key map
+  const domainCivMap = new Map<string, string>();
+  for (const civ of CIVILIZATION_GROUPS) {
+    for (const domain of civ.domains) {
+      domainCivMap.set(domain, civ.key);
     }
-  };
+  }
 
-  const handleToggleHistory = async (questId: string) => {
-    if (expandedHistoryQuestId === questId) {
-      setExpandedHistoryQuestId(null);
-      return;
-    }
-    setExpandedHistoryQuestId(questId);
-    if (!historyData[questId]) {
-      setLoadingHistory(questId);
-      try {
-        const data = await submissionService.getSubmissionHistory(questId);
-        setHistoryData((prev) => ({ ...prev, [questId]: data }));
-      } finally {
-        setLoadingHistory(null);
-      }
-    }
+  // Client-side civilization filter helper
+  const filterByCiv = (list: QuestListItem[]) => {
+    if (!civFilter) return list;
+    return list.filter((q) => {
+      const domain = skillDomainMap.get(q.skill_id);
+      if (!domain) return false;
+      return domainCivMap.get(domain) === civFilter;
+    });
   };
-
-  // Resolve display name based on locale
-  const resolveLocalizedTitle = (uq: UserQuest) =>
-    locale === "en" && uq.quest_title_en ? uq.quest_title_en : uq.quest_title;
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
@@ -219,12 +185,12 @@ export default function QuestsPage() {
               ))}
             </select>
 
-            {(skillFilter || difficultyFilter || domainFilter) && (
+            {(skillFilter || difficultyFilter || civFilter) && (
               <button
                 onClick={() => {
                   setSkillFilter("");
                   setDifficultyFilter("");
-                  setDomainFilter("");
+                  setCivFilter("");
                 }}
                 className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
@@ -233,9 +199,38 @@ export default function QuestsPage() {
             )}
           </div>
 
-          {/* Domain filter pills */}
+          {/* Civilization type filter pills */}
           <div className="mt-2">
-            <DomainPicker selected={domainFilter} onChange={setDomainFilter} />
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+              <button
+                onClick={() => setCivFilter("")}
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                  civFilter === ""
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                }`}
+              >
+                {t("quests.filter.all")}
+              </button>
+              {CIVILIZATION_GROUPS.filter((civ) =>
+                skills.some((s) => civ.domains.includes(s.domain))
+              ).map((civ) => {
+                const isActive = civFilter === civ.key;
+                return (
+                  <button
+                    key={civ.key}
+                    onClick={() => setCivFilter(civ.key)}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                    }`}
+                  >
+                    {civ.icon} {locale === "en" ? civ.labelEn : civ.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </>
       )}
@@ -247,13 +242,13 @@ export default function QuestsPage() {
         ) : questsError ? (
           <ErrorState message={t("quests.loadQuestsError")} />
         ) : (() => {
-          const filteredQuests = filterByDomain(quests);
+          const filteredQuests = filterByCiv(quests);
           if (filteredQuests.length === 0) {
             return (
               <EmptyState
                 title={t("quests.noQuests")}
                 description={
-                  skillFilter || difficultyFilter || domainFilter
+                  skillFilter || difficultyFilter || civFilter
                     ? t("quests.tryAdjustFilter")
                     : t("quests.comingSoonMore")
                 }
@@ -332,219 +327,6 @@ export default function QuestsPage() {
           )}
         </>
       )}
-
-      {/* ── Tab: My Quests ─────────────────────────────────── */}
-      {activeTab === "mine" &&
-        (userQuestsLoading ? (
-          <Loading text={t("common.loading")} />
-        ) : userQuests.length === 0 ? (
-          <EmptyState
-            title={t("quests.noMyQuests")}
-            description={t("quests.browseQuestList")}
-            actionLabel={t("dashboard.browseQuests")}
-            actionHref="/quests"
-          />
-        ) : (
-          <div className="space-y-2">
-            {userQuests.map((uq: UserQuest) => {
-              const canAbandon =
-                uq.status === "ACCEPTED" || uq.status === "IN_PROGRESS";
-              const isExpanded = expandedHistoryQuestId === uq.quest_id;
-              const questHistory = historyData[uq.quest_id];
-
-              return (
-                <div key={uq.quest_id}>
-                  <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
-                    {/* Quest title + link */}
-                    <a
-                      href={`/quests/${uq.quest_id}`}
-                      className="flex-1 min-w-0 mr-4"
-                    >
-                      <h4 className="font-semibold text-sm truncate">
-                        {resolveLocalizedTitle(uq)}
-                      </h4>
-                      <span className="text-xs text-muted-foreground">
-                        {t("quests.attempt", { count: uq.submission_count })}
-                      </span>
-                    </a>
-
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Status badge */}
-                      <QuestStatusBadge status={uq.status} size="sm" />
-
-                      {/* History button */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleToggleHistory(uq.quest_id);
-                        }}
-                        className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                        title={t("quests.submissionHistory")}
-                      >
-                        {t("quests.viewHistory")}
-                      </button>
-
-                      {/* Abandon button — always visible to the right of history */}
-                      <div className="ml-2 pl-2 border-l border-border">
-                        {canAbandon ? (
-                          confirmAbandonQuestId === uq.quest_id ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleAbandon(uq.quest_id);
-                                }}
-                                disabled={abandoningQuestId === uq.quest_id}
-                                className="rounded-lg bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
-                              >
-                                {abandoningQuestId === uq.quest_id
-                                  ? t("settings.saving")
-                                  : t("common.confirm")}
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setConfirmAbandonQuestId(null);
-                                }}
-                                className="rounded-lg border border-border px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
-                              >
-                                {t("common.cancel")}
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setConfirmAbandonQuestId(uq.quest_id);
-                              }}
-                              className="rounded-lg border border-destructive/30 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors"
-                            >
-                              {t("quests.abandon")}
-                            </button>
-                          )
-                        ) : (
-                          <button
-                            disabled
-                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground/40 cursor-not-allowed"
-                            title={t("quests.cannotAbandon")}
-                          >
-                            {t("quests.abandon")}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expandable submission history */}
-                  {isExpanded && (
-                    <div className="mt-2 ml-4 border-l-2 border-border pl-4 py-2 space-y-3">
-                      {loadingHistory === uq.quest_id ? (
-                        <Loading text={t("common.loading")} />
-                      ) : questHistory && questHistory.length > 0 ? (
-                        questHistory.map((item, idx) => (
-                          <div
-                            key={item.submission_id}
-                            className="rounded-lg border border-border bg-secondary/20 p-3 space-y-2"
-                          >
-                            {/* Header: attempt number + status + date */}
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs font-semibold">
-                                {t("quests.attempt", {
-                                  count: questHistory.length - idx,
-                                })}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                {item.submitted_at && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(item.submitted_at).toLocaleDateString()}
-                                  </span>
-                                )}
-                                <QuestStatusBadge
-                                  status={item.status as any}
-                                  size="sm"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Submission content */}
-                            {item.content && (
-                              <div>
-                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                                  {t("quests.content")}
-                                </p>
-                                <p className="text-xs text-muted-foreground whitespace-pre-wrap bg-background rounded-md p-2 border border-border">
-                                  {item.content}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Assessment results */}
-                            {item.assessment && (
-                              <div className="rounded-md bg-background border border-border p-2.5 space-y-2">
-                                <p className="text-[10px] font-medium text-primary uppercase tracking-wider">
-                                  {t("assessment.title")}
-                                </p>
-                                {/* Scores */}
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-                                  {[
-                                    { label: t("skills.dimensions.knowledge"), score: item.assessment.knowledge_score },
-                                    { label: t("skills.dimensions.reasoning"), score: item.assessment.reasoning_score },
-                                    { label: t("skills.dimensions.application"), score: item.assessment.application_score },
-                                    { label: t("skills.dimensions.creation"), score: item.assessment.creation_score },
-                                    { label: t("assessment.overall"), score: item.assessment.overall_score },
-                                  ].map((dim) => (
-                                    <div
-                                      key={dim.label}
-                                      className="rounded bg-secondary/50 px-2 py-1 text-center"
-                                    >
-                                      <p className="text-[9px] text-muted-foreground truncate" title={dim.label}>
-                                        {dim.label}
-                                      </p>
-                                      <p className="text-xs font-bold tabular-nums">
-                                        {dim.score ?? "—"}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                                {/* Feedback */}
-                                {item.assessment.feedback && (
-                                  <div>
-                                    <p className="text-[10px] font-medium text-muted-foreground mb-0.5">
-                                      {t("assessment.feedback")}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                      {item.assessment.feedback}
-                                    </p>
-                                  </div>
-                                )}
-                                {/* Improvement suggestions */}
-                                {item.assessment.improvement_suggestions && (
-                                  <div>
-                                    <p className="text-[10px] font-medium text-muted-foreground mb-0.5">
-                                      {t("assessment.suggestions")}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                      {item.assessment.improvement_suggestions}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground py-2">
-                          {t("quests.noHistory")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
 
       {/* ── Tab: Civilization Quest Groups ──────────────────── */}
       {activeTab === "civilization" &&

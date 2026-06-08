@@ -294,6 +294,7 @@
     "noPathNode": "当前关卡暂无Quest",
     "noMyQuests": "你还没有接受任何Quest",
     "filter": {
+      "all": "全部",
       "allSkills": "全部技能",
       "allDifficulties": "全部难度",
       "clearFilter": "清除筛选"

@@ -294,6 +294,7 @@
     "noPathNode": "No Quests for current checkpoint",
     "noMyQuests": "You haven't accepted any Quests yet",
     "filter": {
+      "all": "All",
       "allSkills": "All Skills",
       "allDifficulties": "All Difficulties",
       "clearFilter": "Clear Filter"

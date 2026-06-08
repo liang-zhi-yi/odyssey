@@ -3,33 +3,11 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import type { Skill, UserSkill } from "@/types/skill";
-import type { World } from "@/types/world";
+import type { World, CivilizationGroup } from "@/types/world";
 import { RANK_LABELS } from "@/types/skill";
+import { CIVILIZATION_GROUPS } from "@/types/world";
 import { masteryColor } from "@/app/components/GrowthRing";
 import { useLocale } from "@/hooks/useLocale";
-
-// ── Civilization domain grouping ──────────────────────────────────
-
-interface CivilizationGroup {
-  key: string;
-  label: string;
-  labelEn: string;
-  icon: string;
-  domains: string[];
-}
-
-const CIVILIZATION_GROUPS: CivilizationGroup[] = [
-  { key: "ai", label: "AI文明", labelEn: "AI Civilization", icon: "🤖", domains: ["AI"] },
-  { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "⚙️", domains: ["PROGRAMMING"] },
-  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "📚", domains: ["RESEARCH"] },
-  { key: "business", label: "商业文明", labelEn: "Business", icon: "💼", domains: ["BUSINESS"] },
-  { key: "design", label: "设计文明", labelEn: "Design", icon: "🎨", domains: ["DESIGN"] },
-  { key: "language", label: "语言文明", labelEn: "Language", icon: "🗣️", domains: ["LANGUAGE"] },
-  { key: "science", label: "科学文明", labelEn: "Science", icon: "🔬", domains: ["SCIENCE"] },
-  { key: "health", label: "健康文明", labelEn: "Health", icon: "💪", domains: ["HEALTH"] },
-  { key: "finance", label: "金融文明", labelEn: "Finance", icon: "💰", domains: ["FINANCE"] },
-  { key: "society", label: "社会文明", labelEn: "Society", icon: "🌐", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
-];
 
 // ── Props ─────────────────────────────────────────────────────────
 
@@ -74,14 +52,8 @@ export function SkillTreeSidebar({
       return { ...group, skills: groupSkills };
     }).filter((g) => g.skills.length > 0);
 
-    // Sort: domain groups with selected skill first, then by skill count desc
-    return groups.sort((a, b) => {
-      const aHasSelected = a.skills.some((s) => s.id === selectedSkillId);
-      const bHasSelected = b.skills.some((s) => s.id === selectedSkillId);
-      if (aHasSelected && !bHasSelected) return -1;
-      if (!aHasSelected && bHasSelected) return 1;
-      return b.skills.length - a.skills.length;
-    });
+    // Sort: stable sort by skill count desc (no reordering on selection)
+    return groups.sort((a, b) => b.skills.length - a.skills.length);
   }, [skills, selectedSkillId]);
 
   // Filter domains/skills by search query
