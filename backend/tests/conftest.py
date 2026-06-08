@@ -42,7 +42,7 @@ from app.main import app
 from app.core.security import create_access_token, hash_password
 from app.auth.models import User
 from app.skills.models import Skill, UserSkill
-from app.paths.models import Path
+
 from app.quests.models import Quest
 from app.core.enums import QuestDifficulty, QuestType, DeliverableType, SkillRank
 from app.credentials.models import Credential
@@ -165,14 +165,6 @@ def seeded_user_skills(db: Session, seeded_user: User, seeded_skills: dict) -> d
         mapping[name] = us
     db.commit()
     return mapping
-
-
-@pytest.fixture
-def seeded_path(db: Session) -> Path:
-    path = Path(name="Agent Engineer", description="...", difficulty=3, is_official=True)
-    db.add(path)
-    db.commit()
-    return db.query(Path).filter(Path.id == path.id).first()
 
 
 @pytest.fixture
