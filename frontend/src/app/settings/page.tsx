@@ -11,63 +11,7 @@ import { Loading } from "@/app/components/Loading";
 import { learningPathService } from "@/services/learningPath.service";
 import type { UserMemoryEntry } from "@/types/learningPath";
 
-type TabId = "profile" | "password" | "preferences" | "memory" | "data";
-
-function DataExportPanel() {
-  const { t } = useLocale();
-  const [exporting, setExporting] = useState<string | null>(null);
-
-  const handleExport = async (endpoint: string, filename: string) => {
-    setExporting(endpoint);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/v1${endpoint}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error("Export failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {
-      // Silently fail
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  return (
-    <div className="rounded-xl border border-border bg-background p-6">
-      <h2 className="text-lg font-semibold mb-4">{t("settings.data")}</h2>
-      <p className="text-sm text-muted-foreground mb-4">{t("export.title")}</p>
-      <div className="flex flex-col gap-3">
-        <button
-          onClick={() => handleExport("/export/passport", "odyssey-passport.json")}
-          disabled={exporting !== null}
-          className="rounded-lg border border-border bg-secondary/50 px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-50"
-        >
-          {exporting === "/export/passport"
-            ? t("export.exporting")
-            : t("export.exportPassport")}
-        </button>
-        <button
-          onClick={() => handleExport("/export/data", "odyssey-data.json")}
-          disabled={exporting !== null}
-          className="rounded-lg border border-border bg-secondary/50 px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-50"
-        >
-          {exporting === "/export/data"
-            ? t("export.exporting")
-            : t("export.exportAllData")}
-        </button>
-      </div>
-    </div>
-  );
-}
+type TabId = "profile" | "preferences" | "memory";
 
 function MemoryBankPanel() {
   const { t, locale } = useLocale();
@@ -278,10 +222,8 @@ export default function SettingsPage() {
       <div className="flex gap-1 rounded-xl border border-border bg-secondary p-1 w-fit flex-wrap">
         {([
           ["profile", "\u{1F464}", t("settings.profile")],
-          ["password", "\u{1F512}", t("settings.password")],
           ["preferences", "⚙️", t("settings.preferences")],
           ["memory", "\u{1F9E0}", t("settings.tabs.memory")],
-          ["data", "\u{1F4BE}", t("settings.data")],
         ] as [TabId, string, string][]).map(([id, emoji, label]) => (
           <button
             key={id}
@@ -298,18 +240,16 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {/* Profile tab */}
+      {/* Profile tab — includes password change */}
       {activeTab === "profile" && (
-        <div className="rounded-xl border border-border bg-background p-6">
-          <h2 className="text-lg font-semibold mb-4">{t("settings.profile")}</h2>
-          <ProfileForm />
-        </div>
-      )}
-
-      {/* Password tab */}
-      {activeTab === "password" && (
-        <div className="rounded-xl border border-border bg-background p-6">
-          <PasswordChangeForm />
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-background p-6">
+            <h2 className="text-lg font-semibold mb-4">{t("settings.profile")}</h2>
+            <ProfileForm />
+          </div>
+          <div className="rounded-xl border border-border bg-background p-6">
+            <PasswordChangeForm />
+          </div>
         </div>
       )}
 
@@ -334,8 +274,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Data tab */}
-      {activeTab === "data" && <DataExportPanel />}
     </div>
   );
 }

@@ -38,6 +38,9 @@ export default function QuestDetailPage() {
   const [abandonError, setAbandonError] = useState<string | null>(null);
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   const [isAbandoning, setIsAbandoning] = useState(false);
+  // Last successful submission_id — used to retry assessment trigger on failure
+  const [lastSubmissionId, setLastSubmissionId] = useState<string | null>(null);
+  const [isRetryingAssessment, setIsRetryingAssessment] = useState(false);
 
   // ── Fetch quest detail ─────────────────────────────
   const {
@@ -129,16 +132,28 @@ export default function QuestDetailPage() {
     }) => {
       setIsSubmitting(true);
       setSubmitError(null);
+      setLastSubmissionId(null);
       try {
         const res = await submissionService.submit(data);
 
         // Trigger assessment
-        const assessment = await assessmentService.runAssessment({
-          submission_id: res.submission_id,
-        });
-
-        // Navigate to assessment page for polling
-        router.push(`/assessment/${assessment.assessment_id}`);
+        try {
+          const assessment = await assessmentService.runAssessment({
+            submission_id: res.submission_id,
+          });
+          // Navigate to assessment page for polling
+          router.push(`/assessment/${assessment.assessment_id}`);
+          return;
+        } catch (assessmentErr) {
+          // Submission succeeded but assessment trigger failed —
+          // store the submission_id so the user can retry without re-submitting
+          setLastSubmissionId(res.submission_id);
+          const message =
+            assessmentErr instanceof ApiRequestError
+              ? assessmentErr.message
+              : t("common.error");
+          setSubmitError(message);
+        }
       } catch (err) {
         const message =
           err instanceof ApiRequestError
@@ -151,6 +166,27 @@ export default function QuestDetailPage() {
     },
     [router, t]
   );
+
+  // ── Handle retry assessment (submission OK, assessment failed) ─
+  const handleRetryAssessment = useCallback(async () => {
+    if (!lastSubmissionId) return;
+    setIsRetryingAssessment(true);
+    setSubmitError(null);
+    try {
+      const assessment = await assessmentService.runAssessment({
+        submission_id: lastSubmissionId,
+      });
+      router.push(`/assessment/${assessment.assessment_id}`);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError
+          ? err.message
+          : t("common.error");
+      setSubmitError(message);
+    } finally {
+      setIsRetryingAssessment(false);
+    }
+  }, [lastSubmissionId, router, t]);
 
   // ── Render ─────────────────────────────────────────
   if (authLoading || !isAuthenticated) {
@@ -260,7 +296,7 @@ export default function QuestDetailPage() {
         </section>
       )}
 
-      {/* ── FAILED state — retry ─────────────────────── */}
+      {/* ── FAILED state — retry or abandon ─────────── */}
       {isFailed && (
         <section>
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 mb-6">
@@ -287,25 +323,36 @@ export default function QuestDetailPage() {
             </div>
           </div>
 
-          {/* Retry submission form */}
-          <div className="rounded-xl border border-border bg-background p-6">
-            <h2 className="text-lg font-semibold mb-4">{t("quests.submitWork")}</h2>
-            <SubmissionForm
-              questId={questId}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              error={submitError}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* ── ACTIVE (ACCEPTED / IN_PROGRESS) state ─────── */}
-      {isActive && (
-        <>
-          {/* Submission form */}
-          <section>
-            <div className="rounded-xl border border-border bg-background p-6">
+          {/* If submission succeeded but assessment trigger failed — retry just the assessment */}
+          {lastSubmissionId ? (
+            <div className="rounded-xl border border-warning/30 bg-warning/5 p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <span className="text-lg mt-0.5">⚠️</span>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm">
+                    {t("quests.submissionSaved") || "提交已保存"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t("quests.assessmentTriggerFailed") || "评估触发失败，你可以重试评估"}
+                  </p>
+                  {submitError && (
+                    <p className="text-sm text-destructive mt-1">{submitError}</p>
+                  )}
+                  <button
+                    onClick={handleRetryAssessment}
+                    disabled={isRetryingAssessment}
+                    className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {isRetryingAssessment
+                      ? t("settings.saving")
+                      : t("quests.retryAssessment") || "重试评估"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Retry submission form */
+            <div className="rounded-xl border border-border bg-background p-6 mb-6">
               <h2 className="text-lg font-semibold mb-4">{t("quests.submitWork")}</h2>
               <SubmissionForm
                 questId={questId}
@@ -314,7 +361,97 @@ export default function QuestDetailPage() {
                 error={submitError}
               />
             </div>
+          )}
+
+          {/* Abandon button for FAILED quests */}
+          <section>
+            {!showAbandonConfirm ? (
+              <button
+                onClick={() => setShowAbandonConfirm(true)}
+                className="rounded-lg border border-destructive/30 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+              >
+                {t("quests.abandon")}
+              </button>
+            ) : (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                <p className="text-sm mb-3">{t("quests.confirmAbandon")}</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAbandon}
+                    disabled={isAbandoning}
+                    className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {isAbandoning ? t("settings.saving") : t("common.confirm")}
+                  </button>
+                  <button
+                    onClick={() => setShowAbandonConfirm(false)}
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
+        </section>
+      )}
+
+      {/* ── ACTIVE (ACCEPTED / IN_PROGRESS) state ─────── */}
+      {isActive && (
+        <>
+          {/* Submission form — or retry assessment if submit was OK but assessment failed */}
+          {lastSubmissionId ? (
+            <section>
+              <div className="rounded-xl border border-warning/30 bg-warning/5 p-6">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg mt-0.5">⚠️</span>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm">
+                      {t("quests.submissionSaved") || "提交已保存"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("quests.assessmentTriggerFailed") || "评估触发失败，你可以重试评估"}
+                    </p>
+                    {submitError && (
+                      <p className="text-sm text-destructive mt-1">{submitError}</p>
+                    )}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={handleRetryAssessment}
+                        disabled={isRetryingAssessment}
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                      >
+                        {isRetryingAssessment
+                          ? t("settings.saving")
+                          : t("quests.retryAssessment") || "重试评估"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setLastSubmissionId(null);
+                          setSubmitError(null);
+                        }}
+                        className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                      >
+                        {t("quests.resubmit") || "重新提交"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <section>
+              <div className="rounded-xl border border-border bg-background p-6">
+                <h2 className="text-lg font-semibold mb-4">{t("quests.submitWork")}</h2>
+                <SubmissionForm
+                  questId={questId}
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  error={submitError}
+                />
+              </div>
+            </section>
+          )}
 
           {/* Abandon button */}
           <section>

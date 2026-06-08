@@ -28,12 +28,15 @@ def submit_quest(
         NotFoundException: If the quest hasn't been accepted yet.
         ConflictException: If already submitted.
     """
+    # Get the most recent submission (handles retry scenarios where
+    # multiple submission rows exist for the same user+quest)
     submission = (
         db.query(QuestSubmission)
         .filter(
             QuestSubmission.user_id == user_id,
             QuestSubmission.quest_id == quest_id,
         )
+        .order_by(QuestSubmission.submitted_at.desc().nullslast())
         .first()
     )
     if submission is None:

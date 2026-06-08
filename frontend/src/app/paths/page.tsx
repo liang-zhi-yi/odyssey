@@ -16,11 +16,10 @@ import { EmptyState } from "@/app/components/EmptyState";
 import type { LearningPath, PathStatsSummary } from "@/types/learningPath";
 import type { World, CivilizationDirection } from "@/types/world";
 
-type TabId = "my" | "preset" | "create";
+type TabId = "my" | "create";
 
 const TABS: { id: TabId; key: string }[] = [
   { id: "my", key: "paths.tabs.my" },
-  { id: "preset", key: "paths.tabs.preset" },
   { id: "create", key: "paths.tabs.create" },
 ];
 
@@ -45,16 +44,6 @@ export default function PathsPage() {
   } = useSWR(
     isAuthenticated && activeTab === "my" ? "user-learning-paths" : null,
     () => learningPathService.listPaths().catch(() => [])
-  );
-
-  // Fetch preset paths
-  const {
-    data: presetPaths = [],
-    isLoading: presetPathsLoading,
-    error: presetPathsError,
-  } = useSWR(
-    isAuthenticated && activeTab === "preset" ? "preset-learning-paths" : null,
-    () => learningPathService.listPresetPaths().catch(() => [])
   );
 
   // Fetch world state for building pills on learning path cards
@@ -86,13 +75,6 @@ export default function PathsPage() {
     isAuthenticated ? "path-stats-summary" : null,
     () => learningPathService.getPathStatsSummary().catch(() => null),
     { revalidateOnFocus: true, dedupingInterval: 30000 }
-  );
-
-  const handleSelectPreset = useCallback(
-    (pathId: string) => {
-      router.push(`/paths/${pathId}`);
-    },
-    [router]
   );
 
   const handlePathCreated = useCallback(
@@ -160,31 +142,6 @@ export default function PathsPage() {
         )}
         </>
       )}
-
-      {/* ── Tab: Preset Paths ──────────────────────────────── */}
-      {activeTab === "preset" &&
-        (presetPathsLoading ? (
-          <Loading variant="skeleton-cards" cardCount={4} />
-        ) : presetPathsError ? (
-          <ErrorState message={t("paths.loadPresetError")} />
-        ) : presetPaths.length === 0 ? (
-          <EmptyState
-            title={t("paths.noAvailablePaths")}
-            description={t("paths.comingSoon")}
-          />
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
-            {presetPaths.map((path: LearningPath) => (
-              <div key={path.id} className="card-hover">
-                <LearningPathCard
-                  path={path}
-                  onSelect={handleSelectPreset}
-                  worldBuildings={worldBuildings}
-                />
-              </div>
-            ))}
-          </div>
-        ))}
 
       {/* ── Tab: Create Path (Civilization Planner) ──────────── */}
       {activeTab === "create" && (

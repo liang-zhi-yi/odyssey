@@ -18,6 +18,20 @@ from app.learning_paths.memory import build_memory_context
 
 logger = logging.getLogger(__name__)
 
+# Available skills in the system (for skill_name matching in path generation)
+_AVAILABLE_SKILLS = [
+    "Reading", "Research", "Learning", "Memory", "Info Retrieval",
+    "Prompt Engineering", "RAG", "Agent", "LangGraph", "Workflow Design",
+    "Python", "Frontend", "Backend", "Architecture", "Automation",
+    "Marketing", "Product Strategy", "Business", "Sales",
+    "UI Design", "UX Design", "Branding", "Design", "Creativity",
+    "Management", "Leadership", "Communication", "Negotiation",
+    "Science", "Data Analysis", "Statistics",
+    "Language", "Writing", "Translation",
+    "Health", "Fitness", "Nutrition",
+    "Finance", "Investing", "Accounting",
+]
+
 # -- Path generation system prompt --
 
 _PATH_SYSTEM_PROMPT = """You are an expert civilization development architect for the Odyssey platform. Your task is to design a detailed "Civilization Development Route" (文明发展路线) for a user's growth goal.
@@ -71,7 +85,8 @@ Rules (CRITICAL — violations will be rejected):
 - estimated_hours between 1 and 8 per checkpoint (be realistic)
 - Bilingual: title/description in Chinese, title_en/description_en in English
 - order_sequence starts at 0 for each level within its parent
-- skill_name should match existing skills in the system when possible
+- skill_name should match one of the available skills listed below when possible (use exact English name). If no exact match, leave null.
+- Available skills: """ + ", ".join(_AVAILABLE_SKILLS) + """
 - building_target should reference real Odyssey buildings (e.g. AI研究院, 知识殿堂, 自动化工厂, 设计工坊, 语言学院, 研究院, 图书馆, 训练场)
 - required_score between 50 and 80
 - civilization_type must be one of the listed values
@@ -242,13 +257,44 @@ def _build_quest_message(
     return "\n\n".join(parts)
 
 
+# ── Civilization type inference from goal keywords ──────────────────────
+# Maps Chinese/English keywords from user goals to civilization types.
+# Used both by the LLM prompt and as a fallback when LLM is unavailable.
+_CIV_KEYWORD_MAP: list[tuple[list[str], str]] = [
+    (["AI", "人工智能", "机器学习", "深度学习", "大模型", "LLM", "agent", "智能体", "prompt", "神经网络", "模型训练", "RAG"], "AI"),
+    (["编程", "代码", "开发", "软件", "前端", "后端", "全栈", "工程", "architecture", "automation", "python", "javascript", "react", "vue", "devops", "rust", "golang"], "ENGINEERING"),
+    (["知识", "学习", "阅读", "记忆", "研究", "research", "reading", "learning", "笔记", "思维"], "KNOWLEDGE"),
+    (["商业", "创业", "营销", "销售", "产品", "市场", "business", "marketing", "sales", "product", "策略"], "BUSINESS"),
+    (["设计", "UI", "UX", "品牌", "创意", "视觉", "design", "branding", "creative", "color", "typography"], "DESIGN"),
+    (["社交", "管理", "领导", "沟通", "团队", "组织", "management", "leadership", "communication", "谈判"], "SOCIAL"),
+    (["科学", "物理", "化学", "生物", "数学", "science", "physics", "chemistry", "biology", "math", "数据分析", "统计"], "SCIENCE"),
+    (["语言", "英语", "日语", "法语", "翻译", "language", "english", "japanese", "translation", "写作", "口语"], "LANGUAGE"),
+    (["健康", "体育", "运动", "健身", "跑步", "游泳", "瑜伽", "饮食", "营养", "health", "fitness", "sport", "exercise", "nutrition", "workout", "gym", "篮球", "足球"], "HEALTH"),
+    (["金融", "投资", "理财", "财务", "会计", "finance", "investing", "accounting", "wealth", "股票", "基金", "经济"], "FINANCE"),
+]
+
+
+def _infer_civilization_type(title: str, description: str | None = None) -> str:
+    """Infer the best civilization type from the user's goal text."""
+    combined = f"{title} {description or ''}".lower()
+    best_type = "KNOWLEDGE"  # default
+    best_score = 0
+    for keywords, civ_type in _CIV_KEYWORD_MAP:
+        score = sum(1 for kw in keywords if kw.lower() in combined)
+        if score > best_score:
+            best_score = score
+            best_type = civ_type
+    return best_type
+
+
 def _fallback_path(title: str, description: str | None = None) -> dict:
     """Generate a rich 4-stage civilization development route when LLM is unavailable."""
+    civ_type = _infer_civilization_type(title, description)
     return {
         "path_summary": f"一条系统的文明发展路线，从{title}基础认知到文明建设，共4个阶段",
         "difficulty": 2,
         "estimated_weeks": 8,
-        "civilization_type": "AI",
+        "civilization_type": civ_type,
         "milestones": [
             {
                 "title": f"阶段1：{title}基础认知",

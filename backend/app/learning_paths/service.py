@@ -2,6 +2,7 @@
 Learning Paths service -- business logic for CRUD, AI generation, progress tracking.
 """
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -13,6 +14,7 @@ from app.learning_paths.models import (
     PathCheckpoint,
     LearningPathQuest,
 )
+from app.database import _get_session_local
 from app.learning_paths.ai_generator import generate_learning_path, generate_path_quests
 from app.learning_paths.memory import build_memory_context, record_interaction
 from app.settings.models import UserSettings
@@ -187,23 +189,42 @@ def generate_path_structure(
     db.commit()
     db.refresh(path)
 
-    # Auto-generate quests for each checkpoint
+    # Auto-generate quests for each checkpoint in parallel
+    # Each thread gets its own DB session for thread safety
     quests_total = 0
-    for ms_id, cp_id in checkpoint_ids:
+
+    def _gen_quests_for_checkpoint(ms_id: str, cp_id: str) -> int:
+        """Generate quests for one checkpoint in its own DB session."""
+        thread_db = _get_session_local()()
         try:
             qr = _generate_checkpoint_quests_internal(
-                db, path_id, ms_id, cp_id, user_id
+                thread_db, path_id, ms_id, cp_id, user_id
             )
-            quests_total += qr.get("quests_generated", 0)
+            return qr.get("quests_generated", 0)
         except Exception as exc:
             logger.warning(
                 "Failed to auto-generate quests for checkpoint %s: %s", cp_id, exc
             )
-            # Rollback the broken session so subsequent checkpoints can proceed
-            try:
-                db.rollback()
-            except Exception:
-                pass
+            return 0
+        finally:
+            thread_db.close()
+
+    if checkpoint_ids:
+        # Use up to 4 parallel threads for quest generation
+        max_workers = min(4, len(checkpoint_ids))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_gen_quests_for_checkpoint, ms_id, cp_id): cp_id
+                for ms_id, cp_id in checkpoint_ids
+            }
+            for future in as_completed(futures):
+                cp_id = futures[future]
+                try:
+                    quests_total += future.result()
+                except Exception as exc:
+                    logger.warning(
+                        "Quest generation future failed for checkpoint %s: %s", cp_id, exc
+                    )
 
     # Record interaction
     record_interaction(
@@ -615,11 +636,49 @@ def _get_user_path(db: Session, path_id: str, user_id: str) -> LearningPath:
 
 
 def _resolve_skill_id(db: Session, skill_name: str | None) -> UUID | None:
-    """Resolve a skill name to its UUID. Returns None if not found."""
+    """Resolve a skill name to its UUID with fuzzy matching.
+
+    Tries multiple strategies in order:
+    1. Exact case-insensitive match
+    2. First-word match (e.g. "Python Programming" matches "Python")
+    3. Partial substring match either direction
+    4. Fallback to first available skill in the system
+    """
     if not skill_name:
         return None
-    skill = db.query(Skill).filter(Skill.name.ilike(skill_name.strip())).first()
-    return skill.id if skill else None
+    skill_name = skill_name.strip()
+
+    # Strategy 1: Exact case-insensitive match
+    skill = db.query(Skill).filter(Skill.name.ilike(skill_name)).first()
+    if skill:
+        return skill.id
+
+    # Strategy 2: First-word match
+    first_word = skill_name.split()[0]
+    if len(first_word) >= 2:
+        skill = db.query(Skill).filter(Skill.name.ilike(first_word)).first()
+        if skill:
+            return skill.id
+
+    # Strategy 3: Partial substring match (skill name contains query)
+    skill = db.query(Skill).filter(Skill.name.ilike(f"%{skill_name}%")).first()
+    if skill:
+        return skill.id
+
+    # Strategy 4: Query contains skill name (reverse partial)
+    for s in db.query(Skill).all():
+        if s.name.lower() in skill_name.lower():
+            return s.id
+
+    # Strategy 5: Fallback to first available skill
+    skill = db.query(Skill).first()
+    if skill:
+        logger.info(
+            "No matching skill found for '%s', falling back to '%s'", skill_name, skill.name
+        )
+        return skill.id
+
+    return None
 
 
 def _resolve_building_target_id(db: Session, building_name: str | None) -> UUID | None:

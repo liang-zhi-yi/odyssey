@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -389,6 +389,17 @@ const CIV_BG_COLORS: Record<string, string> = {
   FINANCE: "bg-[#C4A77D]/10 border-[#C4A77D]/20",
 };
 
+/** Status-aware left border color — overrides civ color when user has quest status */
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  PASSED: "border-l-success",
+  FAILED: "border-l-destructive",
+  ACCEPTED: "border-l-primary",
+  IN_PROGRESS: "border-l-primary",
+  SUBMITTED: "border-l-warning",
+  ASSESSING: "border-l-warning",
+  ABANDONED: "border-l-muted-foreground/30",
+};
+
 function CivilizationQuestSection({
   group,
   locale,
@@ -402,24 +413,44 @@ function CivilizationQuestSection({
   acceptedQuestIds: Set<string>;
   userQuestMap: Map<string, UserQuest>;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const displayLabel =
     locale === "en" && group.label_en ? group.label_en : group.label;
   const borderColor = CIV_COLORS[group.civilization_type] ?? "border-l-[#8B9D83]";
   const bgColor = CIV_BG_COLORS[group.civilization_type] ?? "bg-[#8B9D83]/10 border-[#8B9D83]/20";
+  const toggleExpanded = useCallback(() => setIsExpanded((v) => !v), []);
+
+  // Compute stats for collapsed summary
+  const questsWithStatus = group.quests.filter((q) => acceptedQuestIds.has(q.id)).length;
+  const totalCivIndex = group.quests.reduce((sum, q) => sum + (q.reward_preview?.civilization_contribution ?? 0), 0);
 
   return (
     <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-      {/* Civilization header */}
-      <div className={`flex items-center gap-3 px-5 py-4 border-b border-border ${bgColor}`}>
+      {/* Civilization header — clickable to toggle collapse */}
+      <button
+        type="button"
+        onClick={toggleExpanded}
+        className={`w-full flex items-center gap-3 px-5 py-4 border-b border-border ${bgColor} text-left cursor-pointer hover:opacity-90 transition-opacity`}
+      >
         <span className="text-2xl">{group.icon}</span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-bold text-foreground">
-            {displayLabel}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {group.count}{" "}
-            {locale === "en" ? "quests available" : "个任务"}
-          </p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground">
+              {displayLabel}
+            </h3>
+            {/* Task count badge */}
+            <span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-[11px] font-semibold text-foreground/70">
+              {group.count}{" "}
+              <span className="text-muted-foreground font-normal">
+                {locale === "en" ? "quests" : "个任务"}
+              </span>
+            </span>
+          </div>
+          {!isExpanded && questsWithStatus > 0 && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {locale === "en" ? `${questsWithStatus} in progress` : `${questsWithStatus} 个进行中`}
+            </p>
+          )}
         </div>
         {/* Civilization contribution indicator */}
         <div className="shrink-0 rounded-full bg-amber-50/60 border border-amber-200/50 px-3 py-1.5 text-center">
@@ -427,120 +458,137 @@ function CivilizationQuestSection({
             {locale === "en" ? "Civ Index" : "文明指数"}
           </p>
           <p className="text-sm font-bold text-amber-800 tabular-nums">
-            +{group.quests.reduce((sum, q) => sum + (q.reward_preview?.civilization_contribution ?? 0), 0)}
+            +{totalCivIndex}
           </p>
         </div>
-      </div>
+        {/* Collapse chevron */}
+        <span className={`text-lg text-muted-foreground transition-transform duration-300 shrink-0 ${isExpanded ? "rotate-90" : ""}`}>
+          ▶
+        </span>
+      </button>
 
-      {/* Quest cards */}
-      <div className="p-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {group.quests.map((quest) => {
-          const isAccepted = acceptedQuestIds.has(quest.id);
-          const uq = userQuestMap.get(quest.id);
-          const reward = quest.reward_preview;
+      {/* Quest cards — collapsible */}
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          isExpanded ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="p-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {group.quests.map((quest) => {
+            const isAccepted = acceptedQuestIds.has(quest.id);
+            const uq = userQuestMap.get(quest.id);
+            const reward = quest.reward_preview;
 
-          const questTitle =
-            locale === "en" && quest.title_en ? quest.title_en : quest.title;
+            const questTitle =
+              locale === "en" && quest.title_en ? quest.title_en : quest.title;
 
-          return (
-            <a
-              key={quest.id}
-              href={`/quests/${quest.id}`}
-              className={`block rounded-xl border border-border bg-background p-4 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 border-l-[3px] ${borderColor}`}
-            >
-              {/* Title + difficulty */}
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h4 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
-                  {questTitle}
-                </h4>
-                <span
-                  className={`shrink-0 text-[10px] font-medium rounded-full px-2 py-0.5 ${
-                    quest.difficulty === "LEVEL_4"
-                      ? "bg-red-50 text-red-600 border border-red-200"
-                      : quest.difficulty === "LEVEL_3"
-                      ? "bg-amber-50 text-amber-600 border border-amber-200"
-                      : quest.difficulty === "LEVEL_2"
-                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                      : "bg-slate-50 text-slate-500 border border-slate-200"
-                  }`}
-                >
-                  {t(`quests.difficulty.${quest.difficulty}` as any)}
-                </span>
-              </div>
+            // Status-aware border color
+            const statusBorder = isAccepted && uq
+              ? (STATUS_BORDER_COLORS[uq.status] ?? borderColor)
+              : borderColor;
 
-              {/* Building association */}
-              {quest.associated_building && (
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-sm">
-                    {quest.associated_building.icon}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {locale === "en" && quest.associated_building.name_en
-                      ? quest.associated_building.name_en
-                      : quest.associated_building.name}{" "}
-                    Lv.{quest.associated_building.current_level}
-                  </span>
-                </div>
-              )}
-
-              {/* Skill name */}
-              {quest.skill_name && (
-                <p className="text-xs text-muted-foreground mb-2">
-                  🎯 {quest.skill_name}
-                </p>
-              )}
-
-              {/* Reward preview bars */}
-              {reward && (
-                <div className="space-y-1.5 mt-3 pt-3 border-t border-border/50">
-                  <div className="grid grid-cols-4 gap-1">
-                    <MiniRewardBar
-                      label={locale === "en" ? "KN" : "知识"}
-                      value={reward.knowledge}
-                      max={15}
-                      color="bg-emerald-400"
-                    />
-                    <MiniRewardBar
-                      label={locale === "en" ? "RE" : "推理"}
-                      value={reward.reasoning}
-                      max={15}
-                      color="bg-blue-400"
-                    />
-                    <MiniRewardBar
-                      label={locale === "en" ? "AP" : "应用"}
-                      value={reward.application}
-                      max={15}
-                      color="bg-amber-400"
-                    />
-                    <MiniRewardBar
-                      label={locale === "en" ? "CR" : "创造"}
-                      value={reward.creation}
-                      max={15}
-                      color="bg-purple-400"
-                    />
-                  </div>
-                  {/* Building EXP */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-[#8B9D83] font-medium">
-                      🏛️ +{reward.building_exp}
+            return (
+              <a
+                key={quest.id}
+                href={`/quests/${quest.id}`}
+                className={`block rounded-xl border border-border bg-background p-4 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 border-l-[3px] ${statusBorder}`}
+              >
+                {/* Building association — more prominent at top */}
+                {quest.associated_building && (
+                  <div className="flex items-center gap-1.5 mb-2 rounded-lg bg-[#C4A77D]/8 border border-[#C4A77D]/12 px-2 py-1.5">
+                    <span className="text-base leading-none">
+                      {quest.associated_building.icon || "🏛️"}
                     </span>
-                    <span className="text-muted-foreground">·</span>
-                    <span className="text-amber-600 font-medium">
-                      📊 +{reward.civilization_contribution}
+                    <span className="text-[11px] font-medium text-[#8B7355]">
+                      {locale === "en" && quest.associated_building.name_en
+                        ? quest.associated_building.name_en
+                        : quest.associated_building.name}
+                    </span>
+                    <span className="text-[10px] text-[#8B7355]/60 tabular-nums ml-auto">
+                      Lv.{quest.associated_building.current_level}
                     </span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Accepted badge */}
-              {isAccepted && uq && (
-                <div className="mt-3 pt-3 border-t border-border/50">
-                  <QuestStatusBadge status={uq.status} size="sm" />
+                {/* Status badge — prominent for accepted quests */}
+                {isAccepted && uq && (
+                  <div className="mb-2">
+                    <QuestStatusBadge status={uq.status} size="sm" />
+                  </div>
+                )}
+
+                {/* Title + difficulty */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h4 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                    {questTitle}
+                  </h4>
+                  <span
+                    className={`shrink-0 text-[10px] font-medium rounded-full px-2 py-0.5 ${
+                      quest.difficulty === "LEVEL_4"
+                        ? "bg-red-50 text-red-600 border border-red-200"
+                        : quest.difficulty === "LEVEL_3"
+                        ? "bg-amber-50 text-amber-600 border border-amber-200"
+                        : quest.difficulty === "LEVEL_2"
+                        ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                        : "bg-slate-50 text-slate-500 border border-slate-200"
+                    }`}
+                  >
+                    {t(`quests.difficulty.${quest.difficulty}` as any)}
+                  </span>
                 </div>
-              )}
-            </a>
-          );
-        })}
+
+                {/* Skill name */}
+                {quest.skill_name && (
+                  <p className="text-xs text-muted-foreground mb-2">
+                    🎯 {quest.skill_name}
+                  </p>
+                )}
+
+                {/* Reward preview bars */}
+                {reward && (
+                  <div className="space-y-1.5 mt-3 pt-3 border-t border-border/50">
+                    <div className="grid grid-cols-4 gap-1">
+                      <MiniRewardBar
+                        label={locale === "en" ? "KN" : "知识"}
+                        value={reward.knowledge}
+                        max={15}
+                        color="bg-emerald-400"
+                      />
+                      <MiniRewardBar
+                        label={locale === "en" ? "RE" : "推理"}
+                        value={reward.reasoning}
+                        max={15}
+                        color="bg-blue-400"
+                      />
+                      <MiniRewardBar
+                        label={locale === "en" ? "AP" : "应用"}
+                        value={reward.application}
+                        max={15}
+                        color="bg-amber-400"
+                      />
+                      <MiniRewardBar
+                        label={locale === "en" ? "CR" : "创造"}
+                        value={reward.creation}
+                        max={15}
+                        color="bg-purple-400"
+                      />
+                    </div>
+                    {/* Building EXP */}
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-[#8B9D83] font-medium">
+                        🏛️ +{reward.building_exp}
+                      </span>
+                      <span className="text-muted-foreground">·</span>
+                      <span className="text-amber-600 font-medium">
+                        📊 +{reward.civilization_contribution}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </a>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -34,6 +34,8 @@
     "thinking": "Odyssey 正在思考...",
     "toggleOpen": "切换智能体面板 (Ctrl+.)",
     "toggleClose": "关闭智能体面板",
+    "expand": "展开至半屏",
+    "collapse": "折叠至侧边栏",
     "empty": "还没有消息，开始对话吧！"
   },
   "landing": {
@@ -326,7 +328,11 @@
     "attempt": "第{count}次提交",
     "confirmAbandon": "确定要放弃此Quest吗？此操作可以撤销（重新接受即可）。",
     "abandoned": "已放弃此任务",
-    "cannotAbandon": "仅已接受或进行中的状态可放弃",
+    "cannotAbandon": "仅已接受、进行中或未通过状态可放弃",
+    "submissionSaved": "提交已保存",
+    "assessmentTriggerFailed": "评估触发失败，你可以重试而不需要重新提交",
+    "retryAssessment": "重试评估",
+    "resubmit": "重新提交",
     "viewHistory": "提交记录",
     "noHistory": "暂无历史提交记录",
     "backToList": "返回任务列表",
@@ -583,7 +589,9 @@
     "totalBadges": "徽章总数",
     "earned": "已获得",
     "all": "全部",
-    "locked": "未解锁"
+    "locked": "未解锁",
+    "expandAll": "展开全部",
+    "collapseAll": "收起"
   },
   "profile": {
     "title": "我的主页",

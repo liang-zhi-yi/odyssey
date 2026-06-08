@@ -34,6 +34,8 @@
     "thinking": "Odyssey is thinking...",
     "toggleOpen": "Toggle Agent panel (Ctrl+.)",
     "toggleClose": "Close Agent panel",
+    "expand": "Expand to half screen",
+    "collapse": "Collapse to sidebar",
     "empty": "No messages yet. Start a conversation!"
   },
   "landing": {
@@ -326,7 +328,11 @@
     "attempt": "Attempt #{count}",
     "confirmAbandon": "Are you sure you want to abandon this Quest? This can be undone by accepting it again.",
     "abandoned": "Quest abandoned",
-    "cannotAbandon": "Can only be abandoned when Accepted or In Progress",
+    "cannotAbandon": "Can only be abandoned when Accepted, In Progress, or Failed",
+    "submissionSaved": "Submission Saved",
+    "assessmentTriggerFailed": "Assessment trigger failed. You can retry without re-submitting.",
+    "retryAssessment": "Retry Assessment",
+    "resubmit": "Re-submit",
     "viewHistory": "History",
     "noHistory": "No submission history",
     "backToList": "Back to Quest List",
@@ -583,7 +589,9 @@
     "totalBadges": "Badges",
     "earned": "Earned",
     "all": "All",
-    "locked": "Locked"
+    "locked": "Locked",
+    "expandAll": "Expand All",
+    "collapseAll": "Collapse"
   },
   "profile": {
     "title": "My Profile",

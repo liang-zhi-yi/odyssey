@@ -420,15 +420,15 @@ def create_learning_path(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Create a new learning path from a user goal."""
+    """Create a new learning path from a user goal.
+
+    When generate_with_ai is True, the path is created immediately and
+    generation is deferred — the frontend should call POST /{id}/generate
+    afterwards. This split prevents timeouts from long-running LLM calls.
+    """
     path = service.create_learning_path(
         db, str(current_user.id), body.model_dump()
     )
-    # Auto-generate path structure if requested
-    if body.generate_with_ai:
-        service.generate_path_structure(db, str(path.id), str(current_user.id))
-        db.refresh(path)
-
     return _build_detail_response(path, db)
 
 

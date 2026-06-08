@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +48,9 @@ export default function PathDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const autoGenTriggered = useRef(false);
   const [viewMode, setViewMode] = useState<"roadmap" | "milestones">("roadmap");
 
   useEffect(() => {
@@ -72,6 +75,34 @@ export default function PathDetailPage() {
       () => learningPathService.getMentorSuggestions(pathId).catch(() => null),
       { revalidateOnFocus: false, dedupingInterval: 60000 }
     );
+
+  // ── Auto-generate AI path if empty ────────────────────────────
+  useEffect(() => {
+    if (
+      path &&
+      !autoGenTriggered.current &&
+      path.path_type === "AI_GENERATED" &&
+      (!path.milestones || path.milestones.length === 0) &&
+      !generatingAI
+    ) {
+      autoGenTriggered.current = true;
+      setGeneratingAI(true);
+      setGenerationError(null);
+      learningPathService
+        .generatePath(pathId)
+        .then(() => {
+          mutate(`learning-path-${pathId}`);
+          mutate("user-learning-paths");
+          setGeneratingAI(false);
+        })
+        .catch((err: any) => {
+          setGenerationError(err?.message || "Generation failed");
+          setGeneratingAI(false);
+          // Still revalidate in case partial generation succeeded
+          mutate(`learning-path-${pathId}`);
+        });
+    }
+  }, [path, pathId, generatingAI, mutate]);
 
   // ── Derived data ─────────────────────────────────────────────
   const civInfo = useMemo(() => {
@@ -182,6 +213,101 @@ export default function PathDetailPage() {
     return <Loading text="Validating..." />;
   }
   if (isLoading) return <Loading />;
+
+  // ── AI generation loading overlay ────────────────────────────
+  if (generatingAI) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-5 px-4 py-6">
+        <button
+          onClick={() => router.push("/paths")}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          {locale === "zh" ? "返回路径列表" : "Back to Paths"}
+        </button>
+        <div className="rounded-2xl border border-border bg-card p-12 text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full border-4 border-[#C4A77D]/20 border-t-[#C4A77D] animate-spin" />
+              <span className="absolute inset-0 flex items-center justify-center text-2xl">🧠</span>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">
+              {locale === "zh" ? "AI 正在生成学习路径..." : "AI is generating your learning path..."}
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+              {locale === "zh"
+                ? "正在分析你的目标，设计里程碑、检查点和任务。这可能需要 30-120 秒，请耐心等待。"
+                : "Analyzing your goal, designing milestones, checkpoints, and quests. This may take 30-120 seconds."}
+            </p>
+          </div>
+          <div className="space-y-2 max-w-sm mx-auto">
+            {[
+              { icon: "📊", text: locale === "zh" ? "分析目标领域..." : "Analyzing goal domain..." },
+              { icon: "🗺️", text: locale === "zh" ? "设计文明发展路线..." : "Designing civilization route..." },
+              { icon: "🏗️", text: locale === "zh" ? "规划里程碑与检查点..." : "Planning milestones & checkpoints..." },
+              { icon: "📋", text: locale === "zh" ? "生成学习任务..." : "Generating quests..." },
+            ].map((step, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg bg-secondary/30 px-4 py-2.5 text-sm animate-pulse"
+                style={{ animationDelay: `${i * 0.3}s` }}
+              >
+                <span className="text-lg">{step.icon}</span>
+                <span className="text-muted-foreground">{step.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Generation error banner ──────────────────────────────────
+  if (generationError && path && (!path.milestones || path.milestones.length === 0)) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-5 px-4 py-6">
+        <button
+          onClick={() => router.push("/paths")}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          {locale === "zh" ? "返回路径列表" : "Back to Paths"}
+        </button>
+        <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-4">
+          <span className="text-4xl">⚠️</span>
+          <h2 className="text-lg font-semibold">
+            {locale === "zh" ? "生成失败" : "Generation Failed"}
+          </h2>
+          <p className="text-sm text-muted-foreground">{generationError}</p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => {
+                setGenerationError(null);
+                autoGenTriggered.current = false;
+                setGeneratingAI(false);
+              }}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            >
+              {locale === "zh" ? "重试生成" : "Retry Generation"}
+            </button>
+            <button
+              onClick={() => router.push("/paths")}
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary"
+            >
+              {locale === "zh" ? "返回路径列表" : "Back to Paths"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <ErrorState

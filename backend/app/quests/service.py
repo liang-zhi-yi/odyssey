@@ -270,11 +270,15 @@ def get_quests_by_skill(db: Session, skill_id: str) -> list[Quest]:
 
 
 def accept_quest(db: Session, user_id: str, quest_id: str) -> QuestSubmission:
-    """Accept a quest — creates a QuestSubmission with status ACCEPTED."""
+    """Accept a quest — creates or reactivates a QuestSubmission with status ACCEPTED.
+
+    If the user previously accepted and then ABANDONED or FAILED this quest,
+    the existing submission is reactivated instead of creating a new one.
+    This avoids 409 Conflict errors when users try to re-accept a quest.
+    """
     # Ensure the quest exists
     _ = get_quest_detail(db, quest_id)
 
-    # Prevent duplicate acceptance of the same quest by the same user
     existing = (
         db.query(QuestSubmission)
         .filter(
@@ -283,7 +287,16 @@ def accept_quest(db: Session, user_id: str, quest_id: str) -> QuestSubmission:
         )
         .first()
     )
+
     if existing is not None:
+        # Reactivate ABANDONED or FAILED quests — set status back to ACCEPTED
+        if existing.status in (SubmissionStatus.ABANDONED, SubmissionStatus.FAILED):
+            existing.status = SubmissionStatus.ACCEPTED
+            db.commit()
+            db.refresh(existing)
+            return existing
+
+        # Active or completed quest — don't allow re-accept
         raise ConflictException(
             "QUEST_ALREADY_ACCEPTED",
             "You have already accepted this quest",
@@ -335,10 +348,10 @@ def get_user_quests(db: Session, user_id: str) -> list[dict]:
 def abandon_quest(
     db: Session, user_id: str, quest_id: str
 ) -> dict:
-    """Abandon an accepted quest.
+    """Abandon an accepted or failed quest.
 
-    Only allowed when the submission status is ACCEPTED or IN_PROGRESS.
-    Once SUBMITTED or ASSESSING, the quest cannot be abandoned.
+    Allowed statuses: ACCEPTED, IN_PROGRESS, FAILED.
+    SUBMITTED or ASSESSING quests cannot be abandoned.
 
     Raises:
         NotFoundException: If the quest hasn't been accepted.
@@ -350,7 +363,7 @@ def abandon_quest(
             QuestSubmission.user_id == user_id,
             QuestSubmission.quest_id == quest_id,
         )
-        .order_by(QuestSubmission.submitted_at.desc())
+        .order_by(QuestSubmission.submitted_at.desc().nullslast())
         .first()
     )
 
@@ -363,11 +376,12 @@ def abandon_quest(
     if submission.status not in (
         SubmissionStatus.ACCEPTED,
         SubmissionStatus.IN_PROGRESS,
+        SubmissionStatus.FAILED,
     ):
         raise ConflictException(
             "CANNOT_ABANDON",
             f"Cannot abandon a quest with status '{submission.status.value}'. "
-            "Only ACCEPTED or IN_PROGRESS quests can be abandoned.",
+            "Only ACCEPTED, IN_PROGRESS, or FAILED quests can be abandoned.",
         )
 
     submission.status = SubmissionStatus.ABANDONED

@@ -298,7 +298,7 @@ def _build_world_rules(db: Session) -> str:
 - 包括设计文档徽章和时代徽章
 """)
 
-    # ── 6. Core Growth Logic ──
+    # ── 6. Core Growth Logic + Evolution Standards ──
     parts.append("""
 ## 核心成长逻辑
 
@@ -314,6 +314,103 @@ def _build_world_rules(db: Session) -> str:
 4. **时代推进** = 文明等级达到阈值 + 核心建筑条件
 5. **区域解锁** = 建造该区域第一座建筑后自动解锁
 6. **建筑升级** = 关联技能分数每提升 10 分，建筑升 1 级（最高 Lv.10）
+
+## 进化标准 (Evolution Standards)
+
+> 当用户询问文明系统如何运作、需要多少分、如何升级时，你必须引用以下具体数字回答。
+> 不要含糊其辞或只说"需要更多分数"——给出具体的数值和目标。
+
+### 任务奖励标准 (Quest Rewards)
+完成任务后获得的奖励取决于任务难度（LEVEL_1 ~ LEVEL_4）。以下为基础值，
+实际奖励会根据任务类型（KNOWLEDGE / APPLICATION / PROJECT / MASTERY）应用维度加权：
+
+| 难度 | 知识 | 推理 | 应用 | 创造 | 建筑经验 | 文明贡献 |
+|------|------|------|------|------|----------|----------|
+| LEVEL_1（入门） | +5 | +3 | +2 | +2 | +10 | +30 |
+| LEVEL_2（基础） | +8 | +6 | +5 | +4 | +25 | +60 |
+| LEVEL_3（进阶） | +12 | +10 | +10 | +8 | +50 | +120 |
+| LEVEL_4（专家） | +18 | +15 | +15 | +12 | +80 | +200 |
+
+**任务类型加权（乘数）**：
+- KNOWLEDGE（知识型）：知识 ×1.5，应用 ×0.8
+- APPLICATION（应用型）：应用 ×1.3，推理 ×1.1
+- PROJECT（项目型）：应用 ×1.5，创造 ×1.5
+- MASTERY（精通型）：四维均等 ×1.0
+
+**示例**：一个 LEVEL_2 的 KNOWLEDGE 型 Quest，实际获得：
+知识 +12（8×1.5）、推理 +6、应用 +4（5×0.8）、创造 +4、建筑经验 +25、文明贡献 +60
+
+### 技能等级标准 (Skill Proficiency Levels)
+每项技能的 4 个维度（知识、推理、应用、创造）加权求和得到综合分数：
+
+| 等级 | Rank | 综合分数 |
+|------|------|---------|
+| 新手 | NOVICE | 0-20 |
+| 初级 | BEGINNER | 21-40 |
+| 实践者 | PRACTITIONER | 41-60 |
+| 工程师 | ENGINEER | 61-80 |
+| 架构师 | ARCHITECT | 81-100 |
+
+### 建筑升级标准 (Building Upgrade Thresholds)
+- **建筑等级 = 关联技能综合分数 ÷ 10**（向下取整，最高 Lv.10）
+- 技能每增长 10 分，建筑自动升 1 级
+- 常规建筑：1 项技能驱动，该技能综合分数达标即升级
+- 复合建筑：需所有关联技能达到最低等级要求才能解锁，解锁后等级 = 所有关联技能综合分数平均值 ÷ 10
+- 建筑升级是系统自动完成的，用户无需手动操作
+
+### 文明等级标准 (Civilization Tier Thresholds)
+文明指数计算公式：**Σ(常规建筑等级) + Σ(复合建筑等级 × 2) + 已解锁里程碑数**
+
+| 等级 | Tier | 图标 | 文明指数 |
+|------|------|------|---------|
+| 定居者 | SETTLER | 🏕️ | 0-4 |
+| 村落 | VILLAGE | 🏘️ | 5-9 |
+| 城镇 | TOWN | 🏙️ | 10-14 |
+| 城市 | CITY | 🌆 | 15-19 |
+| 大都会 | METROPOLIS | 🏛️ | 20-24 |
+| 文明 | CIVILIZATION | 🌍 | 25+ |
+
+### 时代推进标准 (Era Advancement Thresholds)
+
+| 时代 | Era | 图标 | 文明等级 | 额外条件 |
+|------|-----|------|---------|---------|
+| 荒野时代 | WILDERNESS | 🏕️ | Lv 1-4 | — |
+| 农耕时代 | AGRICULTURE | 🌾 | Lv 5-9 | 至少解锁 2 座常规建筑 |
+| 工业时代 | INDUSTRY | ⚙️ | Lv 10-14 | 至少解锁 1 座复合建筑 |
+| 信息时代 | INFORMATION | 💻 | Lv 15-19 | 至少解锁 3 座复合建筑 |
+| 智能时代 | INTELLIGENCE | 🤖 | Lv 20+ | 至少解锁 5 座复合建筑 |
+
+时代推进是系统自动判定的，满足文明等级 + 额外条件后自动进入下一时代。
+
+### 区域系统 (5 Regions)
+文明由 5 大区域构成，每座建筑属于一个区域：
+
+| 区域 | Region | 代表技能 |
+|------|--------|---------|
+| 🧠 思维区 | THINKING | AI、推理、研究、学习 |
+| 💻 技术区 | TECHNICAL | 编程、工具、开发、工程 |
+| 🎨 创造区 | CREATIVE | 设计、写作、产品、创作 |
+| 🌐 社交区 | SOCIAL | 沟通、管理、商业、语言 |
+| 💪 实践区 | PHYSICAL | 健身、实践、职业、执行 |
+
+建造某区域的第一座建筑后，该区域自动解锁。
+
+### 快速参考：如何提升文明等级？（给用户的解释）
+
+当用户问"如何提升文明"或"下一步做什么"时，用以下逻辑解释：
+
+1. **接受 Quest** → 在任务页面选择适合你当前等级的 Quest
+2. **完成任务并提交** → 提交你的成果（提示词、代码、报告等）
+3. **AI 评估** → 系统评估你的成果质量，计算得分
+4. **技能分数增长** → 4 个维度（知识/推理/应用/创造）获得对应分数
+5. **建筑自动升级** → 技能综合分数每增长 10 分，对应建筑升 1 级
+6. **文明指数累积** → 建筑等级之和 + 复合建筑加权 + 里程碑数
+7. **时代/等级自动推进** → 文明指数达标 + 额外条件满足时自动升级
+
+**估算示例**：
+- 完成 3 个 LEVEL_1 Quest（文明贡献各 +30）→ 文明指数 +90 → 足够从定居者升至村落（5分）
+- 完成 5 个 LEVEL_2 Quest（文明贡献各 +60）→ 文明指数 +300 → 足够升至城镇（10分）
+- 解锁 1 座复合建筑 = 额外 +2 文明指数（等同一座常规建筑升 2 级）
 """)
 
     return "\n".join(parts)
@@ -1190,6 +1287,71 @@ def _chat_completion(
         raise
 
 
+def _chat_completion_stream(
+    system_prompt: str,
+    user_content: str,
+    *,
+    temperature: float = 0.7,
+    user_api_key: str | None = None,
+    user_base_url: str | None = None,
+    user_model: str | None = None,
+    user_provider: str | None = None,
+):
+    """Call the LLM with streaming enabled, yielding text tokens one at a time."""
+    from openai import OpenAI
+    from app.config import settings
+    from app.core.providers import (
+        resolve_provider,
+        get_effective_base_url,
+        get_effective_model,
+    )
+
+    effective_provider_key = user_provider or settings.llm_provider
+    provider = resolve_provider(effective_provider_key)
+
+    effective_api_key = user_api_key or settings.llm_api_key
+    if not effective_api_key:
+        logger.warning("No LLM API key configured — using fallback response")
+        raise ValueError("LLM_API_KEY not configured")
+
+    effective_base_url = (
+        user_base_url.strip().rstrip("/") if user_base_url
+        else get_effective_base_url(effective_provider_key, settings.llm_base_url)
+    )
+    effective_model = (
+        user_model.strip() if user_model
+        else get_effective_model(effective_provider_key, settings.llm_model)
+    )
+
+    client_kwargs: dict = {"api_key": effective_api_key}
+    if effective_base_url:
+        client_kwargs["base_url"] = effective_base_url
+    client = OpenAI(**client_kwargs)
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_content},
+    ]
+
+    logger.info(
+        "Agent chat stream — provider=%s model=%s temperature=%s",
+        effective_provider_key, effective_model, temperature,
+    )
+
+    stream = client.chat.completions.create(
+        model=effective_model,
+        temperature=temperature,
+        timeout=settings.llm_timeout_seconds,
+        messages=messages,
+        stream=True,
+    )
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta if chunk.choices else None
+        if delta and delta.content:
+            yield delta.content
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # Core Chat Logic
 # ═══════════════════════════════════════════════════════════════════════
@@ -1297,6 +1459,111 @@ def generate_response(
         message=AgentMessage(role="agent", content=display_text),
         cards=cards,
     )
+
+
+def generate_response_stream(
+    db: Session,
+    user: User,
+    message: str,
+    conversation_id: str | None = None,
+):
+    """SSE streaming variant of generate_response.
+
+    Same setup (context, history, intent, system prompt) but yields
+    SSE-formatted events as the LLM streams tokens, then a final
+    ``done`` event with conversation_id and cards.
+
+    Yields strings of the form ``data: {json}\\n\\n``.
+    """
+    user_id_str = str(user.id)
+
+    # Resolve or create conversation_id
+    if not conversation_id:
+        import uuid as _uuid
+        conversation_id = str(_uuid.uuid4())
+    conv_uuid = UUID(conversation_id)
+
+    # ── Build contexts ──
+    user_context = build_rich_user_context(db, user)
+    user_context_str = _format_rich_context_for_prompt(user_context)
+    world_rules = build_world_rules_context(db)
+
+    # ── Conversation history ──
+    history = _get_recent_history(db, user_id_str, conv_uuid)
+
+    # ── Intent ──
+    intent = classify_intent(message)
+
+    # ── System prompt ──
+    system_prompt = SYSTEM_PROMPT.format(
+        agent_name=AGENT_NAME,
+        agent_name_zh=AGENT_NAME_ZH,
+        agent_role=AGENT_ROLE,
+        agent_role_zh=AGENT_ROLE_ZH,
+        agent_sub_role_1=AGENT_SUB_ROLE_1,
+        agent_sub_role_1_zh=AGENT_SUB_ROLE_1_ZH,
+        agent_sub_role_2=AGENT_SUB_ROLE_2,
+        agent_sub_role_2_zh=AGENT_SUB_ROLE_2_ZH,
+        agent_description=AGENT_DESCRIPTION,
+        tone_guidelines=TONE_GUIDELINES,
+        world_rules=world_rules,
+        user_context=user_context_str,
+        current_time=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    )
+
+    # ── User message with history ──
+    user_content = message
+    if history:
+        history_context = "\n".join(
+            f"[{m['role']}]: {m['content'][:300]}" for m in history[-6:]
+        )
+        user_content = (
+            f"Previous conversation:\n{history_context}\n\n"
+            f"User's latest message: {message}"
+        )
+
+    # ── Save user message ──
+    _save_message(db, user_id_str, conv_uuid, "user", message, "text")
+
+    # ── LLM config ──
+    llm_kwargs = _get_agent_llm_kwargs(db, user_id_str)
+
+    # ── Stream LLM tokens ──
+    full_text = ""
+    try:
+        for token in _chat_completion_stream(
+            system_prompt=system_prompt,
+            user_content=user_content,
+            temperature=0.7,
+            **llm_kwargs,
+        ):
+            full_text += token
+            yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
+    except Exception as exc:
+        logger.error("Agent streaming LLM call failed: %s", exc)
+        fallback = _generate_fallback_response(intent, user_context)
+        full_text = fallback
+        # Yield the fallback as a single token for display
+        yield f"data: {json.dumps({'type': 'token', 'content': fallback}, ensure_ascii=False)}\n\n"
+
+    # ── Parse cards ──
+    cards = _extract_cards_from_text(full_text)
+    display_text = full_text.split(CARDS_SEPARATOR)[0].strip() if CARDS_SEPARATOR in full_text else full_text
+
+    # ── Save agent message ──
+    _save_message(
+        db, user_id_str, conv_uuid, "agent", display_text, "text",
+        metadata_={"intent": intent, "cards": [c.model_dump() for c in cards] if cards else None},
+    )
+
+    # ── Record interaction ──
+    record_interaction(
+        db, user_id_str, f"agent_chat_{intent}",
+        {"message": message[:200], "intent": intent, "conversation_id": conversation_id},
+    )
+
+    # ── Final done event ──
+    yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id, 'cards': [c.model_dump() for c in cards] if cards else []}, ensure_ascii=False)}\n\n"
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -51,47 +51,73 @@ class LLMClientError(Exception):
 
 # ── Scoring output schema (reused across all provider modes) ────────────
 
+
+def _dimension_schema() -> dict:
+    """Return the JSON schema for a single assessment dimension.
+
+    Includes score, justification, strengths, weaknesses, and improvement_actions.
+    """
+    return {
+        "type": "object",
+        "properties": {
+            "score": {"type": "integer", "minimum": 0, "maximum": 100},
+            "justification": {"type": "string"},
+            "strengths": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 0,
+                "maxItems": 3,
+            },
+            "weaknesses": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 0,
+                "maxItems": 3,
+            },
+            "improvement_actions": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 0,
+                "maxItems": 3,
+            },
+        },
+        "required": ["score", "justification"],
+        "additionalProperties": False,
+    }
+
+
 _SCORING_JSON_SCHEMA = {
     "type": "object",
     "properties": {
-        "knowledge": {
+        "knowledge": _dimension_schema(),
+        "reasoning": _dimension_schema(),
+        "application": _dimension_schema(),
+        "creation": _dimension_schema(),
+        "overall_assessment": {
             "type": "object",
             "properties": {
-                "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                "justification": {"type": "string"},
+                "summary": {
+                    "type": "string",
+                    "description": "100-200 word overall summary of the submission quality",
+                },
+                "top_strength": {
+                    "type": "string",
+                    "description": "The single most notable strength across all dimensions",
+                },
+                "top_growth_area": {
+                    "type": "string",
+                    "description": "The dimension and reason that most needs improvement",
+                },
+                "next_step_recommendation": {
+                    "type": "string",
+                    "description": "The single highest-priority next action for growth",
+                },
             },
-            "required": ["score", "justification"],
-            "additionalProperties": False,
-        },
-        "reasoning": {
-            "type": "object",
-            "properties": {
-                "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                "justification": {"type": "string"},
-            },
-            "required": ["score", "justification"],
-            "additionalProperties": False,
-        },
-        "application": {
-            "type": "object",
-            "properties": {
-                "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                "justification": {"type": "string"},
-            },
-            "required": ["score", "justification"],
-            "additionalProperties": False,
-        },
-        "creation": {
-            "type": "object",
-            "properties": {
-                "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                "justification": {"type": "string"},
-            },
-            "required": ["score", "justification"],
+            "required": ["summary", "top_strength", "top_growth_area", "next_step_recommendation"],
             "additionalProperties": False,
         },
     },
-    "required": ["knowledge", "reasoning", "application", "creation"],
+    "required": ["knowledge", "reasoning", "application", "creation", "overall_assessment"],
     "additionalProperties": False,
 }
 

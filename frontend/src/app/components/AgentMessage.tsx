@@ -11,6 +11,7 @@ interface AgentMessageBubbleProps {
   timestamp?: string;
   cards?: AgentCardType[];
   isLoading?: boolean;
+  isStreaming?: boolean;
 }
 
 /** Simple markdown-like text renderer (bold, italic, code, links) */
@@ -161,6 +162,7 @@ export function AgentMessageBubble({
   timestamp,
   cards,
   isLoading,
+  isStreaming,
 }: AgentMessageBubbleProps) {
   const isUser = role === "user";
 
@@ -172,7 +174,7 @@ export function AgentMessageBubble({
       {!isUser && (
         <div className="flex-shrink-0 mt-1">
           <AgentAvatar
-            mood={isLoading ? "thinking" : "neutral"}
+            mood={isLoading || isStreaming ? "thinking" : "neutral"}
             size="sm"
           />
         </div>
@@ -195,6 +197,10 @@ export function AgentMessageBubble({
         ) : (
           <>
             <SimpleMarkdown text={content} />
+            {/* Blinking cursor while streaming */}
+            {isStreaming && (
+              <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary animate-pulse align-middle" />
+            )}
             {/* Inline cards */}
             {cards?.map((card, i) => (
               <InlineCard key={i} card={card} />

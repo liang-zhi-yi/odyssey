@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
 import { CivilizationStatusBanner } from "./CivilizationStatusBanner";
@@ -39,6 +40,7 @@ export function CivilizationPlanner({
   onPathCreated,
 }: CivilizationPlannerProps) {
   const { t } = useLocale();
+  const router = useRouter();
 
   // ── Generation state ────────────────────────────────────────────────
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,10 +62,10 @@ export function CivilizationPlanner({
     let phase = 0;
     phaseIntervalRef.current = setInterval(() => {
       phase += 1;
-      if (phase <= 4) {
+      if (phase <= 6) {
         setGenerationPhase(phase);
       }
-      if (phase >= 4) {
+      if (phase >= 6) {
         if (phaseIntervalRef.current) clearInterval(phaseIntervalRef.current);
       }
     }, 1200);
@@ -94,42 +96,42 @@ export function CivilizationPlanner({
       startPhaseAnimation();
 
       try {
-        const result = await learningPathService.createPath({
-          title: goal.slice(0, 200), // Use goal as title
-          description: goal, // Full goal as description
+        // Step 1: Create path (fast — returns immediately)
+        const path = await learningPathService.createPath({
+          title: goal.slice(0, 200),
+          description: goal,
           category: category || null,
           target_date: null,
-          generate_with_ai: true,
+          generate_with_ai: false, // Don't auto-generate — we'll call generate separately
         });
 
+        setCreatedPathId(path.id);
+
+        // Step 2: Generate milestones + checkpoints + quests via LLM
+        // This can take 30-120 seconds — the phase animation keeps the user engaged
+        const genResult = await learningPathService.generatePath(path.id);
+
         stopPhaseAnimation();
-        setCreatedPathId(result.id);
-
-        // Extract targeted buildings from the response
-        if (result.targeted_buildings) {
-          setTargetedBuildings(result.targeted_buildings);
-        }
-
-        // Build generation result from path metadata
-        const genResult: GeneratePathResponse = {
-          path_id: result.id,
-          path_summary: result.path_metadata?.path_summary || "",
-          difficulty: result.difficulty,
-          estimated_weeks: result.path_metadata?.estimated_weeks || 0,
-          milestone_count: result.milestone_count || 0,
-          total_checkpoints: 0,
-        };
         setGenerationResult(genResult);
+        setSubmittedGoal(goal);
 
-        onPathCreated(result.id);
+        // Notify parent to switch to "My Paths" and navigate to detail
+        onPathCreated(path.id);
+        router.push(`/paths/${path.id}`);
       } catch (err: any) {
         stopPhaseAnimation();
-        setError(err?.message || t("pathGenerator.createError"));
+        // If path was created but generation failed, still navigate to detail
+        if (createdPathId) {
+          onPathCreated(createdPathId);
+          router.push(`/paths/${createdPathId}`);
+        } else {
+          setError(err?.message || t("pathGenerator.createError"));
+        }
       } finally {
         setIsGenerating(false);
       }
     },
-    [isGenerating, startPhaseAnimation, stopPhaseAnimation, onPathCreated, t]
+    [isGenerating, createdPathId, startPhaseAnimation, stopPhaseAnimation, onPathCreated, router, t]
   );
 
   // ── Reset handler ───────────────────────────────────────────────────

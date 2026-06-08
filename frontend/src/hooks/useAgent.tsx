@@ -21,6 +21,7 @@ interface DisplayMessage {
   content: string;
   cards?: AgentCard[];
   timestamp: string;
+  isStreaming?: boolean;
 }
 
 interface AgentContextValue {
@@ -129,6 +130,9 @@ export function AgentProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.username]);
 
+  // Ref to hold the streaming message ID so we can update it across callbacks
+  const streamingMsgIdRef = useRef<string | null>(null);
+
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || isLoading) return;
@@ -139,34 +143,78 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         content: text.trim(),
         timestamp: formatTime(),
       };
+      const agentMsgId = generateId();
+      streamingMsgIdRef.current = agentMsgId;
 
-      setMessages((prev) => [...prev, userMsg]);
+      // Add user message + placeholder streaming agent message
+      setMessages((prev) => [
+        ...prev,
+        userMsg,
+        {
+          id: agentMsgId,
+          role: "agent",
+          content: "",
+          timestamp: formatTime(),
+          isStreaming: true,
+        },
+      ]);
       setIsLoading(true);
 
-      try {
-        const response = await agentService.sendMessage(text.trim(), conversationId ?? undefined);
-        setConversationId(response.conversation_id);
-        const agentMsg: DisplayMessage = {
-          id: generateId(),
-          role: "agent",
-          content: response.message.content,
-          cards: response.cards ?? undefined,
-          timestamp: formatTime(),
-        };
-        setMessages((prev) => [...prev, agentMsg]);
-      } catch {
-        // Error message
-        const errorMsg: DisplayMessage = {
-          id: generateId(),
-          role: "agent",
-          content:
-            "I'm sorry, I'm having trouble processing your request right now. Please try again in a moment.",
-          timestamp: formatTime(),
-        };
-        setMessages((prev) => [...prev, errorMsg]);
-      } finally {
-        setIsLoading(false);
-      }
+      // Accumulate streaming content
+      let streamedContent = "";
+
+      await agentService.sendMessageStream(
+        text.trim(),
+        {
+          onToken: (token: string) => {
+            streamedContent += token;
+            // Update the streaming message content
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === agentMsgId
+                  ? { ...m, content: streamedContent }
+                  : m
+              )
+            );
+          },
+          onDone: (data: { conversation_id: string; cards: AgentCard[] }) => {
+            setConversationId(data.conversation_id);
+            // Finalize the streaming message
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === agentMsgId
+                  ? {
+                      ...m,
+                      content: streamedContent,
+                      cards: data.cards.length > 0 ? data.cards : undefined,
+                      isStreaming: false,
+                    }
+                  : m
+              )
+            );
+          },
+          onError: (_message: string) => {
+            // Replace streaming message with error
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === agentMsgId
+                  ? {
+                      ...m,
+                      content:
+                        streamedContent ||
+                        "I'm sorry, I'm having trouble processing your request right now. Please try again in a moment.",
+                      isStreaming: false,
+                    }
+                  : m
+              )
+            );
+          },
+        },
+        conversationId ?? undefined,
+      );
+
+      streamingMsgIdRef.current = null;
+      setIsLoading(false);
     },
     [conversationId, isLoading]
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,8 +14,6 @@ import { questService } from "@/services/quest.service";
 import { computeAggregateScores } from "@/lib/scores";
 import { resolveAvatarSrc } from "@/lib/avatar";
 import { RadarChart } from "@/app/components/RadarChart";
-import { BadgeCard } from "@/app/components/BadgeCard";
-import { CredentialBadge } from "@/app/components/CredentialBadge";
 import { GrowthTimeline } from "@/app/components/GrowthTimeline";
 import { Loading } from "@/app/components/Loading";
 import { masteryColor } from "@/app/components/GrowthRing";
@@ -110,6 +108,10 @@ export default function PersonalPage() {
   );
 
   // ── Derived data ──────────────────────────────────────────────
+
+  // Expand/collapse toggles for badge & credential sections
+  const [badgesExpanded, setBadgesExpanded] = useState(false);
+  const [credsExpanded, setCredsExpanded] = useState(false);
 
   const aggregateScores: DimensionScores = useMemo(
     () => computeAggregateScores(userSkills),
@@ -400,14 +402,35 @@ export default function PersonalPage() {
           <SectionCard
             icon="🏅"
             title={locale === "en" ? "Recent Badges" : "最近获得徽章"}
-            viewAllHref="/badges"
-            viewAllLabel={locale === "en" ? "View All" : "查看全部"}
             emptyText={locale === "en" ? "No badges earned yet" : "尚未获得徽章"}
             isEmpty={earnedBadges.length === 0}
+            expandLabel={badgesExpanded ? t("personal.collapseAll") : t("personal.expandAll")}
+            totalCount={earnedBadges.length}
+            visibleCount={3}
+            isExpanded={badgesExpanded}
+            onToggleExpand={() => setBadgesExpanded(!badgesExpanded)}
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {earnedBadges.slice(0, 6).map(({ badge, userBadge }) => (
-                <BadgeCard key={badge.id} badge={badge} userBadge={userBadge} />
+            <div className="space-y-2">
+              {(badgesExpanded ? earnedBadges : earnedBadges.slice(0, 3)).map(({ badge, userBadge }) => (
+                <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-secondary/40 px-3 py-2">
+                  <span className="text-lg shrink-0">{badge.icon || "🏅"}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-foreground truncate">
+                      {locale === "en" && badge.name_en ? badge.name_en : badge.name}
+                    </p>
+                    {userBadge.earned_at && (
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(userBadge.earned_at).toLocaleDateString(
+                          locale === "en" ? "en-US" : "zh-CN",
+                          { year: "numeric", month: "short", day: "numeric" }
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success shrink-0">
+                    {t("badges.earned")}
+                  </span>
+                </div>
               ))}
             </div>
           </SectionCard>
@@ -415,14 +438,32 @@ export default function PersonalPage() {
           <SectionCard
             icon="🏆"
             title={locale === "en" ? "Recent Credentials" : "最近获得证书"}
-            viewAllHref="/credentials"
-            viewAllLabel={locale === "en" ? "View All" : "查看全部"}
             emptyText={locale === "en" ? "No credentials earned yet" : "尚未获得证书"}
             isEmpty={userCredentials.length === 0}
+            expandLabel={credsExpanded ? t("personal.collapseAll") : t("personal.expandAll")}
+            totalCount={userCredentials.length}
+            visibleCount={3}
+            isExpanded={credsExpanded}
+            onToggleExpand={() => setCredsExpanded(!credsExpanded)}
           >
             <div className="space-y-2.5">
-              {userCredentials.slice(0, 3).map((cred) => (
-                <CredentialBadge key={cred.id} credential={cred} />
+              {(credsExpanded ? userCredentials : userCredentials.slice(0, 3)).map((cred) => (
+                <div key={cred.id} className="flex items-center gap-3 rounded-lg bg-secondary/40 px-3 py-2.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base">
+                    🏅
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-foreground truncate">{cred.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {cred.issued_at
+                        ? new Date(cred.issued_at).toLocaleDateString(
+                            locale === "en" ? "en-US" : "zh-CN",
+                            { year: "numeric", month: "short", day: "numeric" }
+                          )
+                        : ""}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </SectionCard>
@@ -557,19 +598,37 @@ function ArchiveRow({ icon, label, value, href }: { icon: string; label: string;
 
 function SectionCard({
   icon, title, viewAllHref, viewAllLabel, emptyText, isEmpty, children,
+  expandLabel, totalCount = 0, visibleCount = 3,
+  isExpanded = false, onToggleExpand,
 }: {
-  icon: string; title: string; viewAllHref: string; viewAllLabel: string;
+  icon: string; title: string; viewAllHref?: string; viewAllLabel?: string;
   emptyText: string; isEmpty: boolean; children: React.ReactNode;
+  expandLabel?: string; totalCount?: number; visibleCount?: number;
+  isExpanded?: boolean; onToggleExpand?: () => void;
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <span>{icon}</span> {title}
+          {totalCount > 0 && (
+            <span className="text-xs text-muted-foreground font-normal">
+              ({isExpanded ? totalCount : Math.min(visibleCount, totalCount)}/{totalCount})
+            </span>
+          )}
         </h3>
-        <Link href={viewAllHref} className="text-xs text-primary hover:underline transition-colors">
-          {viewAllLabel} →
-        </Link>
+        {expandLabel && totalCount > visibleCount && onToggleExpand ? (
+          <button
+            onClick={onToggleExpand}
+            className="text-xs text-primary hover:underline transition-colors"
+          >
+            {expandLabel} {isExpanded ? "↑" : "↓"}
+          </button>
+        ) : viewAllHref ? (
+          <Link href={viewAllHref} className="text-xs text-primary hover:underline transition-colors">
+            {viewAllLabel || "View All"} →
+          </Link>
+        ) : null}
       </div>
       {isEmpty ? (
         <p className="text-xs text-muted-foreground text-center py-8">{emptyText}</p>

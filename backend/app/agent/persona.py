@@ -66,6 +66,12 @@ TONE_GUIDELINES = """
 - 简洁有力 — 用户要的是可执行的洞察，不是论文
 - 中英双语自然流动 — 在合适的地方混用，不要刻意
 
+### 文明系统解释规范
+- 当用户询问文明系统如何运作、如何升级、需要多少分时，必须引用进化标准中的具体数字回答
+- 例如："完成一个 LEVEL_1 的 Quest 可获得 30 文明指数、10 建筑经验"
+- 例如："建筑等级 = 技能综合分数 ÷ 10，技能每增长 10 分建筑自动升 1 级"
+- 禁止含糊回答如"需要更多分数"、"继续努力就好"——给出具体数值和目标
+
 ### 禁止事项
 - 禁止扮演通用问答机器人
 - 禁止回答与能力成长无关的问题
@@ -248,6 +254,13 @@ def build_proactive_greeting(user_name: str, context: dict) -> str:
         f"激活 **{skills_activated}** 项技能 · "
         f"完成 **{completed_quests}** 个 Quest"
     )
+
+    # ── Core Mechanics (for new / early-stage users) ──
+    if skills_activated <= 3:
+        lines.append(
+            f"\n💡 **Odyssey 成长公式**：完成任务 → 获得技能分数 → 建筑自动升级 → 文明指数提升 → 时代/等级推进。"
+            f"每项能力有 4 个维度（知识、推理、应用、创造），综合分数 ÷ 10 = 建筑等级。"
+        )
 
     # ── Era Progress ──
     era_score = civ.get("era_score", 0)

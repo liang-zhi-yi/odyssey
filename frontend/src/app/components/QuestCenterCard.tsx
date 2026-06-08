@@ -30,6 +30,19 @@ function questAccent(questType: string): string {
   }
 }
 
+/** Status-aware border color — takes priority when user has accepted the quest */
+function statusBorder(status: string): string {
+  switch (status) {
+    case "PASSED": return "border-l-success";
+    case "FAILED": return "border-l-destructive";
+    case "ACCEPTED":
+    case "IN_PROGRESS": return "border-l-primary";
+    case "SUBMITTED":
+    case "ASSESSING": return "border-l-warning";
+    default: return "";
+  }
+}
+
 /**
  * Enhanced quest card — "Quest Center" style with building association,
  * reward preview, difficulty stars, and status badge.
@@ -43,6 +56,7 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
     locale === "en" && quest.title_en ? quest.title_en : quest.title;
   const level = difficultyToLevel(quest.difficulty);
   const accentBorder = questAccent(quest.quest_type);
+  const statusAwareBorder = userQuest ? (statusBorder(userQuest.status) || accentBorder) : accentBorder;
 
   // Associated building from enhanced API or building_context fallback
   const building = quest.associated_building || (quest.building_context ? {
@@ -68,27 +82,33 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
   return (
     <Link
       href={`/quests/${quest.id}`}
-      className={`group block rounded-2xl border border-border bg-card p-5 shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 border-l-[3px] ${accentBorder} ${className}`}
+      className={`group block rounded-2xl border border-border bg-card p-5 shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 border-l-[3px] ${statusAwareBorder} ${className}`}
     >
       {/* ── Header: Building association + Difficulty ───── */}
       <div className="flex items-start justify-between gap-2 mb-3">
-        {/* Building pill */}
+        {/* Building pill — prominent */}
         {building && buildingDisplayName ? (
-          <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#C4A77D]/8 border border-[#C4A77D]/12 px-2 py-1 max-w-[70%]">
-            <span className="text-sm leading-none flex-shrink-0">
+          <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#C4A77D]/12 border border-[#C4A77D]/20 px-2.5 py-1.5 max-w-[70%]">
+            <span className="text-base leading-none flex-shrink-0">
               {building.icon || "🏛️"}
             </span>
-            <span className="text-[10px] font-medium text-[#8B7355] truncate">
+            <span className="text-[11px] font-semibold text-[#8B7355] truncate">
               {buildingDisplayName}
             </span>
             {building.current_level > 0 && (
-              <span className="text-[10px] tabular-nums text-[#8B7355]/60 flex-shrink-0">
+              <span className="text-[10px] tabular-nums text-[#8B7355]/70 flex-shrink-0 font-medium">
                 Lv.{building.current_level}
               </span>
             )}
           </div>
         ) : (
           <div /> /* empty spacer to keep difficulty right-aligned */
+        )}
+        {/* Status badge — prominent for accepted quests */}
+        {userQuest && (
+          <div className="flex-shrink-0">
+            <QuestStatusBadge status={userQuest.status} size="sm" />
+          </div>
         )}
         {/* Difficulty stars */}
         <div className="flex-shrink-0">
@@ -150,11 +170,9 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
           <span /> /* spacer */
         )}
 
-        {/* Status badge for user quests */}
-        {userQuest ? (
-          <QuestStatusBadge status={userQuest.status} size="sm" />
-        ) : (
-          <span className="text-[10px] text-muted-foreground">
+        {/* Status for non-accepted quests (accepted ones show badge in header) */}
+        {!userQuest && (
+          <span className="text-[10px] text-muted-foreground bg-secondary/60 rounded-full px-2 py-0.5">
             {locale === "zh" ? "未开始" : "Not started"}
           </span>
         )}
