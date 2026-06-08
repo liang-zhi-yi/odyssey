@@ -19,6 +19,7 @@ settings.db_echo = False
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.types import Uuid as SAUuid
+from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
 
 # ── SQLite UUID fix: Uuid bind processor must accept strings ────────
 def _patched_uuid_bind_processor(self, dialect):
@@ -34,6 +35,9 @@ def _patched_uuid_bind_processor(self, dialect):
     return process
 
 SAUuid.bind_processor = _patched_uuid_bind_processor
+
+# ── SQLite JSONB fix: SQLite has no JSONB type, alias to JSON ────────
+SQLiteTypeCompiler.visit_JSONB = SQLiteTypeCompiler.visit_JSON
 
 from fastapi.testclient import TestClient
 
