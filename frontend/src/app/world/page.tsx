@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import useSWR from "swr";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,7 +33,7 @@ type ViewMode = "overview" | "map" | "techtree";
  * Warm theme: 奶油白/鼠尾草绿/暖灰/羊皮纸色
  * Design references: Civilization, Humankind, Monument Valley, Notion
  */
-export default function WorldPage() {
+function WorldPageContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { t } = useLocale();
   const router = useRouter();
@@ -238,5 +238,19 @@ function QuickStat({ icon, label, value }: { icon: string; label: string; value:
       <span className="hidden xl:inline">{label}</span>
       <span className="font-semibold text-[oklch(0.3_0.02_80)] tabular-nums">{value}</span>
     </div>
+  );
+}
+
+// ── Suspense wrapper for useSearchParams ──
+
+export default function WorldPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-32">
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[oklch(0.72_0.12_85)] border-t-transparent" />
+      </div>
+    }>
+      <WorldPageContent />
+    </Suspense>
   );
 }
