@@ -2,7 +2,7 @@
 Odyssey API — FastAPI application entry point.
 
 Base URL: /api/v1
-"""
+"""  # pragma: no cover — docstring only
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
