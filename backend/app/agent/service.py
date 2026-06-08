@@ -681,23 +681,78 @@ def _get_quests_full(db: Session, user_id: str) -> dict:
 # ── Sub-helpers: Paths ───────────────────────────────────────────────
 
 def _get_paths_full(db: Session, user_id: str) -> dict:
-    """Get active and completed learning paths."""
+    """Get active and completed learning paths with civilization context."""
     try:
-        from app.learning_paths.service import list_learning_paths
+        from app.learning_paths.service import list_learning_paths, get_next_checkpoint
         active_paths = list_learning_paths(db, user_id, status="active") or []
         completed_paths = list_learning_paths(db, user_id, status="completed") or []
 
+        active_with_context = []
+        for p in active_paths:
+            path_info = {
+                "id": str(p.id),
+                "title": p.title,
+                "progress_pct": p.progress_pct if hasattr(p, "progress_pct") else 0,
+                "difficulty": p.difficulty if hasattr(p, "difficulty") else 1,
+                "category": p.category if hasattr(p, "category") else "",
+                "civilization_type": None,
+                "current_stage": None,
+                "current_stage_idx": 0,
+                "total_stages": len(p.milestones) if p.milestones else 0,
+                "next_checkpoint": None,
+                "building_targets": [],
+                "estimated_hours_remaining": 0,
+            }
+            # Extract civilization type from path metadata
+            if p.path_metadata:
+                path_info["civilization_type"] = p.path_metadata.get("civilization_type")
+
+            # Find current stage and next checkpoint
+            if p.milestones:
+                total_hours = 0
+                for ms in p.milestones:
+                    if ms.building_target:
+                        target_info = {
+                            "name": ms.building_target.name,
+                            "name_en": ms.building_target.name_en,
+                            "icon": ms.building_target.icon,
+                        }
+                        if target_info not in path_info["building_targets"]:
+                            path_info["building_targets"].append(target_info)
+
+                    if not ms.is_completed and path_info["current_stage"] is None:
+                        path_info["current_stage"] = ms.title
+                        path_info["current_stage_idx"] = ms.order_sequence
+
+                        # Find next incomplete checkpoint
+                        for cp in ms.checkpoints or []:
+                            cp_hours = getattr(cp, 'estimated_hours', 2)
+                            if not cp.is_completed:
+                                path_info["next_checkpoint"] = {
+                                    "id": str(cp.id),
+                                    "title": cp.title,
+                                    "description": cp.description,
+                                    "estimated_hours": cp_hours,
+                                }
+                                total_hours += cp_hours
+                            elif cp.is_completed:
+                                total_hours += 0
+                        # Add remaining hours from this milestone
+                        for cp in ms.checkpoints or []:
+                            if not cp.is_completed:
+                                total_hours += getattr(cp, 'estimated_hours', 2)
+                    elif not ms.is_completed:
+                        # Later incomplete stages
+                        for cp in ms.checkpoints or []:
+                            if not cp.is_completed:
+                                total_hours += getattr(cp, 'estimated_hours', 2)
+
+                path_info["estimated_hours_remaining"] = total_hours
+
+            active_with_context.append(path_info)
+
         return {
-            "active": [
-                {
-                    "id": str(p.id),
-                    "title": p.title,
-                    "progress_pct": p.progress_pct if hasattr(p, "progress_pct") else 0,
-                    "difficulty": p.difficulty if hasattr(p, "difficulty") else 1,
-                    "category": p.category if hasattr(p, "category") else "",
-                }
-                for p in active_paths
-            ],
+            "active": active_with_context,
             "completed": [
                 {
                     "id": str(p.id),

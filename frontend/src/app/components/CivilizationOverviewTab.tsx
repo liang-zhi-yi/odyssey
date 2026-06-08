@@ -108,8 +108,100 @@ export function CivilizationOverviewTab({
   // Exploration percentage
   const explorationPct = world.exploration_progress ?? 0;
 
-  // If no buildings at all, show empty state
+  // If no buildings at all, show path direction or empty state
   if (world.buildings.length === 0 && world.compound_buildings.length === 0) {
+    const hasActivePaths =
+      direction &&
+      direction.active_paths.length > 0 &&
+      direction.active_paths.some((p) => p.targeted_buildings.length > 0);
+
+    if (hasActivePaths) {
+      return (
+        <div className="space-y-6">
+          {/* Minimal hero — no buildings yet, but civilization has direction */}
+          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-6 shadow-card">
+            <div className="text-center max-w-md mx-auto">
+              <span className="text-4xl block mb-3">🚀</span>
+              <h2 className="text-lg font-bold text-[oklch(0.3_0.02_80)]">
+                {locale === "en" ? "Civilization Taking Shape" : "文明正在成形"}
+              </h2>
+              <p className="mt-2 text-sm text-[oklch(0.5_0.02_85)]">
+                {locale === "en"
+                  ? `Your ${direction.active_paths.length} active learning path(s) are charting the course. Complete quests to unlock your first buildings.`
+                  : `你正在通过 ${direction.active_paths.length} 条学习路径规划文明方向。完成任务来解锁第一座建筑。`}
+              </p>
+              <Link
+                href="/paths"
+                className="mt-4 inline-block rounded-xl bg-[oklch(0.72_0.12_85)] px-5 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
+              >
+                {locale === "en" ? "Continue Learning →" : "继续学习 →"}
+              </Link>
+            </div>
+          </div>
+
+          {/* Show the compass with path directions */}
+          <CivilizationCompass
+            direction={direction}
+            isLoading={directionLoading}
+            size="md"
+          />
+
+          {/* Active path summary cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {direction.active_paths.map((path) => (
+              <Link
+                key={path.path_id}
+                href={`/paths/${path.path_id}`}
+                className="rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.98_0.005_90)] p-4 shadow-card transition-all hover:shadow-card-hover hover:border-[oklch(0.72_0.12_85)]/30"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">🛤️</span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-[oklch(0.3_0.02_80)] truncate">
+                      {path.path_title}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 h-1.5 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[oklch(0.65_0.05_145)] transition-all duration-700"
+                          style={{ width: `${path.progress_pct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono text-[oklch(0.5_0.02_85)] tabular-nums">
+                        {path.progress_pct}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {/* Targeted buildings */}
+                {path.targeted_buildings.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {path.targeted_buildings.slice(0, 4).map((tb) => (
+                      <span
+                        key={tb.building_id}
+                        className="text-[10px] bg-[oklch(0.72_0.12_85_/_0.08)] border border-[oklch(0.72_0.12_85_/_0.18)] rounded-full px-2 py-0.5 text-[oklch(0.4_0.03_80)]"
+                      >
+                        {tb.building_icon}{" "}
+                        {locale === "en" && tb.building_name_en
+                          ? tb.building_name_en
+                          : tb.building_name}{" "}
+                        Lv.{tb.projected_level}
+                      </span>
+                    ))}
+                    {path.targeted_buildings.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        +{path.targeted_buildings.length - 4}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="rounded-2xl border border-dashed border-[oklch(0.85_0.02_90)] bg-[oklch(0.98_0.005_90)] p-12">
         <EmptyState

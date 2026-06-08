@@ -113,3 +113,31 @@ export const QUEST_TYPE_LABELS: Record<QuestType, string> = {
   PROJECT: "项目",
   MASTERY: "精通",
 };
+
+// ── Civilization-grouped Quests ─────────────────────────────────────
+
+export interface CivilizationQuestGroup {
+  civilization_type: string;
+  label: string;
+  label_en: string;
+  icon: string;
+  count: number;
+  quests: CivilizationQuestItem[];
+}
+
+export interface CivilizationQuestItem {
+  id: string;
+  title: string;
+  title_en: string | null;
+  description: string | null;
+  description_en: string | null;
+  skill_id: string;
+  skill_name: string | null;
+  difficulty: QuestDifficulty;
+  quest_type: QuestType;
+  expected_deliverable: DeliverableType;
+  associated_building: AssociatedBuilding | null;
+  reward_preview: QuestRewardPreview | null;
+}
+
+export type CivilizationQuestsMap = Record<string, CivilizationQuestGroup>;

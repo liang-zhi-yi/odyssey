@@ -141,3 +141,35 @@ def get_buildings_summary(
     plus recommendations for locked buildings."""
     from app.world.path_bridge import get_unlocked_buildings_summary
     return get_unlocked_buildings_summary(db, current_user.id)
+
+
+# ── Growth Loop ───────────────────────────────────────────────────────
+
+@router.get("/world/growth-loop/quest-impact/{quest_id}")
+def get_quest_impact(
+    quest_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Calculate the full civilization impact of completing a specific quest.
+
+    Returns skill rewards, building impact, civilization contribution,
+    and era progress estimation.
+    """
+    from app.world.growth_loop import calculate_quest_impact
+    return calculate_quest_impact(db, quest_id, current_user.id)
+
+
+@router.get("/world/growth-loop/path-rewards/{path_id}")
+def get_path_completion_rewards(
+    path_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Calculate all civilization rewards from completing an entire learning path.
+
+    Returns total quests, total hours, total civilization contribution,
+    buildings affected, and tier projection.
+    """
+    from app.world.growth_loop import get_path_completion_rewards
+    return get_path_completion_rewards(db, current_user.id, path_id)

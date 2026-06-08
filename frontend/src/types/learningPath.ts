@@ -34,6 +34,7 @@ export interface LearningPath {
   difficulty: number;
   progress_pct: number;
   path_metadata: PathMetadata | null;
+  civilization_type: string | null;
   milestone_count: number | null;
   targeted_buildings: TargetedBuilding[] | null;
   created_at: string;
@@ -58,10 +59,20 @@ export interface PathCheckpoint {
   description_en: string | null;
   order_sequence: number;
   required_score: number;
+  estimated_hours: number;
   quest_generation_status: "PENDING" | "GENERATED" | "FAILED";
   is_completed: boolean;
   completed_at: string | null;
   generated_quests: GeneratedQuest[] | null;
+}
+
+export interface BuildingTarget {
+  id: string;
+  name: string;
+  name_en: string | null;
+  icon: string;
+  region: string;
+  region_en: string | null;
 }
 
 export interface LearningPathMilestone {
@@ -76,6 +87,8 @@ export interface LearningPathMilestone {
   is_completed: boolean;
   completed_at: string | null;
   order_sequence: number;
+  building_target_id: string | null;
+  building_target: BuildingTarget | null;
   checkpoints: PathCheckpoint[] | null;
 }
 

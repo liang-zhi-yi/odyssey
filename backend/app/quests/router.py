@@ -17,6 +17,7 @@ from app.quests.service import (
     get_building_for_skill,
 )
 from app.learning_paths import service as lp_service
+from app.world.growth_loop import get_quests_grouped_by_civilization
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.auth.models import User
@@ -125,6 +126,19 @@ def list_path_node_quests(
         return [_build_quest_list_item(q, db=db) for q in quests]
 
     return []
+
+
+@router.get("/quests/by-civilization")
+def list_quests_by_civilization(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return all quests grouped by civilization type (AI文明, 工程文明, etc.).
+
+    Each group includes the civilization label, icon, count, and quests
+    with building association and reward previews.
+    """
+    return get_quests_grouped_by_civilization(db, user_id=str(current_user.id))
 
 
 @router.get("/quests/{quest_id}", response_model=QuestDetailResponse)

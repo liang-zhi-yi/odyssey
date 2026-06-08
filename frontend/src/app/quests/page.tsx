@@ -19,15 +19,17 @@ import {
   DIFFICULTY_LABELS,
   type QuestListItem,
   type UserQuest,
+  type CivilizationQuestGroup,
 } from "@/types/quest";
 import type { SubmissionHistoryItem } from "@/types/submission";
 
-type TabId = "all" | "recommended" | "mine";
+type TabId = "all" | "recommended" | "mine" | "civilization";
 
 const TAB_KEYS: { id: TabId; key: string }[] = [
   { id: "all", key: "quests.allQuests" },
   { id: "recommended", key: "quests.dailyRecommendations" },
   { id: "mine", key: "quests.myQuests" },
+  { id: "civilization", key: "quests.civilizationQuests" },
 ];
 
 export default function QuestsPage() {
@@ -91,6 +93,18 @@ export default function QuestsPage() {
   } = useSWR(
     isAuthenticated ? "user-quests" : null,
     () => questService.listUserQuests()
+  );
+
+  // Fetch civilization-grouped quests
+  const {
+    data: civGroups = [],
+    isLoading: civGroupsLoading,
+    error: civGroupsError,
+  } = useSWR(
+    isAuthenticated && activeTab === "civilization"
+      ? "quests-by-civilization"
+      : null,
+    () => questService.listQuestsByCivilization()
   );
 
   if (authLoading || !isAuthenticated) {
@@ -531,6 +545,249 @@ export default function QuestsPage() {
             })}
           </div>
         ))}
+
+      {/* ── Tab: Civilization Quest Groups ──────────────────── */}
+      {activeTab === "civilization" &&
+        (civGroupsLoading ? (
+          <Loading variant="skeleton-cards" cardCount={4} />
+        ) : civGroupsError ? (
+          <ErrorState message={t("quests.loadCivilizationError")} />
+        ) : civGroups.length === 0 ? (
+          <EmptyState
+            title={t("quests.noCivilizationQuests")}
+            description={t("quests.noCivilizationQuestsDesc")}
+            actionLabel={t("quests.browseQuestList")}
+            actionHref="/quests"
+          />
+        ) : (
+          <div className="space-y-8">
+            {civGroups.map((group: CivilizationQuestGroup) => (
+              <CivilizationQuestSection
+                key={group.civilization_type}
+                group={group}
+                locale={locale}
+                t={t}
+                acceptedQuestIds={acceptedQuestIds}
+                userQuestMap={userQuestMap}
+              />
+            ))}
+          </div>
+        ))}
+    </div>
+  );
+}
+
+// ── Civilization Quest Section ────────────────────────────────────────
+// Renders a group of quests under a civilization type header with
+// building icons, skill dimension rewards, and civilization contribution.
+
+const CIV_COLORS: Record<string, string> = {
+  AI: "border-l-[#8B9D83]",
+  ENGINEERING: "border-l-[#C4A77D]",
+  KNOWLEDGE: "border-l-[#8B7355]",
+  BUSINESS: "border-l-[#9B8B7A]",
+  DESIGN: "border-l-[#A8907A]",
+  SOCIAL: "border-l-[#B8A590]",
+  SCIENCE: "border-l-[#7D9B8B]",
+  LANGUAGE: "border-l-[#938B7D]",
+  HEALTH: "border-l-[#8B9D83]",
+  FINANCE: "border-l-[#C4A77D]",
+};
+
+const CIV_BG_COLORS: Record<string, string> = {
+  AI: "bg-[#8B9D83]/10 border-[#8B9D83]/20",
+  ENGINEERING: "bg-[#C4A77D]/10 border-[#C4A77D]/20",
+  KNOWLEDGE: "bg-[#8B7355]/10 border-[#8B7355]/20",
+  BUSINESS: "bg-[#9B8B7A]/10 border-[#9B8B7A]/20",
+  DESIGN: "bg-[#A8907A]/10 border-[#A8907A]/20",
+  SOCIAL: "bg-[#B8A590]/10 border-[#B8A590]/20",
+  SCIENCE: "bg-[#7D9B8B]/10 border-[#7D9B8B]/20",
+  LANGUAGE: "bg-[#938B7D]/10 border-[#938B7D]/20",
+  HEALTH: "bg-[#8B9D83]/10 border-[#8B9D83]/20",
+  FINANCE: "bg-[#C4A77D]/10 border-[#C4A77D]/20",
+};
+
+function CivilizationQuestSection({
+  group,
+  locale,
+  t,
+  acceptedQuestIds,
+  userQuestMap,
+}: {
+  group: CivilizationQuestGroup;
+  locale: string;
+  t: (key: string, vars?: Record<string, string | number> | undefined) => any;
+  acceptedQuestIds: Set<string>;
+  userQuestMap: Map<string, UserQuest>;
+}) {
+  const displayLabel =
+    locale === "en" && group.label_en ? group.label_en : group.label;
+  const borderColor = CIV_COLORS[group.civilization_type] ?? "border-l-[#8B9D83]";
+  const bgColor = CIV_BG_COLORS[group.civilization_type] ?? "bg-[#8B9D83]/10 border-[#8B9D83]/20";
+
+  return (
+    <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+      {/* Civilization header */}
+      <div className={`flex items-center gap-3 px-5 py-4 border-b border-border ${bgColor}`}>
+        <span className="text-2xl">{group.icon}</span>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-bold text-foreground">
+            {displayLabel}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {group.count}{" "}
+            {locale === "en" ? "quests available" : "个任务"}
+          </p>
+        </div>
+        {/* Civilization contribution indicator */}
+        <div className="shrink-0 rounded-full bg-amber-50/60 border border-amber-200/50 px-3 py-1.5 text-center">
+          <p className="text-[10px] text-amber-700 font-medium">
+            {locale === "en" ? "Civ Index" : "文明指数"}
+          </p>
+          <p className="text-sm font-bold text-amber-800 tabular-nums">
+            +{group.quests.reduce((sum, q) => sum + (q.reward_preview?.civilization_contribution ?? 0), 0)}
+          </p>
+        </div>
+      </div>
+
+      {/* Quest cards */}
+      <div className="p-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {group.quests.map((quest) => {
+          const isAccepted = acceptedQuestIds.has(quest.id);
+          const uq = userQuestMap.get(quest.id);
+          const reward = quest.reward_preview;
+
+          const questTitle =
+            locale === "en" && quest.title_en ? quest.title_en : quest.title;
+
+          return (
+            <a
+              key={quest.id}
+              href={`/quests/${quest.id}`}
+              className={`block rounded-xl border border-border bg-background p-4 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 border-l-[3px] ${borderColor}`}
+            >
+              {/* Title + difficulty */}
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h4 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                  {questTitle}
+                </h4>
+                <span
+                  className={`shrink-0 text-[10px] font-medium rounded-full px-2 py-0.5 ${
+                    quest.difficulty === "LEVEL_4"
+                      ? "bg-red-50 text-red-600 border border-red-200"
+                      : quest.difficulty === "LEVEL_3"
+                      ? "bg-amber-50 text-amber-600 border border-amber-200"
+                      : quest.difficulty === "LEVEL_2"
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "bg-slate-50 text-slate-500 border border-slate-200"
+                  }`}
+                >
+                  {t(`quests.difficulty.${quest.difficulty}` as any)}
+                </span>
+              </div>
+
+              {/* Building association */}
+              {quest.associated_building && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-sm">
+                    {quest.associated_building.icon}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {locale === "en" && quest.associated_building.name_en
+                      ? quest.associated_building.name_en
+                      : quest.associated_building.name}{" "}
+                    Lv.{quest.associated_building.current_level}
+                  </span>
+                </div>
+              )}
+
+              {/* Skill name */}
+              {quest.skill_name && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  🎯 {quest.skill_name}
+                </p>
+              )}
+
+              {/* Reward preview bars */}
+              {reward && (
+                <div className="space-y-1.5 mt-3 pt-3 border-t border-border/50">
+                  <div className="grid grid-cols-4 gap-1">
+                    <MiniRewardBar
+                      label={locale === "en" ? "KN" : "知识"}
+                      value={reward.knowledge}
+                      max={15}
+                      color="bg-emerald-400"
+                    />
+                    <MiniRewardBar
+                      label={locale === "en" ? "RE" : "推理"}
+                      value={reward.reasoning}
+                      max={15}
+                      color="bg-blue-400"
+                    />
+                    <MiniRewardBar
+                      label={locale === "en" ? "AP" : "应用"}
+                      value={reward.application}
+                      max={15}
+                      color="bg-amber-400"
+                    />
+                    <MiniRewardBar
+                      label={locale === "en" ? "CR" : "创造"}
+                      value={reward.creation}
+                      max={15}
+                      color="bg-purple-400"
+                    />
+                  </div>
+                  {/* Building EXP */}
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-[#8B9D83] font-medium">
+                      🏛️ +{reward.building_exp}
+                    </span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-amber-600 font-medium">
+                      📊 +{reward.civilization_contribution}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Accepted badge */}
+              {isAccepted && uq && (
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  <QuestStatusBadge status={uq.status} size="sm" />
+                </div>
+              )}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Mini Reward Bar ────────────────────────────────────────────────────
+
+function MiniRewardBar({
+  label,
+  value,
+  max,
+  color,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  color: string;
+}) {
+  const pct = Math.min(100, Math.round((value / max) * 100));
+  return (
+    <div className="text-center">
+      <p className="text-[9px] text-muted-foreground mb-0.5">{label}</p>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-0.5">
+        <div
+          className={`h-full rounded-full ${color} transition-all duration-500`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-[10px] font-bold tabular-nums">{value}</p>
     </div>
   );
 }

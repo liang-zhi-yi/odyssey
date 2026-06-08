@@ -143,6 +143,7 @@ def generate_path_structure(
     for m_data in result.get("milestones", []):
         milestone_count += 1
         skill_id = _resolve_skill_id(db, m_data.get("skill_name"))
+        building_target_id = _resolve_building_target_id(db, m_data.get("building_target"))
 
         milestone = LearningPathMilestone(
             learning_path_id=path.id,
@@ -151,6 +152,7 @@ def generate_path_structure(
             description=m_data.get("description"),
             description_en=m_data.get("description_en"),
             skill_id=skill_id,
+            building_target_id=building_target_id,
             order_sequence=m_data.get("order_sequence", milestone_count - 1),
         )
         db.add(milestone)
@@ -165,6 +167,7 @@ def generate_path_structure(
                 description_en=c_data.get("description_en"),
                 order_sequence=c_data.get("order_sequence", 0),
                 required_score=c_data.get("required_score", 60),
+                estimated_hours=c_data.get("estimated_hours", 2),
             )
             db.add(checkpoint)
             db.flush()  # get checkpoint.id
@@ -176,6 +179,7 @@ def generate_path_structure(
         "path_summary": result.get("path_summary", ""),
         "difficulty": result.get("difficulty", 1),
         "estimated_weeks": result.get("estimated_weeks", 0),
+        "civilization_type": result.get("civilization_type", ""),
     }
     path.difficulty = result.get("difficulty", 1)
     path.updated_at = datetime.now(timezone.utc)
@@ -616,6 +620,19 @@ def _resolve_skill_id(db: Session, skill_name: str | None) -> UUID | None:
         return None
     skill = db.query(Skill).filter(Skill.name.ilike(skill_name.strip())).first()
     return skill.id if skill else None
+
+
+def _resolve_building_target_id(db: Session, building_name: str | None) -> UUID | None:
+    """Resolve a building target name to its BuildingTemplate UUID. Returns None if not found."""
+    if not building_name:
+        return None
+    from app.world.models import BuildingTemplate
+    bld = (
+        db.query(BuildingTemplate)
+        .filter(BuildingTemplate.name.ilike(f"%{building_name.strip()}%"))
+        .first()
+    )
+    return bld.id if bld else None
 
 
 def _get_path_llm_kwargs(settings: UserSettings | None) -> dict:

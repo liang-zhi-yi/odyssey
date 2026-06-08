@@ -6,6 +6,8 @@ import type {
   QuestDetail,
   AcceptQuestResponse,
   UserQuest,
+  CivilizationQuestGroup,
+  CivilizationQuestsMap,
 } from "@/types/quest";
 
 export const questService = {
@@ -45,6 +47,13 @@ export const questService = {
   /** Get quests for the user's current path node */
   listPathNodeQuests(): Promise<QuestListItem[]> {
     return api.get<QuestListItem[]>("/quests/path-node");
+  },
+
+  /** List quests grouped by civilization type */
+  async listQuestsByCivilization(): Promise<CivilizationQuestGroup[]> {
+    const data = await api.get<CivilizationQuestsMap>("/quests/by-civilization");
+    // Backend returns a dict keyed by civilization type; convert to sorted array
+    return Object.values(data).sort((a, b) => b.count - a.count);
   },
 
   /** Abandon an accepted quest */

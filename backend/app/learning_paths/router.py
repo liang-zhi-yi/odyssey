@@ -301,6 +301,16 @@ def _build_path_rewards_preview(path, db=None) -> PathRewardsPreview | None:
 def _build_milestone_response(m) -> MilestoneResponse:
     """Build a MilestoneResponse from a LearningPathMilestone ORM object."""
     skill_name = m.skill.name if m.skill else None
+    building_target = None
+    if m.building_target:
+        building_target = {
+            "id": str(m.building_target.id),
+            "name": m.building_target.name,
+            "name_en": m.building_target.name_en,
+            "icon": m.building_target.icon,
+            "region": m.building_target.region,
+            "region_en": m.building_target.region_en,
+        }
     return MilestoneResponse(
         id=m.id,
         learning_path_id=m.learning_path_id,
@@ -313,6 +323,8 @@ def _build_milestone_response(m) -> MilestoneResponse:
         is_completed=m.is_completed,
         completed_at=m.completed_at,
         order_sequence=m.order_sequence,
+        building_target_id=m.building_target_id,
+        building_target=building_target,
         checkpoints=[_build_checkpoint_response(c) for c in (m.checkpoints or [])],
     )
 
@@ -338,6 +350,7 @@ def _build_checkpoint_response(c) -> CheckpointResponse:
         description_en=c.description_en,
         order_sequence=c.order_sequence,
         required_score=c.required_score,
+        estimated_hours=getattr(c, 'estimated_hours', 2),
         quest_generation_status=c.quest_generation_status,
         is_completed=c.is_completed,
         completed_at=c.completed_at,
@@ -368,6 +381,7 @@ def _build_path_response(p, db=None) -> LearningPathResponse:
         difficulty=p.difficulty,
         progress_pct=p.progress_pct,
         path_metadata=p.path_metadata,
+        civilization_type=p.path_metadata.get("civilization_type") if p.path_metadata else None,
         milestone_count=len(p.milestones) if p.milestones else 0,
         targeted_buildings=targeted_buildings,
         created_at=p.created_at,

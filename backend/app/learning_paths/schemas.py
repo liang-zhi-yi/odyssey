@@ -27,6 +27,7 @@ class CheckpointResponse(BaseModel):
     description_en: str | None = None
     order_sequence: int
     required_score: int
+    estimated_hours: int = 2
     quest_generation_status: str
     is_completed: bool
     completed_at: datetime | None = None
@@ -49,6 +50,8 @@ class MilestoneResponse(BaseModel):
     is_completed: bool
     completed_at: datetime | None = None
     order_sequence: int
+    building_target_id: UUID | None = None
+    building_target: dict | None = None  # { name, name_en, icon, region }
     checkpoints: list[CheckpointResponse] | None = None
 
     model_config = {"from_attributes": True}
@@ -82,6 +85,7 @@ class LearningPathResponse(BaseModel):
     difficulty: int
     progress_pct: int
     path_metadata: dict | None = None
+    civilization_type: str | None = None
     milestone_count: int | None = None
     targeted_buildings: list[dict] | None = None
     created_at: datetime

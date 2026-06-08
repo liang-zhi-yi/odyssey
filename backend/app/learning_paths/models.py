@@ -95,12 +95,18 @@ class LearningPathMilestone(Base):
     order_sequence: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
+    building_target_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("building_templates.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     # Relationships
     learning_path: Mapped["LearningPath"] = relationship(
         "LearningPath", back_populates="milestones"
     )
     skill: Mapped["Skill | None"] = relationship("Skill")
+    building_target: Mapped["BuildingTemplate | None"] = relationship("BuildingTemplate")
     checkpoints: Mapped[list["PathCheckpoint"]] = relationship(
         "PathCheckpoint", back_populates="milestone",
         lazy="selectin", order_by="PathCheckpoint.order_sequence",
@@ -133,6 +139,9 @@ class PathCheckpoint(Base):
     )
     quest_generation_status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="PENDING"
+    )
+    estimated_hours: Mapped[int] = mapped_column(
+        Integer, default=2, nullable=False
     )
     is_completed: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
