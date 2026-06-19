@@ -1,7 +1,5 @@
 """Application configuration loaded from environment variables."""
 
-import re
-
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
@@ -47,8 +45,10 @@ class Settings(BaseSettings):
         """Ensure DATABASE_URL uses psycopg2 driver and has no empty port."""
         if v.startswith("postgresql://"):
             v = "postgresql+psycopg2://" + v[len("postgresql://"):]
-        # Fix empty port: host:/ → host/
-        v = re.sub(r":/(?=\D|$)", "/", v)
+        # Fix empty port: protect scheme "://" then remove stray ":/"
+        v = v.replace("://", "\x00S\x00", 1)
+        v = v.replace(":/", "/")
+        v = v.replace("\x00S\x00", "://", 1)
         return v
 
 

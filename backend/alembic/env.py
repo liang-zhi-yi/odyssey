@@ -22,8 +22,10 @@ def _normalize_db_url(url: str | None) -> str | None:
     # Add +psycopg2 driver if missing
     if url.startswith("postgresql://"):
         url = "postgresql+psycopg2://" + url[len("postgresql://"):]
-    # Fix empty port: host:/ → host/
-    url = re.sub(r":/(?=\D|$)", "/", url)
+    # Fix empty port: protect scheme "://" then remove stray ":/" (empty port)
+    url = url.replace("://", "\x00SCHEME\x00", 1)  # protect first ://
+    url = url.replace(":/", "/")                     # fix empty ports
+    url = url.replace("\x00SCHEME\x00", "://", 1)    # restore scheme
     return url
 
 
