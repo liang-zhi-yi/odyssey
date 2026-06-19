@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir .
 EXPOSE 8000
 
 # Healthcheck (uses PORT env var for Railway compatibility)
-HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=15s \
+HEALTHCHECK --interval=15s --timeout=10s --retries=5 --start-period=60s \
     CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/api/v1/health')" || exit 1
 
 # Run migrations then start server (PORT env var for Railway compatibility)
