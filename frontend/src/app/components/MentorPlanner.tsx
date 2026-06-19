@@ -274,7 +274,7 @@ function buildGreeting(
     FUTURE: { zh: "未来文明时代", en: "the Future Civilization Era" },
   }[world.era] ?? { zh: "荒野时代", en: "the Wilderness Era" };
 
-  const buildingCount = world.buildings?.length ?? 0;
+  const buildingCount = world.buildings?.filter(b => b.status !== "LOCKED")?.length ?? 0;
   const eraName = locale === "en" ? eraInfo.en : eraInfo.zh;
 
   if (activePathsCount > 0) {

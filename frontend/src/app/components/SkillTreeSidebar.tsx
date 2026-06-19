@@ -125,10 +125,10 @@ export function SkillTreeSidebar({
   // Count unlocked skills (with UserSkill record)
   const unlockedCount = userSkills.length;
 
-  // Count buildings
+  // Count buildings (only unlocked/active, not LOCKED)
   const buildingCount =
-    (worldData?.buildings?.length ?? 0) +
-    (worldData?.compound_buildings?.length ?? 0);
+    (worldData?.buildings?.filter(b => b.status !== "LOCKED")?.length ?? 0) +
+    (worldData?.compound_buildings?.filter(b => b.status !== "LOCKED")?.length ?? 0);
 
   return (
     <aside className="flex flex-col h-full w-[288px] shrink-0 border-r-2 border-double border-[oklch(0.7_0.12_85_/_0.4)] bg-gradient-to-b from-[oklch(0.985_0.003_95)] to-[oklch(0.95_0.005_90)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.18_0.01_85)] relative overflow-hidden">

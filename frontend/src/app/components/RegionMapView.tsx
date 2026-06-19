@@ -319,7 +319,7 @@ export function RegionMapView({
       {/* Map footer — legend / stats */}
       <div className="flex items-center justify-center gap-6 text-xs text-[oklch(0.5_0.02_85)] py-4 border-t border-double border-[oklch(0.7_0.12_85_/_0.25)]">
         <span>
-          {locale === "en" ? "Charted structures" : "文明总建筑数"}: <span className="font-bold font-mono">{world.buildings.length + world.compound_buildings.length}</span>
+          {locale === "en" ? "Charted structures" : "文明总建筑数"}: <span className="font-bold font-mono">{world.buildings.filter(b => b.status !== "LOCKED").length + world.compound_buildings.filter(b => b.status !== "LOCKED").length}</span>
         </span>
         <span>
           {locale === "en" ? "Active" : "已激活建筑"}: <span className="font-bold font-mono">{world.stats.active_buildings}</span>

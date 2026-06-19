@@ -131,7 +131,7 @@ export default function DashboardPage() {
   const activePathCount = allPaths.filter((p) => p.status === "ACTIVE").length;
 
   const worldTier = (worldData?.tier ? parseInt(worldData.tier_score as unknown as string, 10) || 1 : 0);
-  const buildingCount = (worldData?.buildings?.length ?? 0) + (worldData?.compound_buildings?.length ?? 0);
+  const buildingCount = (worldData?.buildings?.filter(b => b.status !== "LOCKED")?.length ?? 0) + (worldData?.compound_buildings?.filter(b => b.status !== "LOCKED")?.length ?? 0);
   const regionCount = worldData?.regions?.length ?? 0;
 
   // ─── Auth guard ──────────────────────────────────────────
