@@ -2,7 +2,7 @@
 Skill updater — applies assessment results to UserSkill.
 
 After an assessment completes, this module:
-  1. Fetches the UserSkill row for the user + skill
+  1. Fetches (or creates) the UserSkill row for the user + skill
   2. Applies the per-dimension smoothed update formula:
      new_dim = round(old_dim × 0.8 + assessed_dim × 0.2)
   3. Recomputes overall_score and rank
@@ -14,7 +14,6 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.skills.models import UserSkill
-from app.core.exceptions import NotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +28,9 @@ def apply_assessment_to_user_skill(
 ) -> UserSkill:
     """Update the UserSkill with assessment results using smoothed per-dimension formula.
 
+    If the UserSkill row doesn't exist yet, it is created (upsert) so that
+    skills are only "unlocked" once the user is actually assessed on them.
+
     Args:
         db: Database session.
         user_id: The user being assessed.
@@ -38,9 +40,6 @@ def apply_assessment_to_user_skill(
 
     Returns:
         The updated UserSkill instance (already flushed to DB).
-
-    Raises:
-        NotFoundException: If the UserSkill row doesn't exist.
     """
     user_skill = (
         db.query(UserSkill)
@@ -48,9 +47,19 @@ def apply_assessment_to_user_skill(
         .first()
     )
     if user_skill is None:
-        raise NotFoundException(
-            "UserSkill", f"user={user_id} skill={skill_id}"
+        # Create the UserSkill row on first assessment (lazy unlock)
+        user_skill = UserSkill(
+            user_id=user_id,
+            skill_id=skill_id,
+            knowledge_score=0,
+            reasoning_score=0,
+            application_score=0,
+            creation_score=0,
+            overall_score=0,
         )
+        db.add(user_skill)
+        db.flush()
+        logger.info("UserSkill created (lazy unlock) — user=%s skill=%s", user_id, skill_id)
 
     old_k = user_skill.knowledge_score
     old_r = user_skill.reasoning_score

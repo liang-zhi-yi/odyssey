@@ -23,11 +23,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
-    """Register a new user account and initialise their skill tree."""
+    """Register a new user account."""
     user, token = service.register(db, req)
-    # Ensure the new user has a UserSkill row for every Skill
-    from app.skills.service import ensure_user_skills_exist
-    ensure_user_skills_exist(db, str(user.id))
     return TokenResponse(token=token, user_id=str(user.id))
 
 
