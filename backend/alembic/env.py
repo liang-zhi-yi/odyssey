@@ -35,11 +35,32 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # ── Allow DATABASE_URL env var to override alembic.ini ─────────────
-sqlalchemy_url = _normalize_db_url(
-    os.environ.get("DATABASE_URL")
-) or config.get_main_option("sqlalchemy.url")
+# Also support constructing URL from individual PG* variables (Railway)
+_raw_db_url = os.environ.get("DATABASE_URL", "").strip()
+
+# If DATABASE_URL looks like a Railway template that wasn't resolved, ignore it
+if _raw_db_url.startswith("${") or not _raw_db_url:
+    _pguser = os.environ.get("PGUSER", "")
+    _pgpass = os.environ.get("PGPASSWORD", "") or os.environ.get("POSTGRES_PASSWORD", "")
+    _pghost = os.environ.get("PGHOST", "") or os.environ.get("RAILWAY_TCP_PROXY_DOMAIN", "")
+    _pgport = os.environ.get("PGPORT", "") or os.environ.get("RAILWAY_TCP_PROXY_PORT", "")
+    _pgdb = os.environ.get("PGDATABASE", "")
+    if _pguser and _pghost and _pgdb:
+        _raw_db_url = f"postgresql://{_pguser}:{_pgpass}@{_pghost}:{_pgport}/{_pgdb}"
+        print(f"[alembic] Constructed DATABASE_URL from PG* vars: host={_pghost}, port={_pgport}, db={_pgdb}")
+    else:
+        print(f"[alembic] WARNING: DATABASE_URL not set and PG* vars incomplete")
+        print(f"[alembic]   PGUSER={_pguser!r} PGHOST={_pghost!r} PGPORT={_pgport!r} PGDATABASE={_pgdb!r}")
+
+sqlalchemy_url = _normalize_db_url(_raw_db_url) or config.get_main_option("sqlalchemy.url")
+
+# Debug: print the URL with password masked
 if sqlalchemy_url:
+    _masked = re.sub(r"://([^:]+):([^@]+)@", r"://\1:****@", sqlalchemy_url)
+    print(f"[alembic] Using DATABASE_URL: {_masked}")
     config.set_main_option("sqlalchemy.url", sqlalchemy_url)
+else:
+    print("[alembic] ERROR: No DATABASE_URL found anywhere!")
 
 # ── Import ALL models so Base.metadata is complete ──────────────────
 from app.models import Base  # noqa: E402
