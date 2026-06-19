@@ -4,10 +4,28 @@ Imports all models via `app.models` so Base.metadata is fully populated
 before Alembic generates or runs migrations.
 """
 import os
+import re
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+
+def _normalize_db_url(url: str | None) -> str | None:
+    """Normalize DATABASE_URL for SQLAlchemy + psycopg2 compatibility.
+
+    - Converts ``postgresql://`` → ``postgresql+psycopg2://``
+    - Removes empty port (``host:/db`` → ``host/db``)
+    """
+    if not url:
+        return url
+    # Add +psycopg2 driver if missing
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg2://" + url[len("postgresql://"):]
+    # Fix empty port: host:/ → host/
+    url = re.sub(r":/(?=\D|$)", "/", url)
+    return url
+
 
 # Alembic Config object
 config = context.config
@@ -17,9 +35,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # ── Allow DATABASE_URL env var to override alembic.ini ─────────────
-sqlalchemy_url = os.environ.get("DATABASE_URL") or config.get_main_option(
-    "sqlalchemy.url"
-)
+sqlalchemy_url = _normalize_db_url(
+    os.environ.get("DATABASE_URL")
+) or config.get_main_option("sqlalchemy.url")
 if sqlalchemy_url:
     config.set_main_option("sqlalchemy.url", sqlalchemy_url)
 

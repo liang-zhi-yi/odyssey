@@ -1,5 +1,8 @@
 """Application configuration loaded from environment variables."""
 
+import re
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -37,6 +40,16 @@ class Settings(BaseSettings):
     llm_timeout_seconds: int = 60
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @field_validator("database_url")
+    @classmethod
+    def normalize_db_url(cls, v: str) -> str:
+        """Ensure DATABASE_URL uses psycopg2 driver and has no empty port."""
+        if v.startswith("postgresql://"):
+            v = "postgresql+psycopg2://" + v[len("postgresql://"):]
+        # Fix empty port: host:/ → host/
+        v = re.sub(r":/(?=\D|$)", "/", v)
+        return v
 
 
 settings = Settings()
