@@ -279,12 +279,15 @@ def accept_quest(db: Session, user_id: str, quest_id: str) -> QuestSubmission:
     # Ensure the quest exists
     _ = get_quest_detail(db, quest_id)
 
+    # Order by submitted_at desc to match abandon_quest — ensures
+    # we reactivate the latest ABANDONED/FAILED submission, not a stale one.
     existing = (
         db.query(QuestSubmission)
         .filter(
             QuestSubmission.user_id == user_id,
             QuestSubmission.quest_id == quest_id,
         )
+        .order_by(QuestSubmission.submitted_at.desc().nullslast())
         .first()
     )
 

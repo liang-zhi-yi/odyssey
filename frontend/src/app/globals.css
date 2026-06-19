@@ -4,68 +4,68 @@
 
 @layer base {
   :root {
-    /* Warm cream background — not pure white */
-    --background: 0.985 0.002 95;
-    --foreground: 0.25 0.01 90;
-    /* Primary: low-saturation sage green */
-    --primary: 0.55 0.08 160;
+    /* Rich antique papyrus/linen background */
+    --background: 0.965 0.02 80;
+    --foreground: 0.20 0.025 70;
+    /* Primary: deep patina bronze/jade green */
+    --primary: 0.42 0.08 150;
     --primary-foreground: 0.99 0 0;
-    /* Warm light gray secondary */
-    --secondary: 0.95 0.005 90;
-    --secondary-foreground: 0.25 0.01 90;
-    /* Muted warm gray */
-    --muted: 0.96 0.003 90;
-    --muted-foreground: 0.5 0.01 90;
-    /* Accent: warm gold for achievements & highlights */
-    --accent: 0.7 0.12 85;
-    --accent-foreground: 0.2 0.01 90;
-    /* Success: moss green for growth & completion */
-    --success: 0.55 0.1 150;
+    /* Warm light sepia secondary */
+    --secondary: 0.93 0.015 80;
+    --secondary-foreground: 0.20 0.025 70;
+    /* Muted papyrus gray-tan */
+    --muted: 0.94 0.012 80;
+    --muted-foreground: 0.48 0.02 75;
+    /* Accent: regal burnished gold/bronze */
+    --accent: 0.68 0.14 75;
+    --accent-foreground: 0.15 0.02 70;
+    /* Success: rich moss green */
+    --success: 0.45 0.1 145;
     --success-foreground: 0.99 0 0;
-    /* Warning: terracotta for attention */
-    --warning: 0.65 0.12 45;
+    /* Warning: terracotta clay */
+    --warning: 0.60 0.12 45;
     --warning-foreground: 0.99 0 0;
-    /* Destructive: soft red-terracotta */
-    --destructive: 0.5 0.15 25;
+    /* Destructive: deep terracotta red */
+    --destructive: 0.48 0.14 25;
     --destructive-foreground: 0.99 0 0;
-    /* Warm light border */
-    --border: 0.9 0.008 100;
-    /* Warm white card — slightly warmer than bg */
-    --card: 0.99 0.003 95;
-    --card-foreground: 0.25 0.01 90;
+    /* Antique sepia border */
+    --border: 0.88 0.018 80;
+    /* Clean warm papyrus card */
+    --card: 0.975 0.018 80;
+    --card-foreground: 0.20 0.025 70;
     --radius: 0.75rem;
   }
 
   .dark {
-    /* Warm deep brown-black — cozy night reading room */
-    --background: 0.18 0.01 85;
-    --foreground: 0.92 0.005 95;
-    /* Lighter sage for dark backgrounds */
-    --primary: 0.6 0.1 155;
-    --primary-foreground: 0.12 0.005 85;
-    /* Warm dark secondary */
-    --secondary: 0.25 0.008 85;
-    --secondary-foreground: 0.92 0.005 95;
-    /* Muted warm dark */
-    --muted: 0.25 0.005 85;
-    --muted-foreground: 0.65 0.005 95;
-    /* Gold slightly warmer for dark mode */
-    --accent: 0.72 0.12 82;
-    --accent-foreground: 0.15 0.01 85;
-    /* Moss green for dark */
-    --success: 0.6 0.12 148;
-    --success-foreground: 0.12 0.005 85;
-    /* Terracotta for dark */
-    --warning: 0.68 0.14 48;
-    --warning-foreground: 0.12 0.005 85;
-    /* Destructive for dark */
-    --destructive: 0.52 0.16 28;
+    /* Mysterious deep basalt ruins stone chamber background */
+    --background: 0.14 0.012 70;
+    --foreground: 0.91 0.018 85;
+    /* Glowing jade/patina green under torchlight */
+    --primary: 0.58 0.09 145;
+    --primary-foreground: 0.10 0.01 70;
+    /* Warm dark basalt secondary */
+    --secondary: 0.20 0.012 70;
+    --secondary-foreground: 0.91 0.018 85;
+    /* Muted deep stone */
+    --muted: 0.20 0.008 70;
+    --muted-foreground: 0.60 0.012 80;
+    /* Glowing gold/flame accent */
+    --accent: 0.74 0.13 75;
+    --accent-foreground: 0.10 0.01 70;
+    /* Moss green for dark mode */
+    --success: 0.62 0.11 142;
+    --success-foreground: 0.10 0.01 70;
+    /* Terracotta clay for dark mode */
+    --warning: 0.65 0.13 48;
+    --warning-foreground: 0.10 0.01 70;
+    /* Destructive red for dark mode */
+    --destructive: 0.50 0.15 28;
     --destructive-foreground: 0.99 0 0;
-    /* Warm dark border */
-    --border: 0.3 0.008 88;
-    /* Warm dark card */
-    --card: 0.22 0.008 85;
-    --card-foreground: 0.92 0.005 95;
+    /* Dark sepia joint border */
+    --border: 0.26 0.012 75;
+    /* Dark basalt card */
+    --card: 0.17 0.015 70;
+    --card-foreground: 0.91 0.018 85;
   }
 
   * {
@@ -347,11 +347,429 @@
   }
 }
 
+/* ─── Game-World Civilization Effects ─────────────────── */
+
+/* Glow pulse for civilization pedestal and important nodes */
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.06);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Float upward — sparkle particles drifting toward the sky */
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.4);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1);
+  }
+}
+
+.animate-float-up {
+  animation: float-up 3.5s ease-out infinite;
+}
+
+/* ─── Agent Sparkle Effects ───────────────────────────── */
+
+/* Twinkle — star blinking in and out */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 2.5s ease-in-out infinite;
+}
+
+/* Slow orbit — particle circling the Agent */
+@keyframes orbit-cw {
+  from { transform: rotate(0deg) translateX(var(--orbit-r, 80px)) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(var(--orbit-r, 80px)) rotate(-360deg); }
+}
+
+@keyframes orbit-ccw {
+  from { transform: rotate(0deg) translateX(var(--orbit-r, 80px)) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(var(--orbit-r, 80px)) rotate(360deg); }
+}
+
+.animate-orbit-cw {
+  animation: orbit-cw var(--orbit-dur, 8s) linear infinite;
+}
+
+.animate-orbit-ccw {
+  animation: orbit-ccw var(--orbit-dur, 10s) linear infinite;
+}
+
+/* Gentle drift — floating dust mote */
+@keyframes drift {
+  0%, 100% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  20% { opacity: 0.8; }
+  50% {
+    opacity: 0.6;
+    transform: translate(var(--drift-x, 15px), var(--drift-y, -20px)) scale(1);
+  }
+  80% { opacity: 0.4; }
+}
+
+.animate-drift {
+  animation: drift var(--drift-dur, 4s) ease-in-out infinite;
+}
+
+/* Shimmer pulse — soft glowing dot */
+@keyframes shimmer-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.3);
+  }
+}
+
+.animate-shimmer-pulse {
+  animation: shimmer-pulse 3s ease-in-out infinite;
+}
+
+/* ─── Civilization Constellation Effects ───────────────── */
+
+/* Bezier connection flow — dashed line moving along path */
+@keyframes civ-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+.animate-civ-flow {
+  animation: civ-flow 1.5s linear infinite;
+}
+
+/* Center node halo breath */
+@keyframes civ-halo-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
+.animate-civ-halo {
+  animation: civ-halo-pulse 3s ease-in-out infinite;
+}
+
+/* Node entrance */
+@keyframes civ-node-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.animate-civ-enter {
+  animation: civ-node-enter 0.6s ease-out backwards;
+}
+
+/* ─── Civilization World (Building Map) Effects ────────── */
+
+/* Energy ring slow rotation around center building */
+@keyframes energy-ring {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-energy-ring {
+  animation: energy-ring 20s linear infinite;
+}
+
+/* Building under construction — gentle pulse */
+@keyframes building-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 oklch(0.82 0.12 85 / 0);
+  }
+  50% {
+    opacity: 0.85;
+    box-shadow: 0 0 20px 4px oklch(0.82 0.12 85 / 0.15);
+  }
+}
+
+.animate-building-pulse {
+  animation: building-pulse 2.5s ease-in-out infinite;
+}
+
+/* Floating ambient particles */
+@keyframes ambient-float {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  20% { opacity: 0.4; }
+  80% { opacity: 0.2; }
+  100% {
+    opacity: 0;
+    transform: translate(var(--float-x, 20px), var(--float-y, -40px));
+  }
+}
+
+.animate-ambient-float {
+  animation: ambient-float var(--float-dur, 8s) ease-in-out infinite;
+}
+
+/* Growth path flow — for building connections */
+@keyframes growth-flow {
+  to { stroke-dashoffset: -16; }
+}
+
+.animate-growth-flow {
+  animation: growth-flow 2s linear infinite;
+}
+
+/* Timeline connection line draw-on-scroll */
+@keyframes timeline-progress {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-timeline-progress {
+  animation: timeline-progress 2s ease-out forwards;
+}
+
+/* Breathing glow for map building nodes */
+@keyframes node-pulse {
+  0%, 100% {
+    box-shadow: 0 0 6px 0 oklch(0.7 0.12 85 / 0.25);
+  }
+  50% {
+    box-shadow: 0 0 22px 6px oklch(0.7 0.12 85 / 0.12);
+  }
+}
+
+.animate-node-pulse {
+  animation: node-pulse 3s ease-in-out infinite;
+}
+
+/* Road/connection line drawing animation */
+@keyframes road-draw {
+  from {
+    stroke-dashoffset: 300;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-road-draw {
+  animation: road-draw 1.8s ease-out forwards;
+}
+
+/* Slow rotation for background hex patterns */
+@keyframes slow-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-slow-rotate {
+  animation: slow-rotate 60s linear infinite;
+}
+
+/* Gentle breathing glow for cards */
+@keyframes card-glow {
+  0%, 100% {
+    border-color: oklch(0.7 0.12 85 / 0.15);
+    box-shadow: 0 0 0 0 oklch(0.7 0.12 85 / 0);
+  }
+  50% {
+    border-color: oklch(0.7 0.12 85 / 0.35);
+    box-shadow: 0 0 20px 2px oklch(0.7 0.12 85 / 0.08);
+  }
+}
+
+.animate-card-glow {
+  animation: card-glow 4s ease-in-out infinite;
+}
+
 /* ─── Radial gradient background ────────────────────────── */
+
+
+/* ─── My World Civilization Expansion Aesthetics ─── */
+
+/* Antique parchment texture background with map coordinates */
+.bg-cartography-grid {
+  background-color: oklch(0.985 0.003 95);
+  background-image: 
+    radial-gradient(circle at 50% 50%, transparent 60%, oklch(0.96 0.005 92) 100%),
+    linear-gradient(to right, oklch(0.92 0.005 92 / 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.92 0.005 92 / 0.3) 1px, transparent 1px);
+  background-size: 100% 100%, 80px 80px, 80px 80px;
+}
+
+.dark .bg-cartography-grid {
+  background-color: oklch(0.18 0.01 85);
+  background-image: 
+    radial-gradient(circle at 50% 50%, transparent 60%, oklch(0.15 0.01 85) 100%),
+    linear-gradient(to right, oklch(0.25 0.008 85 / 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.25 0.008 85 / 0.25) 1px, transparent 1px);
+  background-size: 100% 100%, 80px 80px, 80px 80px;
+}
+
+/* Vintage parchment paper styling */
+.vintage-parchment-card {
+  background: linear-gradient(135deg, oklch(0.99 0.003 95), oklch(0.975 0.005 92));
+  border: 1px solid oklch(0.88 0.02 90);
+  box-shadow: 
+    0 4px 20px -2px oklch(0 0 0 / 0.03),
+    inset 0 0 40px oklch(0.94 0.01 92 / 0.3);
+}
+
+.dark .vintage-parchment-card {
+  background: linear-gradient(135deg, oklch(0.22 0.008 85), oklch(0.20 0.006 85));
+  border: 1px solid oklch(0.3 0.008 88);
+  box-shadow: 
+    0 4px 20px -2px oklch(0 0 0 / 0.15),
+    inset 0 0 40px oklch(0.15 0.005 85 / 0.2);
+}
+
+/* Ornate double-line border representing classic framing */
+.border-double-vintage {
+  border-style: double;
+  border-width: 3px;
+  border-color: oklch(0.7 0.12 85 / 0.5);
+}
+
+/* Slow navigation chart rotation */
+@keyframes rhumb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rhumb-spin {
+  animation: rhumb-spin 120s linear infinite;
+}
+
+/* Elegant serif typography for titles */
+.font-civ-serif {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+/* Glowing civilization hub pedestal border */
+@keyframes pedestal-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px 1px oklch(0.72 0.12 85 / 0.2), inset 0 0 15px oklch(0.72 0.12 85 / 0.1);
+    border-color: oklch(0.72 0.12 85 / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px 4px oklch(0.72 0.12 85 / 0.45), inset 0 0 25px oklch(0.72 0.12 85 / 0.25);
+    border-color: oklch(0.72 0.12 85 / 0.7);
+  }
+}
+
+.animate-pedestal-glow {
+  animation: pedestal-glow 4s ease-in-out infinite;
+}
+
+/* Animated flow for route-like progress bars */
+@keyframes route-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 0;
+  }
+}
+
+.animate-route-flow {
+  background-image: linear-gradient(
+    -45deg, 
+    oklch(0.72 0.12 85 / 0.2) 25%, 
+    transparent 25%, 
+    transparent 50%, 
+    oklch(0.72 0.12 85 / 0.2) 50%, 
+    oklch(0.72 0.12 85 / 0.2) 75%, 
+    transparent 75%, 
+    transparent
+  );
+  background-size: 40px 40px;
+  animation: route-flow 2s linear infinite;
+}
 
 .bg-gradient-radial {
   background-image: radial-gradient(var(--tw-gradient-stops));
 }
+
+@keyframes line-flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animate-line-flow {
+  animation: line-flow 1.5s linear infinite;
+}
+
+/* ── Auth Page Animations ───────────────────────────────
+   Quiet, brand-aligned motions for the civilization entry UI.
+   ─────────────────────────────────────────────────────── */
+@keyframes auth-line-flow {
+  to { stroke-dashoffset: -6; }
+}
+
+@keyframes auth-node-soft {
+  0%, 100% { opacity: 0.08; r: 0.15; }
+  50% { opacity: 0.16; r: 0.22; }
+}
+
+@keyframes auth-glow-breathe {
+  0%, 100% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+}
+
+@keyframes auth-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-auth-fade-in { animation: auth-fade-in 0.45s ease-out both; }
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
@@ -362,4 +780,38 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ─── Hide scrollbar while keeping scroll ──────────────── */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Frosted glass page container ─────────────────────── */
+
+.page-glass {
+  background: oklch(0.985 0.003 95 / 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(0.88 0.02 90 / 0.6);
+  border-radius: 1rem;
+  box-shadow:
+    0 8px 32px -4px oklch(0 0 0 / 0.06),
+    0 0 0 1px oklch(0.99 0.002 95 / 0.8) inset,
+    0 1px 0 oklch(0.99 0.002 95 / 0.6) inset;
+}
+
+.dark .page-glass {
+  background: oklch(0.18 0.01 85 / 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(0.26 0.012 75 / 0.5);
+  box-shadow:
+    0 8px 32px -4px oklch(0 0 0 / 0.2),
+    0 0 0 1px oklch(0.22 0.008 85 / 0.5) inset;
 }

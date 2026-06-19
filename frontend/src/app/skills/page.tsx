@@ -197,7 +197,7 @@ export default function SkillsPage() {
   // ── Render ─────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex min-h-[calc(100vh-3.5rem)]">
       {/* Left: Skill Tree Sidebar */}
       <SkillTreeSidebar
         skills={allSkills}

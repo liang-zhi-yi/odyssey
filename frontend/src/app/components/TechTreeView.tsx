@@ -6,6 +6,7 @@ import { worldService } from "@/services/world.service";
 import { LEVEL_LABELS } from "@/types/world";
 import type { TechTreeNode, TechTreeData } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
+import { VintageShieldIcon } from "./VintageShieldIcon";
 
 interface TechTreeViewProps {
   data?: TechTreeData;
@@ -108,13 +109,13 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
     <div className="space-y-10 py-4">
       {/* Header */}
       <div className="text-center space-y-1">
-        <h3 className="text-lg font-bold text-[oklch(0.3_0.02_80)]">
-          🌳 {locale === "en" ? "Building Tech Tree" : "建筑科技树"}
+        <h3 className="text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
+          🌳 {locale === "en" ? "Building Tech Tree" : "文明建筑大科技树"}
         </h3>
         <p className="text-xs text-[oklch(0.55_0.02_85)]">
           {locale === "en"
             ? "How buildings connect and unlock"
-            : "建筑的解锁关系与连接"}
+            : "查看各项建筑解锁的前置条件与演进脉络"}
         </p>
       </div>
 
@@ -171,16 +172,14 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
 
 function LayerConnector({ locale }: { locale: string }) {
   return (
-    <div className="flex items-center justify-center gap-3">
-      <div className="flex-1 max-w-[120px] border-t border-dashed border-[oklch(0.75_0.02_90)]" />
-      <span className="text-sm text-[oklch(0.55_0.02_85)]">
-        {locale === "en" ? "requires" : "需要"}
-      </span>
-      <span className="text-lg">↓</span>
-      <span className="text-sm text-[oklch(0.55_0.02_85)]">
-        {locale === "en" ? "unlocks" : "解锁"}
-      </span>
-      <div className="flex-1 max-w-[120px] border-t border-dashed border-[oklch(0.75_0.02_90)]" />
+    <div className="flex items-center justify-center gap-4 py-2">
+      <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.35)] to-[oklch(0.7_0.12_85_/_0.5)] border-t border-b border-[oklch(0.7_0.12_85_/_0.2)] animate-route-flow" />
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[oklch(0.95_0.005_90)] border border-[oklch(0.7_0.12_85_/_0.3)] shadow-sm text-xs font-bold text-[oklch(0.4_0.03_80)] font-civ-serif">
+        <span>{locale === "en" ? "requires" : "必须前提"}</span>
+        <span className="animate-gentle-float text-sm">⚓</span>
+        <span>{locale === "en" ? "unlocks" : "方可开拓"}</span>
+      </div>
+      <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-[oklch(0.7_0.12_85_/_0.5)] via-[oklch(0.7_0.12_85_/_0.35)] to-transparent border-t border-b border-[oklch(0.7_0.12_85_/_0.2)] animate-route-flow" />
     </div>
   );
 }
@@ -207,7 +206,7 @@ function TechTreeLayer({
       <div className="flex items-center justify-center gap-2">
         <span className="text-lg">{icon}</span>
         <h4
-          className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
+          className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full font-civ-serif"
           style={{
             background: `${accentColor} / 0.1`,
             color: accentColor,
@@ -257,38 +256,44 @@ function TechTreeNodeCard({
   const metCount = prereqs.filter((p) => p.met).length;
   const totalCount = prereqs.length;
 
+  const cardBorderClass = () => {
+    if (isLocked) {
+      return "border-dashed border-2 border-[oklch(0.85_0.02_90)] bg-[oklch(0.97_0.003_90)]/40 opacity-50";
+    }
+    if (node.level >= 7) {
+      // Wonder / Golden double border
+      return "vintage-parchment-card border-2 border-double border-[oklch(0.7_0.12_85)] animate-pedestal-glow shadow-md hover:shadow-lg hover:-translate-y-0.5";
+    }
+    if (node.node_type === "compound") {
+      // Compound / Silver-Sage border
+      return "vintage-parchment-card border-2 border-[oklch(0.55_0.08_160_/_0.7)] shadow-sm hover:shadow-md hover:-translate-y-0.5";
+    }
+    // Basic / Bronze-Copper border
+    return "vintage-parchment-card border border-[oklch(0.65_0.12_45_/_0.4)] shadow-sm hover:shadow-md hover:-translate-y-0.5";
+  };
+
   return (
     <div
       className={`
-        flex flex-col gap-2 p-4 rounded-xl border-2 transition-all
-        ${isLocked
-          ? "border-dashed border-[oklch(0.85_0.02_90)] bg-[oklch(0.97_0.003_90)]/50 opacity-60"
-          : "bg-[oklch(0.98_0.005_90)] shadow-card hover:shadow-md"
-        }
+        flex flex-col gap-2 p-4 rounded-xl transition-all duration-300 relative overflow-hidden
+        ${cardBorderClass()}
       `}
-      style={
-        !isLocked
-          ? { borderColor: `${accentColor} / 0.35` }
-          : undefined
-      }
     >
       {/* Icon + Name */}
       <div className="flex items-center gap-3">
-        <div
-          className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 ${
-            isLocked ? "grayscale opacity-50" : ""
-          }`}
-          style={{ background: `${accentColor} / 0.12` }}
-        >
-          <span className="text-xl">{node.icon}</span>
-        </div>
+        <VintageShieldIcon
+          icon={node.icon}
+          size="sm"
+          tier={isLocked ? "sage" : node.level >= 7 ? "gold" : node.node_type === "compound" ? "silver" : "bronze"}
+          className={isLocked ? "grayscale opacity-50" : ""}
+        />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[oklch(0.3_0.02_80)] truncate">
+          <p className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] truncate">
             {name}
           </p>
           <p
-            className="text-[10px] font-medium"
-            style={{ color: accentColor }}
+            className="text-[10px] font-mono font-bold"
+            style={!isLocked ? { color: accentColor } : undefined}
           >
             {levelLabel}
           </p>
@@ -301,8 +306,8 @@ function TechTreeNodeCard({
       {/* Required skills / prerequisites */}
       {prereqs.length > 0 && (
         <div className="space-y-1 pt-2 border-t border-[oklch(0.88_0.02_90)]">
-          <p className="text-[10px] text-[oklch(0.5_0.02_85)] font-medium">
-            {locale === "en" ? "Requires:" : "需要技能:"}
+          <p className="text-[10px] text-[oklch(0.5_0.02_85)] font-bold">
+            {locale === "en" ? "Prerequisites:" : "开拓所需技术:"}
           </p>
           {prereqs.map((p) => (
             <div
@@ -312,7 +317,7 @@ function TechTreeNodeCard({
               <span
                 className={
                   p.met
-                    ? "text-[oklch(0.55_0.08_160)]"
+                    ? "text-[oklch(0.55_0.08_160)] font-medium"
                     : "text-[oklch(0.5_0.02_85)]"
                 }
               >
@@ -321,7 +326,7 @@ function TechTreeNodeCard({
               <span
                 className={`font-mono tabular-nums ${
                   p.met
-                    ? "text-[oklch(0.55_0.08_160)]"
+                    ? "text-[oklch(0.55_0.08_160)] font-bold"
                     : "text-[oklch(0.5_0.02_85)]"
                 }`}
               >
@@ -334,18 +339,18 @@ function TechTreeNodeCard({
 
       {/* Overall status */}
       {totalCount > 0 && (
-        <div className="text-[10px] font-medium pt-1 border-t border-[oklch(0.88_0.02_90)]">
+        <div className="text-[10px] font-bold pt-1.5 border-t border-[oklch(0.88_0.02_90)]">
           {node.all_prereqs_met ? (
             <span className="text-[oklch(0.55_0.08_160)]">
               ✓{" "}
               {locale === "en"
                 ? "All prerequisites met"
-                : "全部前提已满足"}
+                : "技术前提已就绪"}
             </span>
           ) : (
             <span className="text-[oklch(0.5_0.02_85)]">
-              {metCount}/{totalCount}{" "}
-              {locale === "en" ? "prerequisites" : "前提已就绪"}
+              ⚙️ {metCount}/{totalCount}{" "}
+              {locale === "en" ? "prerequisites" : "项前提已满足"}
             </span>
           )}
         </div>
@@ -353,8 +358,8 @@ function TechTreeNodeCard({
 
       {/* Region tag */}
       {node.region && (
-        <div className="text-[10px] text-[oklch(0.5_0.02_85)] pt-1 border-t border-[oklch(0.88_0.02_90)]">
-          {locale === "en" && node.region_en ? node.region_en : node.region}
+        <div className="text-[9px] font-medium text-[oklch(0.5_0.02_85)] pt-1 border-t border-[oklch(0.88_0.02_90)]/50">
+          📍 {locale === "en" && node.region_en ? node.region_en : node.region}
         </div>
       )}
     </div>

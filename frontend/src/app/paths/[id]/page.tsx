@@ -217,7 +217,7 @@ export default function PathDetailPage() {
   // ── AI generation loading overlay ────────────────────────────
   if (generatingAI) {
     return (
-      <div className="mx-auto max-w-5xl space-y-5 px-4 py-6">
+      <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
         <button
           onClick={() => router.push("/paths")}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -269,7 +269,7 @@ export default function PathDetailPage() {
   // ── Generation error banner ──────────────────────────────────
   if (generationError && path && (!path.milestones || path.milestones.length === 0)) {
     return (
-      <div className="mx-auto max-w-5xl space-y-5 px-4 py-6">
+      <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
         <button
           onClick={() => router.push("/paths")}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -397,7 +397,7 @@ export default function PathDetailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 px-4 py-6">
+    <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
       {/* Back button */}
       <button
         onClick={() => router.push("/paths")}

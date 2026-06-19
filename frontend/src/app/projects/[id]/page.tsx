@@ -70,7 +70,7 @@ export default function ProjectDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-6xl px-6 py-8">
         <Loading text={t("common.loading")} />
       </div>
     );
@@ -78,7 +78,7 @@ export default function ProjectDetailPage() {
 
   if (error || !project) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-6xl px-6 py-8">
         <ErrorState
           message={t("common.error")}
           detail={error instanceof Error ? error.message : "Project not found"}
@@ -88,7 +88,7 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
       {/* Back navigation */}
       <BackButton href="/projects" label={t("projects.backToList")} />
 

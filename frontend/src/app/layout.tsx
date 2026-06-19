@@ -6,6 +6,8 @@ import { Navbar } from "./components/Navbar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HtmlLang } from "./components/HtmlLang";
 import { AgentSidebar } from "./components/AgentSidebar";
+import { PageGlassWrapper } from "./components/PageGlassWrapper";
+import { MainWrapper } from "./components/MainWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,18 +15,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Odyssey — AI Capability Growth OS",
+  title: "Odyssey — AI-Powered Personal Civilization Builder",
   description:
-    "Odyssey is an AI-powered capability growth operating system. Prove your skills, earn credentials, build your passport.",
+    "Build your own capability civilization. From skills to buildings, from buildings to civilizations — your learning becomes a world you can see.",
   openGraph: {
-    title: "Odyssey — AI Capability Growth OS",
-    description: "Prove your skills, earn credentials, build your passport.",
+    title: "Odyssey — AI-Powered Personal Civilization Builder",
+    description:
+      "Build your own capability civilization. From skills to buildings, from buildings to civilizations — your learning becomes a world you can see.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Odyssey — AI Capability Growth OS",
-    description: "Prove your skills, earn credentials, build your passport.",
+    title: "Odyssey — AI-Powered Personal Civilization Builder",
+    description:
+      "Build your own capability civilization. From skills to buildings, from buildings to civilizations — your learning becomes a world you can see.",
   },
 };
 
@@ -40,13 +44,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className={inter.variable}>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased transition-colors duration-300">
+      <body className="min-h-screen bg-cartography-grid font-sans text-[oklch(0.25_0.01_90)] antialiased transition-colors duration-300">
         <Providers>
           <HtmlLang />
           <Navbar />
-          <main className="mx-auto max-w-7xl px-6 py-8 pb-16 page-enter">
-            <ErrorBoundary>{children}</ErrorBoundary>
-          </main>
+          <MainWrapper>
+            <PageGlassWrapper>
+              <ErrorBoundary>{children}</ErrorBoundary>
+            </PageGlassWrapper>
+          </MainWrapper>
           <AgentSidebar />
         </Providers>
       </body>

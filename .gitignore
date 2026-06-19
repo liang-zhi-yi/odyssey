@@ -97,3 +97,11 @@ CLAUDE.md.md
 .learnings/
 .codegraph/
 uploads/
+
+# Python egg-info
+*.egg-info/
+
+# Large media / reference files (not needed in repo)
+6月18日.mp4
+4d05c555-9030-43c3-905e-5158599c088c.png
+odyssey-demo.html

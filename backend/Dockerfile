@@ -2,17 +2,20 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install Poetry or use pip
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e ".[dev]" 2>/dev/null || \
-    pip install --no-cache-dir fastapi>=0.115.0 uvicorn[standard]>=0.30.0 \
-    sqlalchemy>=2.0.30 alembic>=1.13.0 psycopg2-binary>=2.9.9 \
-    pydantic>=2.7.0 pydantic-settings>=2.3.0 pydantic[email]>=2.7.0 \
-    python-jose[cryptography]>=3.3.0 \
-    openai>=1.40.0 httpx>=0.27.0 bcrypt>=4.0.0
+# System dependencies for psycopg2 and Pillow
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev gcc libjpeg-dev zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy source and install dependencies
 COPY . .
+RUN pip install --no-cache-dir .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Healthcheck (uses PORT env var for Railway compatibility)
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=15s \
+    CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/api/v1/health')" || exit 1
+
+# Run migrations then start server (PORT env var for Railway compatibility)
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -43,44 +43,49 @@ export function PasswordChangeForm() {
     }
   };
 
+  const inputClass = "w-full rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D] transition-all";
+  const labelClass = "block text-xs font-bold font-civ-serif mb-1 text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)]";
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">{t("settings.changePassword")}</h3>
+      <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] border-b border-border/60 pb-2 flex items-center gap-1.5">
+        <span>🔑</span> {t("settings.changePassword")}
+      </h3>
       <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.currentPassword")}</label>
+        <label className={labelClass}>{t("settings.currentPassword")}</label>
         <input
           type="password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className={inputClass}
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.newPassword")}</label>
+        <label className={labelClass}>{t("settings.newPassword")}</label>
         <input
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className={inputClass}
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.confirmNewPassword")}</label>
+        <label className={labelClass}>{t("settings.confirmNewPassword")}</label>
         <input
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className={inputClass}
         />
       </div>
 
-      {message && <p className="text-sm text-success">{message}</p>}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {message && <p className="text-xs font-bold text-success mt-2">✓ {message}</p>}
+      {error && <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>}
 
       <button
         onClick={handleChange}
         disabled={saving}
-        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
       >
         {saving ? t("settings.saving") : t("settings.changePassword")}
       </button>

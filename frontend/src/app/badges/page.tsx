@@ -68,7 +68,7 @@ export default function BadgesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 py-6 animate-fade-in">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 py-6 animate-fade-in">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">{t("badges.title")}</h1>

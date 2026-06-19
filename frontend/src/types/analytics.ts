@@ -27,6 +27,7 @@ export interface AnalyticsSummary {
   total_quests: number;
   total_assessments: number;
   growth_rate: number;
+  streak_days: number;
   strongest_skill: string | null;
   strongest_skill_en: string | null;
   strongest_skill_score: number | null;

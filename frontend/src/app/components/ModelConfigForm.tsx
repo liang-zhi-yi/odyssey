@@ -16,9 +16,11 @@ const PROVIDERS: { value: string; label: string }[] = [
   { value: "custom", label: "Custom" },
 ];
 
+const inputClass = "w-full rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D] transition-all";
+const labelClass = "block text-xs font-bold font-civ-serif mb-1 text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)]";
+
 /**
  * Render a provider dropdown for LLM config fields.
- * Field keys for standard LLM use "llm_*"; for path LLM use "path_llm_*".
  */
 function ProviderSelect({
   value,
@@ -33,7 +35,7 @@ function ProviderSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      className={inputClass}
     >
       <option value="">{placeholder}</option>
       {PROVIDERS.map((p) => (
@@ -66,11 +68,11 @@ function ApiKeyField({
   if (maskedValue && !formValue) {
     return (
       <div className="flex items-center gap-2">
-        <p className="text-sm text-muted-foreground py-2">{maskedValue}</p>
+        <p className="text-xs text-muted-foreground py-2 font-mono">{maskedValue}</p>
         <button
           type="button"
           onClick={onEditClick}
-          className="text-xs text-primary hover:underline"
+          className="text-xs font-bold font-civ-serif text-primary hover:underline"
         >
           {editLabel}
         </button>
@@ -83,7 +85,7 @@ function ApiKeyField({
       value={formValue}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      className={inputClass}
     />
   );
 }
@@ -106,7 +108,7 @@ function TextInputField({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      className={inputClass}
     />
   );
 }
@@ -195,17 +197,18 @@ export function ModelConfigForm() {
       {/* ======== Assessment Model Section ======== */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-base font-semibold">
+          <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-1 flex items-center gap-1.5">
+            <span>🛡️</span>
             {isZh ? "评估模型" : "Assessment Model"}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground italic">
             {t("settings.modelConfigDesc")}
           </p>
         </div>
 
         {/* Provider */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.provider")}
           </label>
           <ProviderSelect
@@ -217,7 +220,7 @@ export function ModelConfigForm() {
 
         {/* API Key */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.apiKey")}
           </label>
           <ApiKeyField
@@ -232,7 +235,7 @@ export function ModelConfigForm() {
 
         {/* Base URL */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.baseUrl")}
           </label>
           <TextInputField
@@ -244,7 +247,7 @@ export function ModelConfigForm() {
 
         {/* Model */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.model")}
           </label>
           <TextInputField
@@ -256,15 +259,16 @@ export function ModelConfigForm() {
       </div>
 
       {/* ======== Divider ======== */}
-      <hr className="border-border" />
+      <hr className="border-border/60" />
 
       {/* ======== Path Generation Model Section ======== */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-base font-semibold">
+          <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-1 flex items-center gap-1.5">
+            <span>🗺️</span>
             {isZh ? "路径生成模型" : "Path Generation Model"}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground italic">
             {isZh
               ? "配置用于学习路径生成和内容创建的 LLM 模型。留空则使用评估模型配置。"
               : "Configure the LLM used for learning path generation and content creation. Leave empty to use the assessment model configuration."}
@@ -273,7 +277,7 @@ export function ModelConfigForm() {
 
         {/* Provider */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.provider")}
           </label>
           <ProviderSelect
@@ -285,7 +289,7 @@ export function ModelConfigForm() {
 
         {/* API Key */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.apiKey")}
           </label>
           <ApiKeyField
@@ -300,7 +304,7 @@ export function ModelConfigForm() {
 
         {/* Base URL */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.baseUrl")}
           </label>
           <TextInputField
@@ -312,7 +316,7 @@ export function ModelConfigForm() {
 
         {/* Model */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className={labelClass}>
             {t("settings.model")}
           </label>
           <TextInputField
@@ -323,13 +327,13 @@ export function ModelConfigForm() {
         </div>
       </div>
 
-      {message && <p className="text-sm text-success">{message}</p>}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {message && <p className="text-xs font-bold text-success mt-2">✓ {message}</p>}
+      {error && <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>}
 
       <button
         onClick={handleSave}
         disabled={saving}
-        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
       >
         {saving ? t("settings.saving") : t("settings.saveModelConfig")}
       </button>

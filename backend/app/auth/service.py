@@ -67,39 +67,42 @@ def update_profile(
     """Update the user's profile fields.
 
     Only updates fields that are explicitly provided (not None).
+    Empty strings are treated as None for optional fields.
     Validates github_username uniqueness if provided.
     """
     if req.github_username is not None:
-        # Check uniqueness
-        existing = (
-            db.query(User)
-            .filter(
-                User.github_username == req.github_username,
-                User.id != user.id,
+        github = req.github_username.strip() if req.github_username else None
+        if github:
+            # Check uniqueness
+            existing = (
+                db.query(User)
+                .filter(
+                    User.github_username == github,
+                    User.id != user.id,
+                )
+                .first()
             )
-            .first()
-        )
-        if existing:
-            raise ConflictException(
-                "GITHUB_USERNAME_TAKEN",
-                f"GitHub username '{req.github_username}' is already in use",
-            )
-        user.github_username = req.github_username
+            if existing:
+                raise ConflictException(
+                    "GITHUB_USERNAME_TAKEN",
+                    f"GitHub username '{github}' is already in use",
+                )
+        user.github_username = github
 
     if req.nickname is not None:
-        user.nickname = req.nickname
+        user.nickname = req.nickname.strip() if req.nickname else None
     if req.bio is not None:
-        user.bio = req.bio
+        user.bio = req.bio.strip() if req.bio else None
     if req.avatar_url is not None:
-        user.avatar_url = req.avatar_url
+        user.avatar_url = req.avatar_url.strip() if req.avatar_url else None
     if req.title is not None:
-        user.title = req.title
+        user.title = req.title.strip() if req.title else None
     if req.location is not None:
-        user.location = req.location
+        user.location = req.location.strip() if req.location else None
     if req.website is not None:
-        user.website = req.website
+        user.website = req.website.strip() if req.website else None
     if req.social_links is not None:
-        user.social_links = req.social_links
+        user.social_links = req.social_links if req.social_links else None
 
     db.commit()
     db.refresh(user)

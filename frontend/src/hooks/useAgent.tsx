@@ -132,6 +132,8 @@ export function AgentProvider({ children }: { children: ReactNode }) {
 
   // Ref to hold the streaming message ID so we can update it across callbacks
   const streamingMsgIdRef = useRef<string | null>(null);
+  // Ref to hold the typewriter timer so we can clear it on unmount
+  const typewriterTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -160,40 +162,73 @@ export function AgentProvider({ children }: { children: ReactNode }) {
       ]);
       setIsLoading(true);
 
-      // Accumulate streaming content
-      let streamedContent = "";
+      // Buffer for typewriter effect: receives tokens, reveals characters one by one
+      let tokenBuffer = "";
+      let displayIndex = 0;
+      let streamFinished = false;
+      let finalCards: AgentCard[] = [];
+      let finalConvId = "";
+
+      // Clear any existing typewriter timer
+      if (typewriterTimerRef.current) {
+        clearInterval(typewriterTimerRef.current);
+        typewriterTimerRef.current = null;
+      }
+
+      // Typewriter: reveal characters from buffer at a steady pace
+      const TYPEWRITER_SPEED = 20; // ms per character
+      typewriterTimerRef.current = setInterval(() => {
+        if (displayIndex < tokenBuffer.length) {
+          displayIndex++;
+          const visible = tokenBuffer.slice(0, displayIndex);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === agentMsgId
+                ? { ...m, content: visible }
+                : m
+            )
+          );
+        }
+        // If stream finished and all characters revealed, finalize
+        if (streamFinished && displayIndex >= tokenBuffer.length) {
+          if (typewriterTimerRef.current) {
+            clearInterval(typewriterTimerRef.current);
+            typewriterTimerRef.current = null;
+          }
+          setConversationId(finalConvId);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === agentMsgId
+                ? {
+                    ...m,
+                    content: tokenBuffer,
+                    cards: finalCards.length > 0 ? finalCards : undefined,
+                    isStreaming: false,
+                  }
+                : m
+            )
+          );
+          setIsLoading(false);
+        }
+      }, TYPEWRITER_SPEED);
 
       await agentService.sendMessageStream(
         text.trim(),
         {
           onToken: (token: string) => {
-            streamedContent += token;
-            // Update the streaming message content
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === agentMsgId
-                  ? { ...m, content: streamedContent }
-                  : m
-              )
-            );
+            tokenBuffer += token;
           },
           onDone: (data: { conversation_id: string; cards: AgentCard[] }) => {
-            setConversationId(data.conversation_id);
-            // Finalize the streaming message
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === agentMsgId
-                  ? {
-                      ...m,
-                      content: streamedContent,
-                      cards: data.cards.length > 0 ? data.cards : undefined,
-                      isStreaming: false,
-                    }
-                  : m
-              )
-            );
+            finalConvId = data.conversation_id;
+            finalCards = data.cards;
+            streamFinished = true;
           },
           onError: (_message: string) => {
+            streamFinished = true;
+            if (typewriterTimerRef.current) {
+              clearInterval(typewriterTimerRef.current);
+              typewriterTimerRef.current = null;
+            }
             // Replace streaming message with error
             setMessages((prev) =>
               prev.map((m) =>
@@ -201,25 +236,30 @@ export function AgentProvider({ children }: { children: ReactNode }) {
                   ? {
                       ...m,
                       content:
-                        streamedContent ||
+                        tokenBuffer ||
                         "I'm sorry, I'm having trouble processing your request right now. Please try again in a moment.",
                       isStreaming: false,
                     }
                   : m
               )
             );
+            setIsLoading(false);
           },
         },
         conversationId ?? undefined,
       );
 
       streamingMsgIdRef.current = null;
-      setIsLoading(false);
     },
     [conversationId, isLoading]
   );
 
   const startNewChat = useCallback(() => {
+    // Clear any running typewriter timer
+    if (typewriterTimerRef.current) {
+      clearInterval(typewriterTimerRef.current);
+      typewriterTimerRef.current = null;
+    }
     setMessages([]);
     setConversationId(null);
     if (typeof window !== "undefined") {

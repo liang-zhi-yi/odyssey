@@ -1021,6 +1021,9 @@ def _format_rich_context_for_prompt(context: dict) -> str:
     """Format the rich user context into a structured string for the system prompt."""
     lines = []
 
+    # ── Data freshness header ──
+    lines.append("> 以下数据为本次对话启动时实时拉取的最新状态，可直接信任并引用。")
+
     # ── Profile ──
     profile = context.get("profile", {})
     lines.append(f"## 用户资料")
@@ -1530,6 +1533,7 @@ def generate_response_stream(
 
     # ── Stream LLM tokens ──
     full_text = ""
+    cards_separator_seen = False
     try:
         for token in _chat_completion_stream(
             system_prompt=system_prompt,
@@ -1538,6 +1542,13 @@ def generate_response_stream(
             **llm_kwargs,
         ):
             full_text += token
+            # Stop sending user-visible tokens once ---CARDS--- appears
+            # to prevent raw JSON from leaking into the chat display
+            if cards_separator_seen:
+                continue
+            if CARDS_SEPARATOR in full_text:
+                cards_separator_seen = True
+                continue
             yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
     except Exception as exc:
         logger.error("Agent streaming LLM call failed: %s", exc)

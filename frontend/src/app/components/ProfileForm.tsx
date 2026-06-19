@@ -71,6 +71,9 @@ export function ProfileForm() {
     });
   };
 
+  const inputClass = "w-full rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D] transition-all";
+  const labelClass = "block text-xs font-bold font-civ-serif mb-1 text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)]";
+
   return (
     <div className="space-y-4">
       {/* Avatar upload */}
@@ -79,87 +82,93 @@ export function ProfileForm() {
         onAvatarChange={handleAvatarChange}
       />
 
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.nickname")}</label>
-        <input
-          type="text"
-          value={form.nickname ?? ""}
-          onChange={(e) => setForm({ ...form, nickname: e.target.value })}
-          placeholder={t("settings.nicknamePlaceholder")}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
+          <input
+            type="text"
+            value={form.nickname ?? ""}
+            onChange={(e) => setForm({ ...form, nickname: e.target.value })}
+            placeholder={t("settings.nicknamePlaceholder")}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>🛡️ {t("settings.title")}</label>
+          <input
+            type="text"
+            value={form.title ?? ""}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder={t("settings.titlePlaceholder")}
+            className={inputClass}
+          />
+        </div>
       </div>
+
       <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.bio")}</label>
+        <label className={labelClass}>📜 {t("settings.bio")}</label>
         <textarea
           value={form.bio ?? ""}
           onChange={(e) => setForm({ ...form, bio: e.target.value })}
           placeholder={t("settings.bioPlaceholder")}
           rows={3}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.githubUsername")}</label>
-        <input
-          type="text"
-          value={form.github_username ?? ""}
-          onChange={(e) => setForm({ ...form, github_username: e.target.value })}
-          placeholder={t("settings.githubPlaceholder")}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.title")}</label>
-        <input
-          type="text"
-          value={form.title ?? ""}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          placeholder={t("settings.titlePlaceholder")}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.location")}</label>
-        <input
-          type="text"
-          value={form.location ?? ""}
-          onChange={(e) => setForm({ ...form, location: e.target.value })}
-          placeholder={t("settings.locationPlaceholder")}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("settings.website")}</label>
-        <input
-          type="text"
-          value={form.website ?? ""}
-          onChange={(e) => setForm({ ...form, website: e.target.value })}
-          placeholder={t("settings.websitePlaceholder")}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className={inputClass}
         />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label className={labelClass}>🧭 {t("settings.githubUsername")}</label>
+          <input
+            type="text"
+            value={form.github_username ?? ""}
+            onChange={(e) => setForm({ ...form, github_username: e.target.value })}
+            placeholder={t("settings.githubPlaceholder")}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>📍 {t("settings.location")}</label>
+          <input
+            type="text"
+            value={form.location ?? ""}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder={t("settings.locationPlaceholder")}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>🌍 {t("settings.website")}</label>
+          <input
+            type="text"
+            value={form.website ?? ""}
+            onChange={(e) => setForm({ ...form, website: e.target.value })}
+            placeholder={t("settings.websitePlaceholder")}
+            className={inputClass}
+          />
+        </div>
+      </div>
+
       {/* Social links editor */}
-      <div>
-        <label className="block text-sm font-medium mb-2">{t("settings.socialLinks")}</label>
+      <div className="pt-2">
+        <label className={labelClass}>🔗 {t("settings.socialLinks")}</label>
         {socialLinks.length > 0 && (
-          <div className="space-y-2 mb-3">
+          <div className="space-y-2 mb-3 max-w-xl">
             {socialLinks.map((link, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2"
+                className="flex items-center gap-2 rounded-lg border border-border/80 bg-background/40 px-3 py-1.5"
               >
-                <span className="text-sm font-medium text-foreground min-w-0 flex-1">
+                <span className="text-xs font-bold text-foreground min-w-0 flex-1">
                   {link.platform}
                 </span>
-                <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                <span className="text-[11px] text-muted-foreground truncate max-w-[200px] font-mono">
                   {link.url}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeSocialLink(i)}
-                  className="flex-shrink-0 text-xs text-destructive hover:underline"
+                  className="flex-shrink-0 text-[10px] font-bold font-civ-serif text-destructive hover:underline"
                 >
                   {t("settings.remove")}
                 </button>
@@ -167,25 +176,25 @@ export function ProfileForm() {
             ))}
           </div>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-2 max-w-xl">
           <input
             type="text"
             value={newPlatform}
             onChange={(e) => setNewPlatform(e.target.value)}
             placeholder={t("settings.platform")}
-            className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="flex-1 rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
           />
           <input
             type="text"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
             placeholder={t("settings.url")}
-            className="flex-[2] rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="flex-[2] rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
           />
           <button
             type="button"
             onClick={addSocialLink}
-            className="rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="rounded-lg border border-border bg-secondary/70 px-4 py-1.5 text-xs font-bold font-civ-serif text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             {t("settings.addLink")}
           </button>
@@ -193,16 +202,16 @@ export function ProfileForm() {
       </div>
 
       {message && (
-        <p className="text-sm text-success">{message}</p>
+        <p className="text-xs font-bold text-success mt-2">✓ {message}</p>
       )}
       {error && (
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>
       )}
 
       <button
         onClick={handleSave}
         disabled={saving}
-        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
       >
         {saving ? t("settings.saving") : t("settings.saveProfile")}
       </button>

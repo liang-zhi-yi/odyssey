@@ -39,6 +39,59 @@ def get_insights(db: Session, user_id: str) -> list[AIInsight]:
     return generate_insights(uid, db)
 
 
+def _compute_streak(db: Session, user_id: UUID) -> int:
+    """Compute the current consecutive days of activity for a user.
+
+    Activity is defined as having at least one submission on a given day.
+    Returns the number of consecutive days ending today (or yesterday).
+    """
+    from collections import defaultdict
+
+    # Get all submission dates for this user
+    submissions = (
+        db.query(QuestSubmission.submitted_at)
+        .filter(
+            QuestSubmission.user_id == user_id,
+            QuestSubmission.submitted_at.isnot(None),
+        )
+        .order_by(QuestSubmission.submitted_at.desc())
+        .all()
+    )
+
+    if not submissions:
+        return 0
+
+    # Extract unique dates (date only, no time)
+    active_dates = set()
+    for (submitted_at,) in submissions:
+        if submitted_at:
+            active_dates.add(submitted_at.date())
+
+    if not active_dates:
+        return 0
+
+    # Sort dates descending
+    sorted_dates = sorted(active_dates, reverse=True)
+
+    # Check if the most recent activity is within the last 2 days
+    today = datetime.now(timezone.utc).date()
+    yesterday = today - timedelta(days=1)
+
+    if sorted_dates[0] < yesterday:
+        return 0  # No recent activity
+
+    # Count consecutive days
+    streak = 1
+    for i in range(1, len(sorted_dates)):
+        expected = sorted_dates[i - 1] - timedelta(days=1)
+        if sorted_dates[i] == expected:
+            streak += 1
+        else:
+            break
+
+    return streak
+
+
 def get_summary(db: Session, user_id: str) -> AnalyticsSummary:
     """Compute analytics summary from database queries.
 
@@ -112,6 +165,7 @@ def get_summary(db: Session, user_id: str) -> AnalyticsSummary:
         total_quests=total_quests,
         total_assessments=total_assessments,
         growth_rate=growth_rate,
+        streak_days=_compute_streak(db, uid),
         strongest_skill=strongest_skill,
         strongest_skill_en=strongest_skill_en,
         strongest_skill_score=strongest_skill_score,

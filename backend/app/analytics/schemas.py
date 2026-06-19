@@ -36,6 +36,7 @@ class AnalyticsSummary(BaseModel):
     total_quests: int
     total_assessments: int
     growth_rate: float  # average overall score delta per assessment
+    streak_days: int = 0  # current consecutive days with activity
     strongest_skill: Optional[str] = None  # skill name with highest overall score
     strongest_skill_en: Optional[str] = None
     strongest_skill_score: Optional[int] = None

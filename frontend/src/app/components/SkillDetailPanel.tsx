@@ -13,6 +13,7 @@ import { Sparkline } from "@/app/components/Sparkline";
 import { masteryColor } from "@/app/components/GrowthRing";
 import { computeAggregateScores } from "@/lib/scores";
 import { useLocale } from "@/hooks/useLocale";
+import { VintageShieldIcon } from "./VintageShieldIcon";
 import type { DimensionScores } from "@/types/assessment";
 
 // ── Civilization group lookup (shared with SkillTreeSidebar) ──────
@@ -120,27 +121,44 @@ export function SkillDetailPanel({
 
   if (!selectedSkill) {
     return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-8 py-12 animate-fade-in">
+      <div className="flex-1 overflow-y-auto bg-cartography-grid relative scrollbar-hide">
+        {/* Decorative Compass Rose Watermark */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 opacity-[0.05] dark:opacity-[0.08] pointer-events-none select-none animate-rhumb-spin">
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.5">
+            <circle cx="50" cy="50" r="45" strokeDasharray="2 2" />
+            <circle cx="50" cy="50" r="38" />
+            <path d="M 50,5 L 50,95 M 5,50 L 95,50 M 18.2,18.2 L 81.8,81.8 M 18.2,81.8 L 81.8,18.2" />
+            <polygon points="50,50 50,15 47,35" fill="currentColor" opacity="0.3" />
+            <polygon points="50,50 50,15 53,35" fill="currentColor" />
+            <polygon points="50,50 50,85 47,65" fill="currentColor" opacity="0.3" />
+            <polygon points="50,50 50,85 53,65" fill="currentColor" />
+            <polygon points="50,50 85,50 65,47" fill="currentColor" opacity="0.3" />
+            <polygon points="50,50 85,50 65,53" fill="currentColor" />
+            <polygon points="50,50 15,50 35,47" fill="currentColor" opacity="0.3" />
+            <polygon points="50,50 15,50 35,53" fill="currentColor" />
+          </svg>
+        </div>
+
+        <div className="max-w-3xl mx-auto px-8 py-12 animate-fade-in relative z-10">
           {/* Welcome header */}
-          <div className="text-center mb-10">
-            <div className="text-5xl mb-4">🌱</div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {locale === "en" ? "Capability Skills" : "能力技能"}
+          <div className="text-center mb-10 flex flex-col items-center">
+            <VintageShieldIcon icon="🌱" size="lg" tier="gold" className="mb-4 animate-gentle-float" />
+            <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-2">
+              {locale === "en" ? "Capability Ledger" : "能力技能大总账"}
             </h1>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            <p className="text-sm text-[oklch(0.5_0.02_85)] max-w-md mx-auto leading-relaxed font-civ-serif">
               {locale === "en"
-                ? "Select a skill from the left sidebar to view its detailed growth profile. Each skill is a building block of your capability civilization."
-                : "从左侧边栏选择一个技能，查看详细的成长档案。每个技能都是你能力文明的基石。"}
+                ? "Select a skill from the left journal index to inspect its detailed ledger. Every unlocked capability is a milestone in your civilization's expansion."
+                : "从左侧账本索引中选择一项技能，开始审阅其详细的成长总账。每一个解锁的能力，都是你文明扩张中的关键里程碑。"}
             </p>
           </div>
 
           {/* Aggregate overview cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Aggregate radar */}
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-              <h3 className="text-sm font-semibold text-foreground mb-4">
-                {locale === "en" ? "Capability Landscape" : "综合能力雷达"}
+            <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm">
+              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
+                <span>🧭</span> {locale === "en" ? "Capability Landscape" : "综合能力星图"}
               </h3>
               <div className="flex justify-center">
                 <RadarChart scores={aggregateScores} size={220} />
@@ -148,9 +166,9 @@ export function SkillDetailPanel({
             </div>
 
             {/* Skill stats summary */}
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card flex flex-col justify-center">
-              <h3 className="text-sm font-semibold text-foreground mb-4">
-                {locale === "en" ? "Overview" : "技能概览"}
+            <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm flex flex-col justify-center">
+              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
+                <span>📜</span> {locale === "en" ? "Ledger Summary" : "账目统计"}
               </h3>
               <div className="space-y-3">
                 <StatRow
@@ -189,7 +207,7 @@ export function SkillDetailPanel({
           {/* Quick-jump: top skills */}
           {allUserSkills.length > 0 && (
             <div className="mt-8">
-              <h3 className="text-sm font-semibold text-foreground mb-3">
+              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3">
                 {locale === "en" ? "Top Skills" : "最高技能"}
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -200,14 +218,14 @@ export function SkillDetailPanel({
                     <button
                       key={us.skill_id}
                       onClick={() => onSelectSkill(us.skill_id)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[oklch(0.88_0.02_90)] bg-[oklch(0.99_0.003_95)] dark:bg-[oklch(0.22_0.008_85)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.35_0.02_80)] transition-all hover:border-[oklch(0.7_0.12_85)] hover:bg-[oklch(0.72_0.12_82_/_0.05)] hover:shadow-sm"
                     >
                       <span
                         className="h-1.5 w-1.5 rounded-full"
                         style={{ backgroundColor: masteryColor(us.overall) }}
                       />
                       {us.skill_name || us.skill_id}
-                      <span className="text-muted-foreground tabular-nums">
+                      <span className="text-muted-foreground tabular-nums ml-1">
                         {us.overall}
                       </span>
                     </button>
@@ -226,13 +244,25 @@ export function SkillDetailPanel({
   const rank = selectedUserSkill?.rank;
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-8 py-8 animate-fade-in">
+    <div className="flex-1 overflow-y-auto bg-cartography-grid relative scrollbar-hide">
+      {/* Decorative wind rose watermark for detailed view */}
+      <div className="absolute top-12 right-12 w-64 h-64 opacity-[0.03] dark:opacity-[0.06] pointer-events-none select-none animate-rhumb-spin">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.5">
+          <circle cx="50" cy="50" r="45" strokeDasharray="3 3" />
+          <path d="M 50,5 L 50,95 M 5,50 L 95,50" />
+          <polygon points="50,50 50,15 47,35" fill="currentColor" />
+          <polygon points="50,50 50,85 53,65" fill="currentColor" />
+          <polygon points="50,50 85,50 65,47" fill="currentColor" />
+          <polygon points="50,50 15,50 35,53" fill="currentColor" />
+        </svg>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-8 py-8 animate-fade-in relative z-10">
         {/* ── Breadcrumb ──────────────────────────────────── */}
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6">
+        <nav className="flex items-center gap-1.5 text-xs text-[oklch(0.5_0.02_85)] mb-6 font-civ-serif font-semibold">
           <Link
             href="/skills"
-            className="hover:text-foreground transition-colors"
+            className="hover:text-[oklch(0.3_0.02_80)] transition-colors"
           >
             {locale === "en" ? "Skills" : "技能"}
           </Link>
@@ -241,7 +271,7 @@ export function SkillDetailPanel({
           </svg>
           {domainInfo && (
             <>
-              <span className="hover:text-foreground transition-colors cursor-pointer">
+              <span className="hover:text-[oklch(0.3_0.02_80)] transition-colors cursor-pointer">
                 {domainInfo.icon} {locale === "en" ? domainInfo.labelEn : domainInfo.label}
               </span>
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -249,20 +279,24 @@ export function SkillDetailPanel({
               </svg>
             </>
           )}
-          <span className="font-medium text-foreground truncate">
+          <span className="font-bold text-[oklch(0.3_0.02_80)] truncate">
             {skillName}
           </span>
         </nav>
 
         {/* ── Skill Header ────────────────────────────────── */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-card mb-6">
-          <div className="flex items-start justify-between gap-4">
+        <div className="vintage-parchment-card rounded-2xl border-2 border-double border-[oklch(0.7_0.12_85_/_0.65)] p-6 shadow-md mb-6 relative overflow-hidden">
+          {/* Coordinates watermark */}
+          <div className="absolute top-2 right-3 text-[9px] font-mono opacity-25 text-[oklch(0.3_0.02_80)] select-none">
+            [S {10 + (selectedSkill.id.charCodeAt(0) % 80)}° {(selectedSkill.id.charCodeAt(1) ?? 44) % 60}' / W {20 + (selectedSkill.id.charCodeAt(2) ?? 33) % 150}° {(selectedSkill.id.charCodeAt(3) ?? 22) % 60}']
+          </div>
+          <div className="flex items-start justify-between gap-4 relative z-10">
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-bold text-foreground mb-1">
+              <h1 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-1">
                 {skillName}
               </h1>
               {selectedSkill.description && (
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                <p className="text-sm text-[oklch(0.5_0.02_85)] leading-relaxed line-clamp-2">
                   {locale === "en" && selectedSkill.description_en
                     ? selectedSkill.description_en
                     : selectedSkill.description}
@@ -272,15 +306,15 @@ export function SkillDetailPanel({
             {selectedUserSkill && (
               <div className="flex items-center gap-3 shrink-0">
                 {rank && (
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <span className="rounded-full bg-[oklch(0.72_0.12_82_/_0.15)] border border-[oklch(0.72_0.12_82_/_0.4)] px-3 py-1 text-xs font-bold font-civ-serif text-[oklch(0.35_0.12_85)]">
                     {t(`skills.rank.${rank}`) || RANK_LABELS[rank] || rank}
                   </span>
                 )}
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-foreground tabular-nums">
+                  <div className="text-3xl font-bold text-[oklch(0.3_0.02_80)] tabular-nums">
                     {selectedUserSkill.overall}
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="text-[10px] text-[oklch(0.5_0.02_85)] font-bold">
                     {locale === "en" ? "Overall Score" : "综合评分"}
                   </div>
                 </div>
@@ -303,9 +337,9 @@ export function SkillDetailPanel({
         {selectedUserSkill && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Radar chart */}
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-              <h3 className="text-sm font-semibold text-foreground mb-4">
-                {locale === "en" ? "4-Dimension Analysis" : "四维能力分析"}
+            <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm">
+              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
+                <span>🗺️</span> {locale === "en" ? "4-Dimension Analysis" : "四维能力剖面"}
               </h3>
               <div className="flex items-center gap-4">
                 <RadarChart
@@ -321,23 +355,23 @@ export function SkillDetailPanel({
                 <div className="flex-1 space-y-2 min-w-0">
                   {DIMENSIONS.map((dim) => (
                     <div key={dim} className="flex items-center gap-2 text-xs">
-                      <span className="w-20 shrink-0 text-muted-foreground truncate">
+                      <span className="w-16 shrink-0 font-civ-serif font-bold text-[oklch(0.35_0.02_80)] truncate">
                         {t(`skills.dimensions.${dim}`) || dim}
                       </span>
-                      <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                      <div className="flex-1 h-2.5 rounded-full bg-[oklch(0.95_0.005_90)] dark:bg-[oklch(0.25_0.008_85)] border border-[oklch(0.88_0.02_90_/_0.7)] overflow-hidden relative">
                         <div
-                          className="h-full rounded-full bg-primary transition-all duration-500"
+                          className="h-full rounded-full bg-gradient-to-r from-[oklch(0.55_0.08_160)] to-[oklch(0.6_0.1_150)] animate-route-flow transition-all duration-500"
                           style={{ width: `${selectedUserSkill[dim]}%` }}
                         />
                       </div>
-                      <span className="w-7 text-right font-mono tabular-nums font-medium text-foreground">
+                      <span className="w-7 text-right font-mono tabular-nums font-bold text-[oklch(0.3_0.02_80)]">
                         {selectedUserSkill[dim]}
                       </span>
                     </div>
                   ))}
                   {/* Dimension weights */}
-                  <div className="pt-1 border-t border-border mt-2">
-                    <div className="flex gap-3 text-[10px] text-muted-foreground">
+                  <div className="pt-1 border-t border-[oklch(0.88_0.02_90_/_0.5)] mt-2">
+                    <div className="flex gap-3 text-[10px] font-mono text-[oklch(0.5_0.02_85)]">
                       <span>K×0.2</span>
                       <span>R×0.25</span>
                       <span>A×0.35</span>
@@ -349,12 +383,12 @@ export function SkillDetailPanel({
             </div>
 
             {/* Growth trend */}
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-              <h3 className="text-sm font-semibold text-foreground mb-4">
-                {locale === "en" ? "Growth Trend" : "成长趋势"}
+            <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm relative overflow-hidden">
+              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
+                <span>📈</span> {locale === "en" ? "Growth Trend" : "文明成长曲线"}
               </h3>
               {trendPoints.length >= 2 ? (
-                <div className="space-y-3">
+                <div className="space-y-3 relative z-10">
                   <Sparkline
                     points={trendPoints}
                     width={260}
@@ -364,8 +398,8 @@ export function SkillDetailPanel({
                   {trendChange !== null && (
                     <div className="flex items-center gap-2">
                       <span
-                        className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
-                          trendChange >= 0 ? "text-success" : "text-destructive"
+                        className={`inline-flex items-center gap-0.5 text-xs font-bold ${
+                          trendChange >= 0 ? "text-[oklch(0.55_0.1_150)]" : "text-[oklch(0.5_0.15_25)]"
                         }`}
                       >
                         {trendChange >= 0 ? (
@@ -380,14 +414,14 @@ export function SkillDetailPanel({
                         {trendChange > 0 ? "+" : ""}
                         {trendChange}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] font-civ-serif font-semibold text-[oklch(0.5_0.02_85)]">
                         {locale === "en" ? "in 30 days" : "近30天变化"}
                       </span>
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground py-8 text-center">
+                <p className="text-xs text-[oklch(0.55_0.02_85)] py-8 text-center">
                   {locale === "en"
                     ? "Not enough data for trend analysis"
                     : "数据不足以分析趋势"}
@@ -400,8 +434,8 @@ export function SkillDetailPanel({
         {/* ── Related Buildings ────────────────────────────── */}
         {relatedBuildings.length > 0 && (
           <section className="mb-6">
-            <h3 className="text-sm font-semibold text-foreground mb-3">
-              {locale === "en" ? "Related Buildings" : "相关建筑"}
+            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
+              <span>🏛️</span> {locale === "en" ? "Related Buildings" : "所辖领域内建筑"}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {relatedBuildings.map((building) => {
@@ -414,21 +448,22 @@ export function SkillDetailPanel({
                   <Link
                     key={building.id}
                     href={`/world?building=${building.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-3.5 transition-all hover:shadow-card hover:border-primary/20 group"
+                    className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.96_0.005_90)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-3.5 transition-all hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group relative overflow-hidden"
                   >
+                    <div className="absolute inset-0 border border-double border-[oklch(0.7_0.12_85_/_0.2)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-xl" />
                     <span className="text-2xl transition-transform group-hover:scale-110">
                       {tpl?.icon ?? "🏛️"}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
+                      <p className="text-sm font-semibold text-[oklch(0.3_0.02_80)] truncate">
                         {name}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-[oklch(0.5_0.02_85)]">
                         Lv.{building.level}
                       </p>
                     </div>
                     <svg
-                      className="w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5"
+                      className="w-3.5 h-3.5 text-[oklch(0.5_0.02_85)] shrink-0 transition-transform group-hover:translate-x-0.5"
                       fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -443,8 +478,8 @@ export function SkillDetailPanel({
         {/* ── Related Skills ───────────────────────────────── */}
         {relatedSkills.length > 1 && (
           <section className="mb-6">
-            <h3 className="text-sm font-semibold text-foreground mb-3">
-              {locale === "en" ? "Related Skills" : "关联技能"}
+            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
+              <span>🔗</span> {locale === "en" ? "Related Skills" : "同源关联技能"}
             </h3>
             <div className="flex flex-wrap gap-1.5">
               {relatedSkills
@@ -453,7 +488,7 @@ export function SkillDetailPanel({
                   <button
                     key={rs.skill.id}
                     onClick={() => onSelectSkill(rs.skill.id)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs transition-all hover:border-primary/30 hover:bg-primary/5"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[oklch(0.88_0.02_90)] bg-[oklch(0.99_0.003_95)] dark:bg-[oklch(0.22_0.008_85)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.35_0.02_80)] transition-all hover:border-[oklch(0.7_0.12_85)] hover:bg-[oklch(0.72_0.12_82_/_0.05)]"
                   >
                     {rs.userSkill && (
                       <span
@@ -466,14 +501,14 @@ export function SkillDetailPanel({
                     <span
                       className={
                         rs.userSkill
-                          ? "font-medium text-foreground"
-                          : "text-muted-foreground"
+                          ? "font-bold text-[oklch(0.3_0.02_80)]"
+                          : "text-[oklch(0.5_0.02_85)]"
                       }
                     >
                       {rs.skill.name}
                     </span>
                     {rs.userSkill && (
-                      <span className="text-[10px] text-muted-foreground tabular-nums">
+                      <span className="text-[10px] text-[oklch(0.4_0.02_80)] font-mono tabular-nums ml-1">
                         {rs.userSkill.overall}
                       </span>
                     )}
@@ -487,29 +522,29 @@ export function SkillDetailPanel({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Completed quests */}
           <section>
-            <h3 className="text-sm font-semibold text-foreground mb-3">
-              {locale === "en" ? "Completed Quests" : "已完成任务"}
+            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
+              <span>⚔️</span> {locale === "en" ? "Completed Quests" : "已征服探索任务"}
             </h3>
             {completedQuests.length > 0 ? (
-              <div className="rounded-xl border border-border bg-card divide-y divide-border">
+              <div className="vintage-parchment-card rounded-xl border border-[oklch(0.88_0.02_90)] divide-y divide-[oklch(0.88_0.02_90_/_0.4)] shadow-sm">
                 {completedQuests.slice(0, 5).map((q) => (
                   <div
                     key={q.quest_id}
                     className="flex items-center gap-2 px-4 py-2.5"
                   >
-                    <span className="text-xs text-success shrink-0">✓</span>
-                    <span className="text-xs text-foreground flex-1 truncate">
+                    <span className="text-xs text-[oklch(0.55_0.1_150)] font-bold shrink-0">✓</span>
+                    <span className="text-xs text-[oklch(0.3_0.02_80)] font-semibold flex-1 truncate">
                       {q.quest_title}
                     </span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">
+                    <span className="text-[10px] text-[oklch(0.5_0.02_85)] shrink-0">
                       {SUBMISSION_STATUS_LABELS[q.status] || q.status}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-border bg-card p-4 text-center">
-                <p className="text-xs text-muted-foreground">
+              <div className="vintage-parchment-card rounded-xl border border-border p-4 text-center">
+                <p className="text-xs text-[oklch(0.55_0.02_85)]">
                   {locale === "en"
                     ? "No completed quests yet"
                     : "暂无已完成任务"}
@@ -520,30 +555,30 @@ export function SkillDetailPanel({
 
           {/* Recommended quests */}
           <section>
-            <h3 className="text-sm font-semibold text-foreground mb-3">
-              {locale === "en" ? "Recommended Quests" : "推荐任务"}
+            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
+              <span>🧭</span> {locale === "en" ? "Recommended Quests" : "建议开拓路线"}
             </h3>
             {recommendedQuests.length > 0 ? (
-              <div className="rounded-xl border border-border bg-card divide-y divide-border">
+              <div className="vintage-parchment-card rounded-xl border border-[oklch(0.88_0.02_90)] divide-y divide-[oklch(0.88_0.02_90_/_0.4)] shadow-sm">
                 {recommendedQuests.slice(0, 5).map((q) => (
                   <Link
                     key={q.id}
                     href={`/quests/${q.id}`}
-                    className="flex items-center gap-2 px-4 py-2.5 hover:bg-secondary/50 transition-colors group"
+                    className="flex items-center gap-2 px-4 py-2.5 hover:bg-[oklch(0.72_0.12_82_/_0.06)] transition-colors group"
                   >
-                    <span className="text-xs text-accent shrink-0">◆</span>
-                    <span className="text-xs text-foreground flex-1 truncate group-hover:text-primary transition-colors">
+                    <span className="text-xs text-[oklch(0.72_0.12_82)] shrink-0">◆</span>
+                    <span className="text-xs text-[oklch(0.3_0.02_80)] font-semibold flex-1 truncate group-hover:text-[oklch(0.35_0.12_85)] transition-colors">
                       {q.title}
                     </span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">
+                    <span className="text-[10px] text-[oklch(0.5_0.02_85)] shrink-0">
                       {q.difficulty}
                     </span>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-border bg-card p-4 text-center">
-                <p className="text-xs text-muted-foreground">
+              <div className="vintage-parchment-card rounded-xl border border-border p-4 text-center">
+                <p className="text-xs text-[oklch(0.55_0.02_85)]">
                   {locale === "en"
                     ? "No recommended quests"
                     : "暂无推荐任务"}
@@ -555,40 +590,40 @@ export function SkillDetailPanel({
 
         {/* ── Recent Growth Records ─────────────────────────── */}
         <section>
-          <h3 className="text-sm font-semibold text-foreground mb-3">
-            {locale === "en" ? "Recent Growth Records" : "最近成长记录"}
+          <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
+            <span>📖</span> {locale === "en" ? "Recent Growth Records" : "航海开发成长日志"}
           </h3>
           {recentLogs.length > 0 ? (
-            <div className="rounded-xl border border-border bg-card divide-y divide-border">
+            <div className="vintage-parchment-card rounded-xl border border-[oklch(0.88_0.02_90)] divide-y divide-[oklch(0.88_0.02_90_/_0.4)] shadow-sm">
               {recentLogs.slice(0, 10).map((log, idx) => (
                 <div
                   key={idx}
                   className="flex items-center gap-3 px-4 py-2.5"
                 >
-                  <span className="text-[10px] text-muted-foreground shrink-0 w-16 tabular-nums">
+                  <span className="text-[10px] text-[oklch(0.5_0.02_85)] shrink-0 w-16 tabular-nums">
                     {formatDate(log.created_at)}
                   </span>
                   <span
-                    className={`text-xs font-mono font-semibold tabular-nums shrink-0 w-16 text-right ${
+                    className={`text-xs font-mono font-bold tabular-nums shrink-0 w-16 text-right ${
                       log.delta > 0
-                        ? "text-success"
+                        ? "text-[oklch(0.55_0.1_150)]"
                         : log.delta < 0
-                          ? "text-destructive"
-                          : "text-muted-foreground"
+                          ? "text-[oklch(0.5_0.15_25)]"
+                          : "text-[oklch(0.5_0.02_85)]"
                     }`}
                   >
                     {log.delta > 0 ? "+" : ""}
                     {log.delta} {locale === "en" ? "pts" : "分"}
                   </span>
-                  <span className="text-xs text-foreground flex-1 truncate">
+                  <span className="text-xs text-[oklch(0.3_0.02_80)] font-semibold flex-1 truncate">
                     {log.reason}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-border bg-card p-4 text-center">
-              <p className="text-xs text-muted-foreground">
+            <div className="vintage-parchment-card rounded-xl border border-border p-4 text-center">
+              <p className="text-xs text-[oklch(0.55_0.02_85)]">
                 {locale === "en"
                   ? "No growth records yet"
                   : "暂无成长记录"}

@@ -206,88 +206,107 @@ export default function PersonalPage() {
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 py-6 animate-fade-in">
-      {/* ═══ HERO PROFILE HEADER ════════════════════════════════ */}
-      <section className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-        <div className="flex flex-col lg:flex-row">
-          {/* Left: Identity */}
-          <div className="flex-1 p-6 sm:p-8">
-            <div className="flex items-start gap-5">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-4xl overflow-hidden ring-2 ring-border">
-                {avatarSrc ? (
-                  <img
-                    src={avatarSrc}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                ) : (
-                  <span>🧑‍🎓</span>
-                )}
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold text-foreground truncate">{displayName}</h1>
-                {user?.title && (
-                  <p className="text-sm text-accent font-medium mt-0.5">{user.title}</p>
-                )}
-                {tierLabel && (
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {tierLabel.icon} {locale === "en" ? tierLabel.en : tierLabel.zh}
-                    {eraLabel && <>{` · `}{eraLabel.icon} {locale === "en" ? eraLabel.en : eraLabel.zh}</>}
-                  </p>
-                )}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-                  {stats && (
-                    <span>
-                      {locale === "en" ? "Index" : "文明指数"}{" "}
-                      <strong className="text-accent font-semibold tabular-nums">
-                        {(stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()}
-                      </strong>
-                    </span>
+    <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 py-6 animate-fade-in">
+      {/* ═══ HERO PROFILE HEADER (PASSPORT) ════════════════════════ */}
+      <section className="relative rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-md overflow-hidden p-6 sm:p-8">
+        {/* Absolute coordinates background watermark */}
+        <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+          [PASSPORT_SEC_ID_{passportId.replace(/#/g, "")}]
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Identity Info */}
+          <div className="flex-1 flex flex-col sm:flex-row gap-5 items-start">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-4xl overflow-hidden ring-2 ring-[oklch(0.7_0.12_85_/_0.35)] shadow-inner">
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                <span>🧑‍🎓</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] truncate">
+                {displayName}
+              </h1>
+              {user?.title && (
+                <p className="text-xs text-accent font-bold font-civ-serif mt-0.5 uppercase tracking-wide">
+                  🎖️ {user.title}
+                </p>
+              )}
+              {tierLabel && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 flex-wrap font-medium">
+                  <span>{tierLabel.icon}</span>
+                  <span>{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
+                  {eraLabel && (
+                    <>
+                      <span className="opacity-40">·</span>
+                      <span>{eraLabel.icon}</span>
+                      <span>{locale === "en" ? eraLabel.en : eraLabel.zh}</span>
+                    </>
                   )}
-                  <span>
-                    {locale === "en" ? "Skills" : "已掌握"}{" "}
-                    <strong className="text-foreground font-semibold tabular-nums">{userSkills.length}</strong>{" "}
-                    {locale === "en" ? "abilities" : "项能力"}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground font-medium border-t border-border/40 pt-2.5">
+                {stats && (
+                  <span className="flex items-center gap-0.5">
+                    <span>👑</span>
+                    {locale === "en" ? "Index" : "文明指数"}{" "}
+                    <strong className="text-accent font-bold font-mono ml-0.5">
+                      {(stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()}
+                    </strong>
                   </span>
-                  {stats && (
-                    <span>
-                      {locale === "en" ? "Buildings" : "已建造"}{" "}
-                      <strong className="text-foreground font-semibold tabular-nums">
-                        {stats.active_buildings ?? stats.total_buildings ?? 0}
-                      </strong>{" "}
-                      {locale === "en" ? "buildings" : "座建筑"}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary/70 px-3 py-1 text-[10px] font-mono text-muted-foreground">
-                  <span className="text-xs">🛂</span>
-                  {locale === "en" ? "Capability Passport" : "能力通行证"}{" "}
-                  <span className="font-semibold text-foreground">{passportId}</span>
-                </div>
-                {user?.bio && (
-                  <p className="mt-3 text-xs text-muted-foreground leading-relaxed line-clamp-2">{user.bio}</p>
+                )}
+                <span className="flex items-center gap-0.5">
+                  <span>⚔️</span>
+                  {locale === "en" ? "Skills" : "已掌握"}{" "}
+                  <strong className="text-foreground font-bold font-mono ml-0.5">{userSkills.length}</strong>{" "}
+                  {locale === "en" ? "abilities" : "项能力"}
+                </span>
+                {stats && (
+                  <span className="flex items-center gap-0.5">
+                    <span>🏰</span>
+                    {locale === "en" ? "Buildings" : "已建造"}{" "}
+                    <strong className="text-foreground font-bold font-mono ml-0.5">
+                      {stats.active_buildings ?? stats.total_buildings ?? 0}
+                    </strong>{" "}
+                    {locale === "en" ? "buildings" : "座建筑"}
+                  </span>
                 )}
               </div>
+              <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-secondary/80 px-3 py-1 text-[10px] font-mono text-muted-foreground border border-border/40">
+                <span>🛂</span>
+                {locale === "en" ? "Passport" : "能力通行证"}{" "}
+                <span className="font-bold text-foreground">{passportId}</span>
+              </div>
+              {user?.bio && (
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed italic border-l-2 border-border/50 pl-2">
+                  "{user.bio}"
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Right: Recent badges */}
+          {/* Recent badges list */}
           {earnedBadges.length > 0 && (
-            <div className="lg:w-72 border-t lg:border-t-0 lg:border-l border-border p-6 flex flex-col">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                {locale === "en" ? "Recent Badges" : "最近获得徽章"}
+            <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-border/60 pt-4 lg:pt-0 lg:pl-6 flex flex-col">
+              <h3 className="text-[10px] font-bold font-civ-serif text-[#C4A77D] uppercase tracking-wider mb-2.5">
+                📜 {locale === "en" ? "Recent Badges" : "最近获得徽章"}
               </h3>
-              <div className="flex-1 space-y-2">
-                {earnedBadges.slice(0, 4).map(({ badge, userBadge }) => (
-                  <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-secondary/40 px-3 py-2">
+              <div className="space-y-2 flex-1">
+                {earnedBadges.slice(0, 3).map(({ badge, userBadge }) => (
+                  <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-background/50 border border-border/40 px-3 py-1.5">
                     <span className="text-lg shrink-0">{badge.icon}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-foreground truncate">
+                      <p className="text-[11px] font-bold font-civ-serif text-foreground truncate">
                         {locale === "en" && badge.name_en ? badge.name_en : badge.name}
                       </p>
                       {userBadge.earned_at && (
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[9px] text-muted-foreground font-mono">
                           {new Date(userBadge.earned_at).toLocaleDateString(
                             locale === "en" ? "en-US" : "zh-CN",
                             { year: "numeric", month: "short", day: "numeric" }
@@ -298,9 +317,9 @@ export default function PersonalPage() {
                   </div>
                 ))}
               </div>
-              {earnedBadges.length > 4 && (
-                <Link href="/badges" className="mt-3 text-xs text-primary hover:underline self-end">
-                  {locale === "en" ? `+${earnedBadges.length - 4} more` : `还有 ${earnedBadges.length - 4} 个`} →
+              {earnedBadges.length > 3 && (
+                <Link href="/badges" className="mt-2 text-[10px] font-bold font-civ-serif text-primary hover:underline self-end">
+                  {locale === "en" ? `+${earnedBadges.length - 3} more` : `还有 ${earnedBadges.length - 3} 个`} →
                 </Link>
               )}
             </div>
@@ -310,84 +329,95 @@ export default function PersonalPage() {
 
       {/* ═══ DUAL COLUMN: Analysis + Archive ═══════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Capability Analysis */}
+        {/* Left Column: Capability Analysis */}
         <section className="space-y-6">
-          {/* Radar */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-            <h3 className="text-sm font-semibold text-foreground mb-4">
+          {/* Radar Chart Panel */}
+          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+              [RADAR_SEC_01]
+            </div>
+            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2 flex items-center gap-1.5">
+              <span>📊</span>
               {locale === "en" ? "Capability Radar" : "综合能力雷达"}
             </h3>
-            <div className="flex justify-center">
+            <div className="flex justify-center my-2">
               <RadarChart scores={aggregateScores} size={200} showLabels />
             </div>
-            <div className="grid grid-cols-4 gap-2 mt-4">
+            <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-border/40">
               {(["knowledge", "reasoning", "application", "creation"] as (keyof DimensionScores)[]).map((dim) => (
                 <div key={dim} className="text-center">
-                  <div className="text-lg font-bold text-foreground tabular-nums">{aggregateScores[dim]}</div>
-                  <div className="text-[10px] text-muted-foreground">{t(`skills.dimensions.${dim}`) || dim}</div>
+                  <div className="text-base font-bold font-mono text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">{aggregateScores[dim]}</div>
+                  <div className="text-[9px] font-bold font-civ-serif text-muted-foreground uppercase">{t(`skills.dimensions.${dim}`) || dim}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Domain Overview */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-            <h3 className="text-sm font-semibold text-foreground mb-4">
+          {/* Domain Overview Panel */}
+          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+              [DOMAINS_SEC_02]
+            </div>
+            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2 flex items-center gap-1.5">
+              <span>🌍</span>
               {locale === "en" ? "Civilization Domains" : "文明领域概览"}
             </h3>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {domainOverview.map((d) => (
                 <div key={d.key} className="flex items-center gap-3">
-                  <span className="text-base w-7 text-center shrink-0">{d.icon}</span>
-                  <span className="text-xs font-medium text-foreground w-20 shrink-0 truncate">{d.label}</span>
-                  <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <span className="text-base w-6 text-center shrink-0">{d.icon}</span>
+                  <span className="text-xs font-bold font-civ-serif text-foreground w-20 shrink-0 truncate">{d.label}</span>
+                  <div className="flex-1 h-2 rounded-full bg-[oklch(0.95_0.005_90)] dark:bg-[oklch(0.25_0.008_85)] border border-border/40 overflow-hidden shadow-inner relative">
                     <div
-                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      className="h-full rounded-full bg-gradient-to-r from-[#C4A77D] to-[#A38A5E] transition-all duration-500"
                       style={{ width: `${Math.min(100, (d.avgScore / 100) * 100)}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-muted-foreground w-12 text-right tabular-nums shrink-0">Lv{d.level}</span>
+                  <span className="text-[10px] font-bold font-mono text-muted-foreground w-12 text-right shrink-0">Lv{d.level}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Right: Civilization Archive */}
+        {/* Right Column: Civilization Archive Log */}
         <section>
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-card h-full">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden h-full">
+            <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+              [LOG_SEC_03]
+            </div>
+            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/60">
               <span className="text-lg">🏛️</span>
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
                 {locale === "en" ? "Civilization Archive" : "文明档案"}
               </h3>
             </div>
-            <div className="mb-4 pb-4 border-b border-border">
-              <p className="text-lg font-bold text-foreground">
+            <div className="mb-4 pb-3 border-b border-border/40">
+              <p className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
                 {displayName}{" "}
-                <span className="text-sm font-normal text-muted-foreground">{locale === "en" ? "Civilization" : "文明"}</span>
+                <span className="text-xs font-normal text-muted-foreground italic">{locale === "en" ? "Civilization Record" : "文明纪要"}</span>
               </p>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <ArchiveRow icon="⏳" label={locale === "en" ? "Current Era" : "当前时代"} value={eraLabel ? (locale === "en" ? eraLabel.en : eraLabel.zh) : "—"} />
-              <ArchiveRow icon="📊" label={locale === "en" ? "Civ Index" : "文明指数"} value={stats ? ((stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()) : "—"} />
-              <ArchiveRow icon="🗺️" label={locale === "en" ? "Exploration" : "探索率"} value={worldData ? `${worldData.exploration_progress}%` : "—"} />
-              <ArchiveRow icon="🏗️" label={locale === "en" ? "Buildings" : "建筑"} value={stats ? String(stats.active_buildings ?? stats.total_buildings ?? 0) : "—"} />
-              <ArchiveRow icon="🎯" label={locale === "en" ? "Skills Unlocked" : "已解锁技能"} value={String(userSkills.length)} />
-              <ArchiveRow icon="✅" label={locale === "en" ? "Quests Done" : "任务完成"} value={String(questCompletionCount)} />
+              <ArchiveRow icon="👑" label={locale === "en" ? "Civ Index" : "文明指数"} value={stats ? ((stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()) : "—"} />
+              <ArchiveRow icon="🗺️" label={locale === "en" ? "Exploration Rate" : "探索率"} value={worldData ? `${worldData.exploration_progress}%` : "—"} />
+              <ArchiveRow icon="🏰" label={locale === "en" ? "Buildings" : "建筑"} value={stats ? String(stats.active_buildings ?? stats.total_buildings ?? 0) : "—"} />
+              <ArchiveRow icon="📜" label={locale === "en" ? "Skills Unlocked" : "已解锁技能"} value={String(userSkills.length)} />
+              <ArchiveRow icon="🧭" label={locale === "en" ? "Quests Completed" : "任务完成"} value={String(questCompletionCount)} />
               {highestBuilding && (
                 <ArchiveRow icon="🏛️" label={locale === "en" ? "Highest Building" : "最高建筑"} value={`${highestBuilding.name} Lv${highestBuilding.level}`} href={`/world?building=${highestBuilding.id}`} />
               )}
               {civDirection?.active_paths?.[0] && (
-                <ArchiveRow icon="📖" label={locale === "en" ? "Learning Path" : "当前学习路径"} value={civDirection.active_paths[0].path_title} href={`/paths/${civDirection.active_paths[0].path_id}`} />
+                <ArchiveRow icon="📖" label={locale === "en" ? "Active Path" : "当前学习路径"} value={civDirection.active_paths[0].path_title} href={`/paths/${civDirection.active_paths[0].path_id}`} />
               )}
             </div>
             {tierLabel && worldData?.next_tier_at != null && (
-              <div className="mt-4 pt-4 border-t border-border">
+              <div className="mt-5 pt-4 border-t border-border/50">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{tierLabel.icon}</span>
-                  <span className="font-medium text-foreground">{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
-                  <span>— {locale === "en" ? "Next tier at" : "下一等级需"} <strong className="text-accent tabular-nums">{worldData.next_tier_at}</strong></span>
+                  <span className="text-base">{tierLabel.icon}</span>
+                  <span className="font-bold font-civ-serif text-foreground">{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
+                  <span className="italic">— {locale === "en" ? "Next level in" : "晋升下一阶尚需"} <strong className="text-[#C4A77D] font-bold font-mono ml-0.5">{worldData.next_tier_at}</strong></span>
                 </div>
               </div>
             )}
@@ -412,14 +442,14 @@ export default function PersonalPage() {
           >
             <div className="space-y-2">
               {(badgesExpanded ? earnedBadges : earnedBadges.slice(0, 3)).map(({ badge, userBadge }) => (
-                <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-secondary/40 px-3 py-2">
+                <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-background/50 border border-border/40 px-3 py-2">
                   <span className="text-lg shrink-0">{badge.icon || "🏅"}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-foreground truncate">
+                    <p className="text-xs font-bold font-civ-serif text-foreground truncate">
                       {locale === "en" && badge.name_en ? badge.name_en : badge.name}
                     </p>
                     {userBadge.earned_at && (
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground font-mono">
                         {new Date(userBadge.earned_at).toLocaleDateString(
                           locale === "en" ? "en-US" : "zh-CN",
                           { year: "numeric", month: "short", day: "numeric" }
@@ -427,7 +457,7 @@ export default function PersonalPage() {
                       </p>
                     )}
                   </div>
-                  <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success shrink-0">
+                  <span className="rounded bg-[#8B9D83]/10 border border-[#8B9D83]/20 px-2 py-0.5 text-[9px] font-bold text-[#8B9D83] shrink-0">
                     {t("badges.earned")}
                   </span>
                 </div>
@@ -446,15 +476,15 @@ export default function PersonalPage() {
             isExpanded={credsExpanded}
             onToggleExpand={() => setCredsExpanded(!credsExpanded)}
           >
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {(credsExpanded ? userCredentials : userCredentials.slice(0, 3)).map((cred) => (
-                <div key={cred.id} className="flex items-center gap-3 rounded-lg bg-secondary/40 px-3 py-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base">
+                <div key={cred.id} className="flex items-center gap-3 rounded-lg bg-background/50 border border-border/40 px-3 py-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm">
                     🏅
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-foreground truncate">{cred.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs font-bold font-civ-serif text-foreground truncate">{cred.name}</p>
+                    <p className="text-[9px] text-muted-foreground font-mono">
                       {cred.issued_at
                         ? new Date(cred.issued_at).toLocaleDateString(
                             locale === "en" ? "en-US" : "zh-CN",
@@ -486,11 +516,11 @@ export default function PersonalPage() {
                   <Link
                     key={us.skill_id}
                     href={`/skills/${us.skill_id}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-3 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm"
                   >
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: masteryColor(us.overall) }} />
-                    {skillDef?.name || us.skill_name || us.skill_id}
-                    <span className="text-muted-foreground tabular-nums">{us.overall}</span>
+                    <span className="font-bold font-civ-serif">{skillDef?.name || us.skill_name || us.skill_id}</span>
+                    <span className="text-muted-foreground font-mono text-[10px]">{us.overall}</span>
                   </Link>
                 );
               })}
@@ -513,12 +543,12 @@ export default function PersonalPage() {
                   <Link
                     key={building.id}
                     href={`/world?building=${building.id}`}
-                    className="flex items-center gap-2 rounded-xl border border-border bg-background p-2.5 transition-all hover:shadow-card hover:border-primary/20 group"
+                    className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/50 p-2.5 transition-all hover:shadow-card hover:border-primary/20 group"
                   >
                     <span className="text-xl transition-transform group-hover:scale-110">{tpl?.icon ?? "🏛️"}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-medium text-foreground truncate">{name}</p>
-                      <p className="text-[10px] text-muted-foreground">Lv.{building.level}</p>
+                      <p className="text-[11px] font-bold font-civ-serif text-foreground truncate">{name}</p>
+                      <p className="text-[9px] text-muted-foreground font-mono">Lv.{building.level}</p>
                     </div>
                   </Link>
                 );
@@ -529,9 +559,12 @@ export default function PersonalPage() {
       </section>
 
       {/* ═══ GROWTH TIMELINE ══════════════════════════════════ */}
-      <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        <h3 className="text-sm font-semibold text-foreground mb-4">
-          {locale === "en" ? "Growth Timeline" : "成长时间轴"}
+      <section className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
+        <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+          [TIMELINE_SEC_04]
+        </div>
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2">
+          ⏳ {locale === "en" ? "Growth Timeline" : "成长时间轴"}
         </h3>
         <GrowthTimeline
           events={worldData?.recent_events}
@@ -540,10 +573,13 @@ export default function PersonalPage() {
         />
       </section>
 
-      {/* ═══ RECENT ACTIVITY ══════════════════════════════════ */}
-      <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        <h3 className="text-sm font-semibold text-foreground mb-4">
-          {locale === "en" ? "Quick Access" : "快捷入口"}
+      {/* ═══ QUICK WAYPOINT ENTRY LINKS ═══════════════════════ */}
+      <section className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
+        <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+          [WAYPOINTS_SEC_05]
+        </div>
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2">
+          🗺️ {locale === "en" ? "Quick Waypoints" : "快捷入口"}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <QuickLink
@@ -580,20 +616,20 @@ export default function PersonalPage() {
 
 function ArchiveRow({ icon, label, value, href }: { icon: string; label: string; value: string; href?: string }) {
   const inner = (
-    <div className="flex items-center justify-between py-1.5">
+    <div className="flex items-center justify-between py-2">
       <span className="text-xs text-muted-foreground flex items-center gap-2">
         <span className="text-sm w-5 text-center">{icon}</span>
-        {label}
+        <span className="font-medium">{label}</span>
       </span>
-      <span className={`text-xs font-semibold truncate max-w-[60%] text-right ${href ? "text-primary" : "text-foreground"}`}>
+      <span className={`text-xs font-bold font-civ-serif truncate max-w-[60%] text-right ${href ? "text-primary hover:underline" : "text-foreground"}`}>
         {value}
       </span>
     </div>
   );
   if (href) {
-    return <Link href={href} className="block hover:bg-secondary/30 rounded -mx-1 px-1 transition-colors">{inner}</Link>;
+    return <Link href={href} className="block hover:bg-secondary/40 rounded -mx-2 px-2 py-0.5 transition-colors">{inner}</Link>;
   }
-  return inner;
+  return <div className="border-b border-border/20 last:border-b-0">{inner}</div>;
 }
 
 function SectionCard({
@@ -607,12 +643,15 @@ function SectionCard({
   isExpanded?: boolean; onToggleExpand?: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+    <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
+      <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+        [ARCHIVE_{title.slice(0, 4).toUpperCase()}]
+      </div>
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/60">
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
           <span>{icon}</span> {title}
           {totalCount > 0 && (
-            <span className="text-xs text-muted-foreground font-normal">
+            <span className="text-[10px] text-muted-foreground font-bold font-mono">
               ({isExpanded ? totalCount : Math.min(visibleCount, totalCount)}/{totalCount})
             </span>
           )}
@@ -620,18 +659,18 @@ function SectionCard({
         {expandLabel && totalCount > visibleCount && onToggleExpand ? (
           <button
             onClick={onToggleExpand}
-            className="text-xs text-primary hover:underline transition-colors"
+            className="text-xs font-bold font-civ-serif text-primary hover:underline transition-colors"
           >
             {expandLabel} {isExpanded ? "↑" : "↓"}
           </button>
         ) : viewAllHref ? (
-          <Link href={viewAllHref} className="text-xs text-primary hover:underline transition-colors">
+          <Link href={viewAllHref} className="text-xs font-bold font-civ-serif text-primary hover:underline transition-colors">
             {viewAllLabel || "View All"} →
           </Link>
         ) : null}
       </div>
       {isEmpty ? (
-        <p className="text-xs text-muted-foreground text-center py-8">{emptyText}</p>
+        <p className="text-xs text-muted-foreground text-center py-8 italic">{emptyText}</p>
       ) : (
         children
       )}
@@ -643,12 +682,15 @@ function QuickLink({ icon, title, desc, href }: { icon: string; title: string; d
   return (
     <Link
       href={href}
-      className="flex items-start gap-3 rounded-xl border border-border bg-background p-4 transition-all hover:shadow-card hover:border-primary/20 group"
+      className="relative flex items-start gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-4 transition-all hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group"
     >
+      <div className="absolute -bottom-1 -right-1 text-[7px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+        [WAYPOINT_{title.slice(0, 4).toUpperCase()}]
+      </div>
       <span className="text-2xl shrink-0 transition-transform group-hover:scale-110">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] group-hover:text-primary transition-colors">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{desc}</p>
       </div>
       <svg className="w-3.5 h-3.5 text-muted-foreground shrink-0 self-center transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

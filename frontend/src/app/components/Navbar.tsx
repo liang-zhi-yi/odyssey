@@ -75,28 +75,61 @@ export function Navbar() {
   );
   const activePathCount = allPaths.filter((p) => p.status === "ACTIVE").length;
 
-  // Hide navbar on login/register pages
-  if (pathname === "/login" || pathname === "/register") {
-    return null;
+  // Simplified navbar on auth pages — logo + back + language + dark mode
+  const isAuthPage = pathname === "/auth" || pathname === "/login" || pathname === "/register";
+  if (isAuthPage) {
+    return (
+      <header className="sticky top-0 z-50 border-b-2 border-double border-[oklch(0.7_0.12_85_/_0.45)] bg-[oklch(0.985_0.003_95)]/95 dark:bg-[oklch(0.22_0.008_85)]/95 backdrop-blur-md shadow-sm">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+          {/* Left: Back button + Logo */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-[oklch(0.5_0.02_85)] transition-colors hover:bg-[oklch(0.95_0.005_90)] hover:text-[oklch(0.3_0.02_80)] dark:hover:bg-[oklch(0.25_0.008_85)]"
+              title={t("auth.backToHome")}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+              </svg>
+              {t("auth.backToHome")}
+            </Link>
+            <span className="h-4 w-px bg-[oklch(0.8_0.02_85_/_0.4)]" />
+            <Link
+              href="/"
+              className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
+            >
+              <span className="animate-rhumb-spin inline-block text-base">🧭</span> Odyssey
+            </Link>
+          </div>
+
+          {/* Right: Dark mode + Language */}
+          <div className="flex items-center gap-2">
+            <DarkModeToggle isDark={isDark} onToggle={toggle} />
+            <LanguageSwitcher />
+          </div>
+        </nav>
+      </header>
+    );
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-md">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
+    <header className="sticky top-0 z-50 border-b-2 border-double border-[oklch(0.7_0.12_85_/_0.45)] bg-[oklch(0.985_0.003_95)]/95 dark:bg-[oklch(0.22_0.008_85)]/95 backdrop-blur-md shadow-sm">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="text-lg font-semibold tracking-tight text-primary transition-colors hover:opacity-80"
+            className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
           >
-            Odyssey
+            <span className="animate-rhumb-spin inline-block text-base">🧭</span> Odyssey
           </Link>
         </div>
 
         {isAuthenticated && (
           <>
             {/* Nav links */}
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="hidden items-center gap-1.5 md:flex">
               {NAV_ITEMS.map((item) => {
                 const isActive =
                   pathname === item.href ||
@@ -105,10 +138,10 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`relative rounded-xl px-3 py-1.5 text-sm font-medium transition-all duration-300 ${
+                    className={`relative rounded-xl px-3 py-1.5 text-sm font-bold font-civ-serif transition-all duration-300 border ${
                       isActive
-                        ? "bg-primary/10 text-primary shadow-sm"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        ? "bg-[oklch(0.72_0.12_82_/_0.12)] text-[oklch(0.35_0.12_85)] border-[oklch(0.7_0.12_85_/_0.45)] shadow-sm"
+                        : "text-[oklch(0.5_0.02_85)] border-transparent hover:bg-[oklch(0.95_0.005_90)] dark:hover:bg-[oklch(0.25_0.008_85)] hover:text-[oklch(0.3_0.02_80)]"
                     }`}
                   >
                     {(() => {
@@ -229,13 +262,13 @@ export function Navbar() {
             <DarkModeToggle isDark={isDark} onToggle={toggle} />
             <LanguageSwitcher />
             <Link
-              href="/login"
+              href="/auth"
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               {t("nav.login")}
             </Link>
             <Link
-              href="/register"
+              href="/auth"
               className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
             >
               {t("nav.register")}

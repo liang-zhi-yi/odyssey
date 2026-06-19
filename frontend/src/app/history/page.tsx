@@ -661,12 +661,12 @@ export default function HistoryPage() {
     ).length;
     const skillsUnlocked = userSkills.length;
     const buildingsBuilt =
-      (worldData?.stats?.total_buildings ?? 0) +
-      (worldData?.stats?.compound_buildings ?? 0);
+      (worldData?.stats?.active_buildings ?? 0) +
+      (worldData?.stats?.active_compound_buildings ?? 0);
     const civIndex =
       (worldData?.civilization_level ?? 1) * 100 +
       (worldData?.stats?.average_level ?? 0) * 10;
-    const badgesEarned = userBadges.length;
+    const badgesEarned = userBadges.filter((b) => b.earned).length;
 
     return {
       completedQuests,

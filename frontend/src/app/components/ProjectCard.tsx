@@ -105,8 +105,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="relative block rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 group"
+      className="relative block rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group relative overflow-hidden"
     >
+      {/* Tiny parchment coordinates stamp inside each card */}
+      <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.06] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
+        [SEC {project.id.slice(0, 4).toUpperCase()}]
+      </div>
       {/* Delete trigger — appears on hover */}
       <button
         type="button"
@@ -125,12 +129,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
       {/* Title + Grade */}
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors pr-6">
+        <h4 className="font-bold font-civ-serif text-sm truncate text-[oklch(0.3_0.02_80)] group-hover:text-[oklch(0.35_0.12_85)] transition-colors pr-6">
           {project.title}
         </h4>
         {grade && (
           <span
-            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold flex-shrink-0 ${gradeStyle}`}
+            className={`inline-flex items-center justify-center w-7 h-7 rounded-full border text-xs font-bold font-civ-serif flex-shrink-0 shadow-inner ${gradeStyle}`}
           >
             {grade}
           </span>

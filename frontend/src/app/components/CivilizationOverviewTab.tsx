@@ -6,6 +6,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { CivilizationCompass } from "./CivilizationCompass";
 import { GrowthTimeline } from "./GrowthTimeline";
 import { EmptyState } from "./EmptyState";
+import { VintageShieldIcon } from "./VintageShieldIcon";
 import {
   ERA_LABELS,
   CIVILIZATION_TIER_LABELS,
@@ -217,40 +218,50 @@ export function CivilizationOverviewTab({
   return (
     <div className="space-y-6">
       {/* ═══════ 1. Hero Section — dual column ═══════ */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Left: Era + Tier + Level */}
-        <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] via-[oklch(0.97_0.008_95)] to-[oklch(0.96_0.015_92)] p-6 shadow-card space-y-5">
+        <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden space-y-5">
+          {/* Faint compass watermark */}
+          <div className="absolute -bottom-10 -right-10 w-48 h-48 opacity-[0.03] dark:opacity-[0.05] pointer-events-none select-none">
+            <svg viewBox="0 0 100 100" className="animate-rhumb-spin w-full h-full text-[oklch(0.7_0.12_85)]">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+              <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
+              <line x1="50" y1="0" x2="50" y2="100" stroke="currentColor" strokeWidth="0.75" />
+              <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.75" />
+            </svg>
+          </div>
+
           {/* Civilization name */}
           <div>
-            <p className="text-xs text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
-              {locale === "en" ? "My Civilization" : "我的文明"}
+            <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+              {locale === "en" ? "My Civilization" : "我的文明领地"}
             </p>
-            <h2 className="text-xl font-bold text-[oklch(0.3_0.02_80)] mt-0.5">
+            <h2 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
               {world.name}
             </h2>
           </div>
 
           {/* Era + Tier badges */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.72_0.12_85_/_0.15)] border border-[oklch(0.72_0.12_85_/_0.3)] px-4 py-3">
-              <span className="text-3xl">{eraInfo.icon}</span>
+          <div className="flex items-center gap-3 flex-wrap relative z-10">
+            <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.95_0.005_90)] dark:from-[oklch(0.25_0.008_85)] dark:to-[oklch(0.2_0.006_85)] border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md flex-1 min-w-[140px]">
+              <VintageShieldIcon icon={eraInfo.icon} size="sm" tier="gold" />
               <div className="leading-tight">
-                <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
-                  {locale === "en" ? "Era" : "时代"}
+                <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                  {locale === "en" ? "Era" : "发展时代"}
                 </p>
-                <p className="text-base font-bold text-[oklch(0.4_0.03_80)]">
+                <p className="text-base font-bold font-civ-serif text-[oklch(0.4_0.03_80)]">
                   {eraName}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.65_0.05_145_/_0.1)] border border-[oklch(0.65_0.05_145_/_0.25)] px-4 py-3">
-              <span className="text-3xl">{tierInfo.icon}</span>
+            <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.95_0.005_90)] dark:from-[oklch(0.25_0.008_85)] dark:to-[oklch(0.2_0.006_85)] border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md flex-1 min-w-[140px]">
+              <VintageShieldIcon icon={tierInfo.icon} size="sm" tier="silver" />
               <div className="leading-tight">
-                <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
+                <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
                   {locale === "en" ? "Tier" : "文明等级"}
                 </p>
-                <p className="text-base font-bold text-[oklch(0.4_0.03_80)]">
+                <p className="text-base font-bold font-civ-serif text-[oklch(0.4_0.03_80)]">
                   {tierName} Lv.{world.civilization_level}
                 </p>
               </div>
@@ -258,49 +269,45 @@ export function CivilizationOverviewTab({
           </div>
 
           {/* Civilization Index */}
-          <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.97_0.003_90)] border border-[oklch(0.88_0.02_90)] px-4 py-3">
-            <span className="text-2xl">📊</span>
+          <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.95_0.005_90)]/50 dark:bg-[oklch(0.25_0.008_85)]/50 border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 relative z-10">
+            <VintageShieldIcon icon="📊" size="sm" tier="bronze" />
             <div className="flex-1 min-w-0 leading-tight">
-              <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
-                {locale === "en" ? "Civilization Index" : "文明指数"}
+              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                {locale === "en" ? "Civilization Index" : "文明实力总指数"}
               </p>
-              <p className="text-lg font-bold text-[oklch(0.4_0.03_80)] tabular-nums">
+              <p className="text-xl font-bold font-mono text-[oklch(0.4_0.03_80)] tabular-nums">
                 {fmt(world.tier_score)}
               </p>
             </div>
           </div>
 
           {/* Progress bars */}
-          <div className="space-y-2">
+          <div className="space-y-3 relative z-10 pt-2">
             {/* Era progress */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[oklch(0.5_0.02_85)] w-16 shrink-0">
-                {locale === "en" ? "Era" : "时代进度"}
-              </span>
-              <div className="flex-1 h-2 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden">
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] font-bold text-[oklch(0.5_0.02_85)]">
+                <span>{locale === "en" ? "Era Horizon" : "时代演进进度"}</span>
+                <span className="font-mono tabular-nums">{eraProgress}%</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden p-[1px] border border-[oklch(0.8_0.02_90)]/50">
                 <div
-                  className="h-full rounded-full bg-[oklch(0.72_0.12_85)] transition-all duration-700"
+                  className="h-full rounded-full bg-[oklch(0.72_0.12_85)] animate-route-flow transition-all duration-700"
                   style={{ width: `${eraProgress}%` }}
                 />
               </div>
-              <span className="text-xs font-mono text-[oklch(0.5_0.02_85)] w-10 text-right tabular-nums">
-                {eraProgress}%
-              </span>
             </div>
             {/* Tier progress */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[oklch(0.5_0.02_85)] w-16 shrink-0">
-                {locale === "en" ? "Tier" : "等级进度"}
-              </span>
-              <div className="flex-1 h-2 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden">
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] font-bold text-[oklch(0.5_0.02_85)]">
+                <span>{locale === "en" ? "Tier Expansion" : "领土扩张进度"}</span>
+                <span className="font-mono tabular-nums">{tierProgress}%</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden p-[1px] border border-[oklch(0.8_0.02_90)]/50">
                 <div
-                  className="h-full rounded-full bg-[oklch(0.65_0.05_145)] transition-all duration-700"
+                  className="h-full rounded-full bg-[oklch(0.65_0.05_145)] animate-route-flow transition-all duration-700"
                   style={{ width: `${tierProgress}%` }}
                 />
               </div>
-              <span className="text-xs font-mono text-[oklch(0.5_0.02_85)] w-10 text-right tabular-nums">
-                {tierProgress}%
-              </span>
             </div>
           </div>
         </div>
@@ -308,46 +315,46 @@ export function CivilizationOverviewTab({
         {/* Right: Exploration + Compass mini */}
         <div className="space-y-4">
           {/* Exploration + Resources card */}
-          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-5 shadow-card space-y-4">
+          <div className="vintage-parchment-card p-5 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.65_0.05_145_/_0.08)] border border-[oklch(0.65_0.05_145_/_0.2)] px-3 py-2 flex-1">
-                <span className="text-xl">🗺️</span>
-                <div className="leading-tight min-w-0">
-                  <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium">
-                    {locale === "en" ? "Exploration" : "探索进度"}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[oklch(0.65_0.05_145)] transition-all duration-700"
-                        style={{ width: `${explorationPct}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-bold text-[oklch(0.4_0.03_80)] tabular-nums">
+              <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.65_0.05_145_/_0.06)] border border-[oklch(0.65_0.05_145_/_0.2)] px-4 py-3 flex-1">
+                <span className="text-2xl animate-gentle-float">🗺️</span>
+                <div className="leading-tight min-w-0 flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                      {locale === "en" ? "Exploration" : "未知疆域探索度"}
+                    </p>
+                    <span className="text-xs font-bold text-[oklch(0.4_0.03_80)] font-mono tabular-nums">
                       {explorationPct}%
                     </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden p-[1px]">
+                    <div
+                      className="h-full rounded-full bg-[oklch(0.65_0.05_145)] animate-route-flow transition-all duration-700"
+                      style={{ width: `${explorationPct}%` }}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Resource chips */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="grid grid-cols-3 gap-2.5 pt-2">
               <ResourceChip
                 icon="📚"
-                label={locale === "en" ? "Knowledge" : "知识点"}
+                label={locale === "en" ? "Knowledge" : "知识秘卷"}
                 value={fmt(world.knowledge_points)}
                 color="oklch(0.65 0.05 145)"
               />
               <ResourceChip
                 icon="⚡"
-                label={locale === "en" ? "Tech" : "科技点"}
+                label={locale === "en" ? "Tech" : "科技火花"}
                 value={fmt(world.tech_points)}
                 color="oklch(0.55 0.12 250)"
               />
               <ResourceChip
                 icon="👥"
-                label={locale === "en" ? "Population" : "人口"}
+                label={locale === "en" ? "Population" : "文明人口"}
                 value={fmt(world.population)}
                 color="oklch(0.55 0.08 25)"
               />
@@ -365,42 +372,41 @@ export function CivilizationOverviewTab({
 
       {/* ═══════ 2. Core Building ═══════ */}
       {coreBuilding && (
-        <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.97_0.008_92)] via-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_95)] p-6 shadow-card">
-          <div className="flex items-start gap-4">
-            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-[oklch(0.72_0.12_85_/_0.12)] border border-[oklch(0.72_0.12_85_/_0.25)] shrink-0">
-              <span className="text-3xl">
-                {coreBuilding.template?.icon ?? "🏛️"}
-              </span>
-            </div>
+        <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.72_0.12_85_/_0.55)] animate-pedestal-glow relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+          {/* Subtle watermark */}
+          <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.08)] to-transparent pointer-events-none select-none" />
+
+          <div className="relative flex items-start gap-5 z-10">
+            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "🏛️"} size="md" tier="gold" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
-                {locale === "en" ? "Core Building" : "当前文明核心建筑"}
+              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                {locale === "en" ? "Core Building" : "帝国核心建筑 centerpiece"}
               </p>
-              <h3 className="text-lg font-bold text-[oklch(0.3_0.02_80)] mt-0.5">
+              <h3 className="text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
                 {locale === "en" && coreBuilding.template?.name_en
                   ? coreBuilding.template.name_en
                   : coreBuilding.template?.name ?? "—"}
               </h3>
-              <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1">
+              <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1.5 leading-relaxed">
                 {locale === "en" && coreBuilding.template?.description_en
                   ? coreBuilding.template.description_en
                   : coreBuilding.template?.description ?? ""}
               </p>
-              <div className="flex items-center gap-3 mt-3">
-                <span className="text-xs font-medium bg-[oklch(0.72_0.12_85_/_0.12)] text-[oklch(0.4_0.03_80)] rounded-full px-3 py-1">
+              <div className="flex items-center gap-4 mt-4">
+                <span className="text-xs font-bold bg-[oklch(0.72_0.12_85_/_0.15)] text-[oklch(0.35_0.03_80)] rounded-full px-3.5 py-1 border border-[oklch(0.72_0.12_85_/_0.25)]">
                   {LEVEL_LABELS[coreBuilding.level]?.[locale === "en" ? "en" : "zh"] ?? `Lv.${coreBuilding.level}`}
                 </span>
                 {coreBuilding.template?.region && (
-                  <span className="text-xs text-[oklch(0.5_0.02_85)]">
-                    {coreBuilding.template.region}
+                  <span className="text-xs text-[oklch(0.5_0.02_85)] font-medium">
+                    📍 {coreBuilding.template.region}
                   </span>
                 )}
                 {"skill_id" in (coreBuilding.template ?? {}) && (
                   <Link
                     href={`/skills/${(coreBuilding.template as { skill_id: string }).skill_id}`}
-                    className="text-xs text-[oklch(0.65_0.05_145)] hover:underline font-medium"
+                    className="text-xs text-[oklch(0.65_0.05_145)] hover:underline font-bold"
                   >
-                    {locale === "en" ? "View Skill →" : "查看技能 →"}
+                    {locale === "en" ? "Forge Skill →" : "开发技能大树 →"}
                   </Link>
                 )}
               </div>
@@ -411,44 +417,42 @@ export function CivilizationOverviewTab({
 
       {/* ═══════ 3. Next Goal ═══════ */}
       {nextGoal && (
-        <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.96_0.015_92)] to-[oklch(0.97_0.008_95)] p-6 shadow-card">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl shrink-0">
-              {nextGoal.type === "upgrade" ? "⬆️" : "🎯"}
-            </span>
+        <div className="vintage-parchment-card p-6 shadow-sm border border-dashed border-[oklch(0.7_0.12_85_/_0.4)] relative transition-all duration-300 hover:shadow-md">
+          <div className="flex items-start gap-4">
+            <VintageShieldIcon icon={nextGoal.type === "upgrade" ? "🚀" : "🎯"} size="sm" tier="gold" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
-                {locale === "en" ? "Next Goal" : "下一目标"}
+              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                {locale === "en" ? "Next Goal" : "下一个战略目标"}
               </p>
               {nextGoal.type === "upgrade" ? (
                 <>
-                  <h3 className="text-base font-bold text-[oklch(0.3_0.02_80)] mt-0.5">
+                  <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
                     {locale === "en"
                       ? `Upgrade ${coreBuilding?.template?.name_en ?? coreBuilding?.template?.name ?? ""} to Lv.${nextGoal.targetLevel}`
-                      : `将 ${coreBuilding?.template?.name ?? ""} 升级至 Lv.${nextGoal.targetLevel}`}
+                      : `将 ${coreBuilding?.template?.name ?? ""} 扩建至 Lv.${nextGoal.targetLevel}`}
                   </h3>
                   <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1">
                     {locale === "en"
                       ? "Continue developing this core building to strengthen your civilization"
-                      : "继续发展核心建筑，增强文明实力"}
+                      : "继续修建和升级核心地标建筑，以增强整座文明古国的底蕴实力"}
                   </p>
                 </>
               ) : (
                 <>
-                  <h3 className="text-base font-bold text-[oklch(0.3_0.02_80)] mt-0.5">
+                  <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
                     {locale === "en"
                       ? `Unlock ${nextGoal.building.template?.name_en ?? nextGoal.building.template?.name ?? ""}`
-                      : `解锁 ${nextGoal.building.template?.name ?? ""}`}
+                      : `筹建并解锁新地标：${nextGoal.building.template?.name ?? ""}`}
                   </h3>
                   {nextGoal.building.template?.required_skills &&
                     nextGoal.building.template.required_skills.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2 mt-3">
                         {nextGoal.building.template.required_skills.map((rs) => (
                           <span
                             key={rs.skill_name}
-                            className="text-xs bg-[oklch(0.97_0.003_90)] border border-[oklch(0.88_0.02_90)] rounded-full px-3 py-1 text-[oklch(0.45_0.02_80)]"
+                            className="text-xs bg-[oklch(0.95_0.005_90)] border border-[oklch(0.88_0.02_90)] rounded-full px-3 py-1 text-[oklch(0.4_0.02_80)] font-medium"
                           >
-                            {rs.skill_name} Lv.{rs.min_level}
+                            ⚙️ {rs.skill_name} Lv.{rs.min_level}
                           </span>
                         ))}
                       </div>
@@ -461,52 +465,52 @@ export function CivilizationOverviewTab({
       )}
 
       {/* ═══════ 4. Civilization Summary Stats ═══════ */}
-      <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-6 shadow-card">
-        <h3 className="text-sm font-semibold text-[oklch(0.35_0.02_80)] mb-4">
-          {locale === "en" ? "Civilization Summary" : "文明发展摘要"}
+      <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)]">
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 border-b border-[oklch(0.88_0.02_90)] pb-2">
+          {locale === "en" ? "Civilization Ledger" : "文明疆域编年分类账"}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <SummaryCard
             icon="🏗️"
-            label={locale === "en" ? "Buildings" : "建筑数"}
+            label={locale === "en" ? "Buildings" : "总建筑数量"}
             value={String(world.stats.active_buildings)}
-            sub={`+${world.stats.active_compound_buildings} ${locale === "en" ? "compound" : "复合"}`}
+            sub={`+${world.stats.active_compound_buildings} ${locale === "en" ? "compound" : "复合建筑"}`}
           />
           <SummaryCard
             icon="🎯"
-            label={locale === "en" ? "Milestones" : "里程碑"}
+            label={locale === "en" ? "Milestones" : "里程碑解锁数"}
             value={`${world.stats.milestones_unlocked}/${world.stats.total_milestones}`}
           />
           <SummaryCard
             icon="📊"
-            label={locale === "en" ? "Avg Level" : "平均等级"}
+            label={locale === "en" ? "Avg Level" : "领地平均等级"}
             value={world.stats.average_level.toFixed(1)}
           />
           <SummaryCard
             icon="⭐"
-            label={locale === "en" ? "Highest" : "最高建筑"}
+            label={locale === "en" ? "Highest" : "最高殿堂"}
             value={world.stats.highest_level_building_name ?? "—"}
             compact
           />
           <SummaryCard
             icon="🗺️"
-            label={locale === "en" ? "Regions" : "已解锁区域"}
+            label={locale === "en" ? "Regions" : "已征服板块"}
             value={String(world.regions?.filter((r) => r.unlocked).length ?? 0)}
-            sub={`/ ${world.regions?.length ?? 0}`}
+            sub={`/ ${world.regions?.length ?? 0} ${locale === "en" ? "plates" : "大区域"}`}
           />
           <SummaryCard
             icon="📚"
-            label={locale === "en" ? "Knowledge" : "知识点"}
+            label={locale === "en" ? "Knowledge" : "总知识储备"}
             value={fmt(world.knowledge_points)}
           />
           <SummaryCard
             icon="⚡"
-            label={locale === "en" ? "Tech" : "科技点"}
+            label={locale === "en" ? "Tech" : "科技点积累"}
             value={fmt(world.tech_points)}
           />
           <SummaryCard
             icon="👥"
-            label={locale === "en" ? "Population" : "人口"}
+            label={locale === "en" ? "Population" : "总人口总数"}
             value={fmt(world.population)}
           />
         </div>
@@ -514,7 +518,7 @@ export function CivilizationOverviewTab({
 
       {/* ═══════ 5. Growth Timeline ═══════ */}
       {world.stats.active_buildings > 0 && world.recent_events?.length > 0 && (
-        <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-6 shadow-card">
+        <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)]">
           <GrowthTimeline
             events={world.recent_events}
             unlockedCount={world.stats.milestones_unlocked}
@@ -539,20 +543,26 @@ function ResourceChip({
   value: string;
   color: string;
 }) {
+  const getTier = () => {
+    if (color.includes("250")) return "gold";
+    if (color.includes("145")) return "silver";
+    return "bronze";
+  };
+
   return (
     <div
-      className="flex items-center gap-1.5 rounded-lg px-3 py-2"
+      className="flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-all duration-300 hover:scale-102 shadow-sm border"
       style={{
-        background: `${color} / 0.08`,
-        border: `1px solid ${color} / 0.18`,
+        background: `linear-gradient(135deg, oklch(0.99 0.003 95), ${color} / 0.03)`,
+        borderColor: `${color} / 0.25`,
       }}
     >
-      <span className="text-base">{icon}</span>
+      <VintageShieldIcon icon={icon} size="sm" tier={getTier()} />
       <div className="leading-tight min-w-0">
-        <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium leading-none">
+        <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider leading-none">
           {label}
         </p>
-        <p className="text-sm font-bold text-[oklch(0.35_0.02_80)] tabular-nums leading-tight">
+        <p className="text-sm font-bold text-[oklch(0.35_0.02_80)] font-mono tabular-nums leading-tight mt-0.5">
           {value}
         </p>
       </div>
@@ -576,22 +586,22 @@ function SummaryCard({
   compact?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.97_0.003_90)] border border-[oklch(0.88_0.02_90)] px-4 py-3">
-      <span className="text-2xl shrink-0">{icon}</span>
+    <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.985_0.003_95)] border border-[oklch(0.88_0.02_90)] px-3.5 py-3 shadow-sm hover:border-[oklch(0.7_0.12_85_/_0.3)] hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+      <VintageShieldIcon icon={icon} size="sm" tier="sage" />
       <div className="min-w-0">
-        <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium leading-tight">
+        <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider leading-tight">
           {label}
         </p>
         <p
-          className={`font-bold text-[oklch(0.35_0.02_80)] tabular-nums leading-tight ${
-            compact ? "text-xs truncate" : "text-base"
+          className={`font-bold text-[oklch(0.35_0.02_80)] font-civ-serif tabular-nums leading-tight mt-0.5 ${
+            compact ? "text-xs truncate" : "text-sm"
           }`}
           title={compact ? value : undefined}
         >
           {value}
         </p>
         {sub && (
-          <p className="text-[10px] text-[oklch(0.5_0.02_85)] leading-tight">
+          <p className="text-[9px] text-[oklch(0.5_0.02_85)] leading-tight mt-0.5 font-mono">
             {sub}
           </p>
         )}

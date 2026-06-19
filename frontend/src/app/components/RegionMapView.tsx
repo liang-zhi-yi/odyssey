@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
+import { VintageShieldIcon } from "./VintageShieldIcon";
 import { LEVEL_LABELS } from "@/types/world";
 import type {
   World,
@@ -113,73 +114,82 @@ export function RegionMapView({
     const name = info?.name ?? key;
     return locale === "en" ? name.replace(/区$/, " Region") : name;
   };
+  const regionCoords: Record<string, string> = {
+    "knowledge": "42° N, 12° E",
+    "ai": "55° N, 40° E",
+    "engineering": "34° N, 108° E",
+    "business": "15° S, 48° W",
+    "design": "30° S, 115° E",
+    "language": "48° N, 2° E",
+    "core": "0° N, 0° E",
+    "creative": "12° N, 68° W",
+    "logic": "51° N, 0° W",
+    "practice": "23° S, 43° W",
+    "synthesis": "8° S, 140° E",
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Map header */}
-      <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-4 shadow-card">
-        <div className="flex items-center justify-between">
+      <div className="vintage-parchment-card p-4 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden">
+        <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <span className="text-xl">🗺️</span>
+            <span className="text-2xl animate-gentle-float">🗺️</span>
             <div>
-              <h2 className="text-sm font-semibold text-[oklch(0.35_0.02_80)]">
+              <h2 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
                 {world.name}
               </h2>
               <p className="text-xs text-[oklch(0.55_0.02_85)]">
                 {locale === "en"
-                  ? `${unlockedCount}/${totalRegions} regions explored`
-                  : `已探索 ${unlockedCount}/${totalRegions} 个区域`}
+                  ? `${unlockedCount}/${totalRegions} regions conquered & charted`
+                  : `已征服并勘探 ${unlockedCount}/${totalRegions} 个领地板块`}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[oklch(0.5_0.02_85)]">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[oklch(0.65_0.05_145)]" />
-              {locale === "en" ? "Unlocked" : "已解锁"}
+          <div className="flex items-center gap-3 text-xs font-semibold text-[oklch(0.5_0.02_85)]">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[oklch(0.65_0.05_145)] shadow-sm animate-node-pulse" />
+              {locale === "en" ? "Charted" : "已征服"}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[oklch(0.7_0.02_90)]" />
-              {locale === "en" ? "Locked" : "未解锁"}
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[oklch(0.6_0.01_85)]/40 border border-dashed border-[oklch(0.7_0.12_85_/_0.3)]" />
+              {locale === "en" ? "Terra Incognita" : "未知疆域"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* ═══════ Central Hub ═══════ */}
+      {/* ═══════ Central Hub (Civilization Capital) ═══════ */}
       {coreBuilding && (
-        <div className="rounded-2xl border-2 border-[oklch(0.72_0.12_85_/_0.4)] bg-gradient-to-br from-[oklch(0.96_0.015_92)] via-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-5 shadow-card relative overflow-hidden">
+        <div className="vintage-parchment-card p-5 border-2 border-double border-[oklch(0.72_0.12_85_/_0.65)] shadow-lg relative overflow-hidden animate-pedestal-glow transition-all duration-300 hover:shadow-xl">
           {/* Subtle glow behind core building */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.1)] to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.15)] to-transparent pointer-events-none select-none" />
 
-          <div className="relative flex items-center gap-4">
-            <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-[oklch(0.72_0.12_85_/_0.15)] border-2 border-[oklch(0.72_0.12_85_/_0.35)] shrink-0 shadow-lg">
-              <span className="text-4xl">
-                {coreBuilding.template?.icon ?? "🏛️"}
-              </span>
-            </div>
+          <div className="relative flex items-center gap-5 z-10">
+            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "🏛️"} size="lg" tier="gold" />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
-                {locale === "en" ? "Civilization Core" : "文明核心"}
+              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                {locale === "en" ? "Civilization Capital" : "文明核心帝国要塞"}
               </p>
-              <h3 className="text-lg font-bold text-[oklch(0.3_0.02_80)]">
+              <h3 className="text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
                 {locale === "en" && coreBuilding.template?.name_en
                   ? coreBuilding.template.name_en
                   : coreBuilding.template?.name ?? "—"}
               </h3>
-              <p className="text-sm text-[oklch(0.5_0.02_85)] mt-0.5">
+              <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1 leading-relaxed">
                 {locale === "en" && coreBuilding.template?.description_en
                   ? coreBuilding.template.description_en
                   : coreBuilding.template?.description ?? ""}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs font-semibold bg-[oklch(0.72_0.12_85_/_0.18)] text-[oklch(0.35_0.03_80)] rounded-full px-3 py-0.5">
+              <div className="flex items-center gap-3 mt-3">
+                <span className="text-xs font-bold bg-[oklch(0.72_0.12_85_/_0.18)] text-[oklch(0.35_0.03_80)] rounded-full px-3 py-0.5 border border-[oklch(0.72_0.12_85_/_0.25)]">
                   {LEVEL_LABELS[coreBuilding.level]?.[locale === "en" ? "en" : "zh"] ?? `Lv.${coreBuilding.level}`}
                 </span>
                 <button
                   onClick={() => onSelectBuilding(coreBuilding)}
-                  className="text-xs text-[oklch(0.65_0.05_145)] hover:underline font-medium"
+                  className="text-xs text-[oklch(0.65_0.05_145)] hover:underline font-bold"
                 >
-                  {locale === "en" ? "View Details →" : "查看详情 →"}
+                  {locale === "en" ? "Inspect Capital →" : "视察核心要塞 →"}
                 </button>
               </div>
             </div>
@@ -188,109 +198,117 @@ export function RegionMapView({
       )}
 
       {/* ═══════ Region Plates Grid ═══════ */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {regionGroups.map(([regionKey, group]) => {
           const isUnlocked = group.info?.unlocked ?? true;
           const allBuildings = [
             ...group.buildings.map((b) => ({ ...b, isCompound: false as const })),
             ...group.compounds.map((cb) => ({ ...cb, isCompound: true as const })),
           ];
+          const coordStamp = regionCoords[regionKey.toLowerCase()] ?? "0° N, 0° E";
 
           return (
             <div
               key={regionKey}
-              className={`rounded-2xl border p-4 transition-all ${
+              className={`rounded-2xl transition-all duration-300 flex flex-col justify-between ${
                 isUnlocked
-                  ? "border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] shadow-card"
-                  : "border-dashed border-[oklch(0.85_0.02_90)] bg-[oklch(0.97_0.003_90)]/60"
+                  ? "vintage-parchment-card p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 border-[oklch(0.88_0.02_90)]"
+                  : "border-2 border-dashed border-[oklch(0.7_0.12_85_/_0.3)] bg-[oklch(0.95_0.005_90)]/75 dark:bg-[oklch(0.25_0.008_85)]/40 p-4 min-h-[170px]"
               }`}
             >
-              {/* Region header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`w-2.5 h-2.5 rounded-full ${
-                      isUnlocked
-                        ? "bg-[oklch(0.65_0.05_145)] shadow-sm"
-                        : "bg-[oklch(0.6_0.01_85)]/40"
-                    }`}
-                  />
-                  <h4 className="text-sm font-semibold text-[oklch(0.35_0.02_80)]">
-                    {regionDisplayName(regionKey, group.info)}
-                  </h4>
-                </div>
-                <span className="text-[10px] font-mono text-[oklch(0.55_0.02_85)]">
-                  {isUnlocked
-                    ? `${allBuildings.length} ${locale === "en" ? "buildings" : "座建筑"}`
-                    : "🔒"}
-                </span>
-              </div>
-
-              {/* Region content */}
               {isUnlocked ? (
-                allBuildings.length > 0 ? (
-                  <div className="space-y-2">
-                    {allBuildings.map((b) => {
-                      const template = b.template;
-                      const name =
-                        locale === "en" && template?.name_en
-                          ? template.name_en
-                          : template?.name ?? "—";
-                      const isSelected = selectedBuildingId === b.id;
-                      const isLocked = b.status === "LOCKED";
-
-                      return (
-                        <button
-                          key={b.id}
-                          onClick={() => onSelectBuilding(b as UserBuilding | UserCompoundBuilding)}
-                          className={`w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition-all ${
-                            isSelected
-                              ? "bg-[oklch(0.72_0.12_85_/_0.15)] border border-[oklch(0.72_0.12_85_/_0.3)]"
-                              : isLocked
-                                ? "bg-[oklch(0.97_0.003_90)] border border-dashed border-[oklch(0.88_0.02_90)] opacity-50"
-                                : "bg-[oklch(0.97_0.005_92)] border border-[oklch(0.88_0.02_90)] hover:border-[oklch(0.72_0.12_85_/_0.3)] hover:bg-[oklch(0.96_0.008_92)]"
-                          }`}
-                        >
-                          <span className={`text-xl ${isLocked ? "grayscale" : ""}`}>
-                            {template?.icon ?? (b.isCompound ? "⭐" : "🏗️")}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-[oklch(0.35_0.02_80)] truncate">
-                              {name}
-                            </p>
-                            {!isLocked && (
-                              <p className="text-[10px] text-[oklch(0.5_0.02_85)]">
-                                {LEVEL_LABELS[b.level]?.[locale === "en" ? "en" : "zh"] ?? `Lv.${b.level}`}
-                              </p>
-                            )}
-                          </div>
-                          {b.isCompound && !isLocked && (
-                            <span className="text-yellow-500 text-xs">⭐</span>
-                          )}
-                          {isSelected && (
-                            <span className="text-[oklch(0.65_0.05_145)] text-xs">→</span>
-                          )}
-                        </button>
-                      );
-                    })}
+                <>
+                  {/* Region header */}
+                  <div className="flex items-center justify-between mb-3 border-b border-[oklch(0.88_0.02_90)] pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[oklch(0.65_0.05_145)] shadow-sm animate-node-pulse" />
+                      <h4 className="text-sm font-bold font-civ-serif text-[oklch(0.35_0.02_80)]">
+                        {regionDisplayName(regionKey, group.info)}
+                      </h4>
+                    </div>
+                    <span className="text-[8px] font-mono text-[oklch(0.55_0.02_85)]/50">
+                      {coordStamp}
+                    </span>
                   </div>
-                ) : (
-                  <p className="text-xs text-[oklch(0.5_0.02_85)] text-center py-4">
-                    {locale === "en" ? "No buildings yet" : "暂无建筑"}
-                  </p>
-                )
+
+                  {/* Region content */}
+                  {allBuildings.length > 0 ? (
+                    <div className="space-y-2 flex-1">
+                      {allBuildings.map((b) => {
+                        const template = b.template;
+                        const name =
+                          locale === "en" && template?.name_en
+                            ? template.name_en
+                            : template?.name ?? "—";
+                        const isSelected = selectedBuildingId === b.id;
+                        const isLocked = b.status === "LOCKED";
+
+                        return (
+                          <button
+                            key={b.id}
+                            onClick={() => onSelectBuilding(b as UserBuilding | UserCompoundBuilding)}
+                            className={`w-full flex items-center gap-3 rounded-xl p-2 text-left transition-all duration-200 btn-press ${
+                              isSelected
+                                ? "bg-[oklch(0.72_0.12_85_/_0.15)] border border-[oklch(0.72_0.12_85_/_0.35)] shadow-sm"
+                                : isLocked
+                                  ? "bg-[oklch(0.97_0.003_90)]/50 border border-dashed border-[oklch(0.88_0.02_90)] opacity-40 hover:opacity-60"
+                                  : "bg-[oklch(0.97_0.005_92)] border border-[oklch(0.88_0.02_90)] hover:border-[oklch(0.72_0.12_85_/_0.3)] hover:bg-[oklch(0.98_0.005_95)]"
+                            }`}
+                          >
+                            <VintageShieldIcon 
+                              icon={template?.icon ?? (b.isCompound ? "⭐" : "🏗️")} 
+                              size="sm" 
+                              tier={isLocked ? "sage" : b.isCompound ? "silver" : "bronze"} 
+                              className={isLocked ? "grayscale opacity-50" : ""}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-[oklch(0.35_0.02_80)] truncate">
+                                {name}
+                              </p>
+                              {!isLocked && (
+                                <p className="text-[10px] font-mono text-[oklch(0.5_0.02_85)]">
+                                  {LEVEL_LABELS[b.level]?.[locale === "en" ? "en" : "zh"] ?? `Lv.${b.level}`}
+                                </p>
+                              )}
+                            </div>
+                            {b.isCompound && !isLocked && (
+                              <span className="text-yellow-500 text-xs shrink-0">⭐</span>
+                            )}
+                            {isSelected && (
+                              <span className="text-[oklch(0.65_0.05_145)] text-xs font-bold animate-pulse">→</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center py-6">
+                      <p className="text-xs text-[oklch(0.5_0.02_85)] italic">
+                        {locale === "en" ? "Untapped land..." : "尚无开发的荒地..."}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Card bottom count */}
+                  <div className="text-[9px] text-[oklch(0.5_0.02_85)] text-right mt-2 pt-1.5 border-t border-[oklch(0.9_0.005_90)]">
+                    {allBuildings.length} {locale === "en" ? "structures" : "座建筑群"}
+                  </div>
+                </>
               ) : (
-                /* Fog of war for locked regions */
-                <div className="flex flex-col items-center justify-center py-8 text-center space-y-2 opacity-50">
-                  <div className="text-3xl filter blur-[2px]">🏔️</div>
-                  <p className="text-xs text-[oklch(0.5_0.02_85)]">
-                    {locale === "en" ? "Unexplored Territory" : "未探索区域"}
+                /* Fog of war for locked regions - Terra Incognita chart grid */
+                <div className="flex flex-col items-center justify-center py-8 text-center space-y-2 relative overflow-hidden flex-1">
+                  <VintageShieldIcon icon="🐉" size="md" tier="sage" className="grayscale opacity-25 filter blur-[1px] select-none" />
+                  <p className="text-xs font-civ-serif font-bold text-[oklch(0.45_0.02_85)] uppercase tracking-wider relative z-10">
+                    {locale === "en" ? "Terra Incognita" : "未知疆域 (Terra)"}
                   </p>
-                  <p className="text-[10px] text-[oklch(0.55_0.02_85)]">
+                  <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-medium max-w-[150px] leading-normal relative z-10">
                     {locale === "en"
-                      ? "Complete quests to unlock this region"
-                      : "完成任务以解锁此区域"}
+                      ? "Complete quests in this domain to charter these lands"
+                      : "攻克对应领域的 Quest 任务以开辟此地"}
                   </p>
+                  <div className="text-[8px] font-mono text-[oklch(0.55_0.02_85)]/40 mt-1 relative z-10">
+                    {coordStamp}
+                  </div>
                 </div>
               )}
             </div>
@@ -299,21 +317,21 @@ export function RegionMapView({
       </div>
 
       {/* Map footer — legend / stats */}
-      <div className="flex items-center justify-center gap-6 text-xs text-[oklch(0.5_0.02_85)] py-3">
+      <div className="flex items-center justify-center gap-6 text-xs text-[oklch(0.5_0.02_85)] py-4 border-t border-double border-[oklch(0.7_0.12_85_/_0.25)]">
         <span>
-          {locale === "en" ? "Buildings" : "建筑"}: {world.buildings.length + world.compound_buildings.length}
+          {locale === "en" ? "Charted structures" : "文明总建筑数"}: <span className="font-bold font-mono">{world.buildings.length + world.compound_buildings.length}</span>
         </span>
         <span>
-          {locale === "en" ? "Active" : "已激活"}: {world.stats.active_buildings}
+          {locale === "en" ? "Active" : "已激活建筑"}: <span className="font-bold font-mono">{world.stats.active_buildings}</span>
         </span>
         <span>
-          {locale === "en" ? "Regions" : "区域"}: {unlockedCount}/{totalRegions}
+          {locale === "en" ? "Explored domains" : "大板块勘探度"}: <span className="font-bold font-mono">{unlockedCount}/{totalRegions}</span>
         </span>
         <Link
           href="/skills"
-          className="text-[oklch(0.65_0.05_145)] hover:underline font-medium"
+          className="text-[oklch(0.65_0.05_145)] hover:underline font-bold"
         >
-          {locale === "en" ? "View All Skills →" : "查看全部技能 →"}
+          {locale === "en" ? "View Charted Skills →" : "查阅文明科技与技能 →"}
         </Link>
       </div>
     </div>

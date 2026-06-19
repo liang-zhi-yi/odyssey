@@ -130,24 +130,24 @@ export default function QuestsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
+    <div className="mx-auto max-w-6xl space-y-8 px-6 py-8 relative overflow-hidden">
       <div>
-        <h1 className="text-2xl font-semibold">{t("quests.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">{t("quests.title")}</h1>
+        <p className="mt-1 text-sm font-civ-serif text-[oklch(0.5_0.02_85)]">
           {t("quests.subtitle")}
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-xl bg-secondary p-1 w-fit flex-wrap">
+      <div className="flex gap-1.5 rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.95_0.005_90)] p-0.5 w-fit flex-wrap shadow-inner">
         {TAB_KEYS.map(({ id, key }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
+            className={`rounded-lg px-4 py-1.5 text-xs font-bold font-civ-serif transition-all duration-200 btn-press ${
               activeTab === id
-                ? "bg-background shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-gradient-to-b from-[oklch(0.99_0.002_95)] to-[oklch(0.96_0.005_90)] text-[oklch(0.3_0.02_80)] shadow-md border border-[oklch(0.7_0.12_85_/_0.5)] scale-102"
+                : "text-[oklch(0.55_0.02_85)] hover:text-[oklch(0.35_0.02_80)] hover:bg-[oklch(0.98_0.005_95)]/50"
             }`}
           >
             {t(key)}
@@ -162,7 +162,7 @@ export default function QuestsPage() {
             <select
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-1.5 text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.99_0.003_95)] text-[oklch(0.3_0.02_80)] px-3 py-1.5 text-sm font-civ-serif transition-all duration-300 focus:outline-none focus:border-[oklch(0.7_0.12_85)] focus:ring-2 focus:ring-[oklch(0.7_0.12_85_/_0.15)]"
             >
               <option value="">{t("quests.filter.allSkills")}</option>
               {skills.map((s) => (
@@ -175,7 +175,7 @@ export default function QuestsPage() {
             <select
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-1.5 text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.99_0.003_95)] text-[oklch(0.3_0.02_80)] px-3 py-1.5 text-sm font-civ-serif transition-all duration-300 focus:outline-none focus:border-[oklch(0.7_0.12_85)] focus:ring-2 focus:ring-[oklch(0.7_0.12_85_/_0.15)]"
             >
               <option value="">{t("quests.filter.allDifficulties")}</option>
               {Object.entries(DIFFICULTY_LABELS).map(([key]) => (
@@ -192,7 +192,7 @@ export default function QuestsPage() {
                   setDifficultyFilter("");
                   setCivFilter("");
                 }}
-                className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="rounded-lg px-3 py-1.5 text-sm font-civ-serif font-bold text-[oklch(0.5_0.02_85)] hover:text-[oklch(0.3_0.02_80)] transition-colors"
               >
                 {t("quests.filter.clearFilter")}
               </button>
@@ -201,13 +201,13 @@ export default function QuestsPage() {
 
           {/* Civilization type filter pills */}
           <div className="mt-2">
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
               <button
                 onClick={() => setCivFilter("")}
-                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold font-civ-serif transition-all border ${
                   civFilter === ""
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                    ? "bg-[oklch(0.72_0.12_82)] text-white border-[oklch(0.72_0.12_82)] shadow-sm"
+                    : "bg-[oklch(0.95_0.005_90)] border-[oklch(0.88_0.02_90)] text-[oklch(0.5_0.02_85)] hover:bg-[oklch(0.98_0.005_95)] hover:text-[oklch(0.3_0.02_80)]"
                 }`}
               >
                 {t("quests.filter.all")}
@@ -220,10 +220,10 @@ export default function QuestsPage() {
                   <button
                     key={civ.key}
                     onClick={() => setCivFilter(civ.key)}
-                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold font-civ-serif transition-all border ${
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                        ? "bg-[oklch(0.72_0.12_82)] text-white border-[oklch(0.72_0.12_82)] shadow-sm"
+                        : "bg-[oklch(0.95_0.005_90)] border-[oklch(0.88_0.02_90)] text-[oklch(0.5_0.02_85)] hover:bg-[oklch(0.98_0.005_95)] hover:text-[oklch(0.3_0.02_80)]"
                     }`}
                   >
                     {civ.icon} {locale === "en" ? civ.labelEn : civ.label}
@@ -425,44 +425,48 @@ function CivilizationQuestSection({
   const totalCivIndex = group.quests.reduce((sum, q) => sum + (q.reward_preview?.civilization_contribution ?? 0), 0);
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+    <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] shadow-sm overflow-hidden relative">
+      {/* Decorative coordinate stamp */}
+      <div className="absolute top-1 right-2 text-[8px] font-mono opacity-15 text-[oklch(0.3_0.02_80)] select-none">
+        [E {20 + (group.civilization_type.charCodeAt(0) % 150)}° / N 48°]
+      </div>
       {/* Civilization header — clickable to toggle collapse */}
       <button
         type="button"
         onClick={toggleExpanded}
-        className={`w-full flex items-center gap-3 px-5 py-4 border-b border-border ${bgColor} text-left cursor-pointer hover:opacity-90 transition-opacity`}
+        className={`w-full flex items-center gap-3 px-5 py-4 border-b border-[oklch(0.88_0.02_90_/_0.7)] ${bgColor} text-left cursor-pointer hover:opacity-90 transition-opacity`}
       >
         <span className="text-2xl">{group.icon}</span>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 relative z-10">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-foreground">
+            <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
               {displayLabel}
             </h3>
             {/* Task count badge */}
-            <span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-[11px] font-semibold text-foreground/70">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[oklch(0.72_0.12_82_/_0.12)] border border-[oklch(0.72_0.12_82_/_0.25)] px-2 py-0.5 text-[11px] font-bold font-civ-serif text-[oklch(0.35_0.12_85)]">
               {group.count}{" "}
-              <span className="text-muted-foreground font-normal">
+              <span className="text-[oklch(0.5_0.02_85)] font-normal text-[10px]">
                 {locale === "en" ? "quests" : "个任务"}
               </span>
             </span>
           </div>
           {!isExpanded && questsWithStatus > 0 && (
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-[oklch(0.5_0.02_85)] mt-0.5 font-medium">
               {locale === "en" ? `${questsWithStatus} in progress` : `${questsWithStatus} 个进行中`}
             </p>
           )}
         </div>
         {/* Civilization contribution indicator */}
-        <div className="shrink-0 rounded-full bg-amber-50/60 border border-amber-200/50 px-3 py-1.5 text-center">
-          <p className="text-[10px] text-amber-700 font-medium">
+        <div className="shrink-0 rounded-full bg-[oklch(0.72_0.12_82_/_0.15)] border border-[oklch(0.72_0.12_82_/_0.4)] px-3 py-1.5 text-center shadow-inner relative z-10">
+          <p className="text-[10px] text-[oklch(0.35_0.12_85)] font-bold font-civ-serif">
             {locale === "en" ? "Civ Index" : "文明指数"}
           </p>
-          <p className="text-sm font-bold text-amber-800 tabular-nums">
+          <p className="text-sm font-bold text-[oklch(0.3_0.12_85)] font-mono tabular-nums">
             +{totalCivIndex}
           </p>
         </div>
         {/* Collapse chevron */}
-        <span className={`text-lg text-muted-foreground transition-transform duration-300 shrink-0 ${isExpanded ? "rotate-90" : ""}`}>
+        <span className={`text-[10px] text-[oklch(0.5_0.02_85)] transition-transform duration-300 shrink-0 ${isExpanded ? "rotate-90" : ""}`}>
           ▶
         </span>
       </button>

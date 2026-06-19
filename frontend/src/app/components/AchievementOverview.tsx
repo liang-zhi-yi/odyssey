@@ -76,17 +76,19 @@ export function AchievementOverview({
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 relative z-10">
       {STAT_STYLES.map((stat) => (
         <div
           key={stat.key}
-          className={`rounded-xl border ${stat.border} bg-gradient-to-br ${stat.bg} p-4 shadow-card`}
+          className={`vintage-parchment-card rounded-xl border ${stat.border} p-4 shadow-sm relative overflow-hidden`}
         >
-          <span className="text-2xl">{stat.icon}</span>
-          <p className="mt-2 text-xl font-bold tabular-nums">
+          {/* Tiny grid line overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[oklch(0.72_0.12_82_/_0.03)] pointer-events-none" />
+          <span className="text-2xl relative z-10">{stat.icon}</span>
+          <p className="mt-2 text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)] tabular-nums relative z-10">
             {String(values[stat.key as keyof typeof values])}
           </p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mt-0.5">
+          <p className="text-[10px] text-[oklch(0.5_0.02_85)] font-bold uppercase tracking-wide mt-0.5 font-civ-serif relative z-10">
             {labels[stat.key as keyof typeof labels]}
           </p>
         </div>

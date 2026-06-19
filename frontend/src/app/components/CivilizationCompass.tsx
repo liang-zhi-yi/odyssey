@@ -122,46 +122,146 @@ export function CivilizationCompass({
   const activeTier = "SETTLER"; // Not available here — skip tier-specific display
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">🧭</span>
-        <h3 className="text-sm font-semibold text-foreground">
-          {locale === "en" ? "Civilization Compass" : "文明罗盘"}
+    <div className="vintage-parchment-card p-4 transition-all duration-300 hover:shadow-lg">
+      <div className="flex items-center gap-2 mb-3 border-b border-[oklch(0.88_0.02_90)] pb-2">
+        <span className="text-lg animate-rhumb-spin inline-block">🧭</span>
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
+          {locale === "en" ? "Civilization Compass" : "文明导航罗盘"}
         </h3>
-        <span className="text-[10px] bg-accent/10 text-accent rounded-full px-2 py-0.5 font-medium ml-auto">
+        <span className="text-[10px] bg-[oklch(0.72_0.12_85_/_0.12)] border border-[oklch(0.72_0.12_85_/_0.25)] text-[oklch(0.35_0.12_85)] rounded-full px-2 py-0.5 font-bold ml-auto">
           {direction.active_paths.length}{" "}
           {locale === "en" ? "paths" : "条路径"}
         </span>
       </div>
-
+ 
       {/* SVG Compass */}
-      <div className="flex justify-center">
+      <div className="flex justify-center relative py-2">
         <svg
           viewBox={`0 0 ${viewSize} ${viewSize}`}
           width={viewSize}
           height={viewSize}
           className="overflow-visible"
         >
-          {/* Ring guides — faint concentric circles */}
+          {/* Faint grid lines in background */}
           <circle
             cx={centerX}
             cy={centerY}
-            r={ringRadius}
+            r={ringRadius * 1.3}
             fill="none"
-            stroke="oklch(0.9 0.008 100)"
+            stroke="oklch(0.7 0.12 85 / 0.04)"
             strokeWidth={1}
-            strokeDasharray="4 4"
-            opacity={0.5}
           />
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={ringRadius * 0.5}
-            fill="none"
-            stroke="oklch(0.9 0.008 100)"
-            strokeWidth={0.5}
-            opacity={0.3}
-          />
+
+          {/* Wind Rose group - ancient marine chart styling */}
+          <g className="origin-center transition-transform duration-1000 ease-out hover:rotate-12">
+            {/* Degree ticks outer circle */}
+            <circle
+              cx={centerX}
+              cy={centerY}
+              r={ringRadius + 8}
+              fill="none"
+              stroke="oklch(0.7 0.12 85 / 0.2)"
+              strokeWidth={2}
+              strokeDasharray="1 4"
+            />
+            {/* Faint inner guides */}
+            <circle
+              cx={centerX}
+              cy={centerY}
+              r={ringRadius}
+              fill="none"
+              stroke="oklch(0.7 0.12 85 / 0.08)"
+              strokeWidth={1}
+            />
+            <circle
+              cx={centerX}
+              cy={centerY}
+              r={ringRadius * 0.5}
+              fill="none"
+              stroke="oklch(0.7 0.12 85 / 0.08)"
+              strokeWidth={0.5}
+              strokeDasharray="2 2"
+            />
+            {/* Cardinal cross lines */}
+            <line
+              x1={centerX}
+              y1={centerY - ringRadius - 15}
+              x2={centerX}
+              y2={centerY + ringRadius + 15}
+              stroke="oklch(0.7 0.12 85 / 0.15)"
+              strokeWidth={1}
+            />
+            <line
+              x1={centerX - ringRadius - 15}
+              y1={centerY}
+              x2={centerX + ringRadius + 15}
+              y2={centerY}
+              stroke="oklch(0.7 0.12 85 / 0.15)"
+              strokeWidth={1}
+            />
+            {/* Diagonal cross lines */}
+            <line
+              x1={centerX - ringRadius * 0.7}
+              y1={centerY - ringRadius * 0.7}
+              x2={centerX + ringRadius * 0.7}
+              y2={centerY + ringRadius * 0.7}
+              stroke="oklch(0.7 0.12 85 / 0.1)"
+              strokeWidth={0.5}
+              strokeDasharray="2 2"
+            />
+            <line
+              x1={centerX + ringRadius * 0.7}
+              y1={centerY - ringRadius * 0.7}
+              x2={centerX - ringRadius * 0.7}
+              y2={centerY + ringRadius * 0.7}
+              stroke="oklch(0.7 0.12 85 / 0.1)"
+              strokeWidth={0.5}
+              strokeDasharray="2 2"
+            />
+            {/* Wind rose star points (SVG path polygons) */}
+            {/* North point */}
+            <polygon
+              points={`${centerX},${centerY} ${centerX - 5},${centerY} ${centerX},${centerY - ringRadius - 5}`}
+              fill="oklch(0.7 0.12 85 / 0.18)"
+            />
+            <polygon
+              points={`${centerX},${centerY} ${centerX + 5},${centerY} ${centerX},${centerY - ringRadius - 5}`}
+              fill="oklch(0.7 0.12 85 / 0.08)"
+            />
+            {/* South point */}
+            <polygon
+              points={`${centerX},${centerY} ${centerX - 5},${centerY} ${centerX},${centerY + ringRadius + 5}`}
+              fill="oklch(0.7 0.12 85 / 0.08)"
+            />
+            <polygon
+              points={`${centerX},${centerY} ${centerX + 5},${centerY} ${centerX},${centerY + ringRadius + 5}`}
+              fill="oklch(0.7 0.12 85 / 0.18)"
+            />
+            {/* East point */}
+            <polygon
+              points={`${centerX},${centerY} ${centerX},${centerY - 5} ${centerX + ringRadius + 5},${centerY}`}
+              fill="oklch(0.7 0.12 85 / 0.18)"
+            />
+            <polygon
+              points={`${centerX},${centerY} ${centerX},${centerY + 5} ${centerX + ringRadius + 5},${centerY}`}
+              fill="oklch(0.7 0.12 85 / 0.08)"
+            />
+            {/* West point */}
+            <polygon
+              points={`${centerX},${centerY} ${centerX},${centerY - 5} ${centerX - ringRadius - 5},${centerY}`}
+              fill="oklch(0.7 0.12 85 / 0.08)"
+            />
+            <polygon
+              points={`${centerX},${centerY} ${centerX},${centerY + 5} ${centerX - ringRadius - 5},${centerY}`}
+              fill="oklch(0.7 0.12 85 / 0.18)"
+            />
+            
+            {/* Direction labels (N, S, E, W) */}
+            <text x={centerX} y={centerY - ringRadius - 8} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.8)">N</text>
+            <text x={centerX} y={centerY + ringRadius + 14} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.6)">S</text>
+            <text x={centerX + ringRadius + 10} y={centerY + 3} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.6)">E</text>
+            <text x={centerX - ringRadius - 10} y={centerY + 3} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.6)">W</text>
+          </g>
 
           {/* Connection lines from center to each node */}
           {nodes.map((node, i) => {
@@ -186,9 +286,10 @@ export function CivilizationCompass({
             cx={centerX}
             cy={centerY}
             r={isSm ? 24 : 32}
-            fill="oklch(0.7 0.12 85 / 0.12)"
-            stroke="oklch(0.7 0.12 85 / 0.3)"
+            fill="oklch(0.99 0.003 95)"
+            stroke="oklch(0.7 0.12 85 / 0.4)"
             strokeWidth={1.5}
+            className="shadow-sm animate-glow-pulse"
           />
           <text
             x={centerX}

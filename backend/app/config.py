@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     upload_dir: str = "uploads"
     max_avatar_size: int = 2 * 1024 * 1024  # 2 MB
 
+    # ── CORS ─────────────────────────────────────────────────
+    cors_origins: str = "http://localhost:3000"
+
     # ── LLM ──────────────────────────────────────────────────
     # Provider preset: "openai" | "deepseek" | "bailian" | "claude" | "custom"
     llm_provider: str = "openai"
