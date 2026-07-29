@@ -74,7 +74,7 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
       </div>
 
       {/* Content column */}
-      <div className={`flex-1 pb-6 ${!isLast ? "" : ""}`}>
+      <div className={`flex-1 min-w-0 pb-6 ${!isLast ? "" : ""}`}>
         <div
           className={`rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-300 ${
             node.status === "ACTIVE" ? "ring-1 ring-[#8B9D83]/20" : ""

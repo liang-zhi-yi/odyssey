@@ -13,6 +13,7 @@ export function ProfileForm() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const [form, setForm] = useState<UpdateProfileRequest>({
     nickname: user?.nickname ?? "",
@@ -37,6 +38,7 @@ export function ProfileForm() {
     try {
       await authService.updateProfile(form);
       setMessage(t("settings.saved"));
+      setIsEditing(false);
       // Refresh the page to update auth context
       window.location.reload();
     } catch (err: any) {
@@ -44,6 +46,23 @@ export function ProfileForm() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    // Discard changes, restore from user data
+    setForm({
+      nickname: user?.nickname ?? "",
+      bio: user?.bio ?? "",
+      github_username: user?.github_username ?? "",
+      avatar_url: user?.avatar_url ?? "",
+      title: user?.title ?? "",
+      location: user?.location ?? "",
+      website: user?.website ?? "",
+      social_links: user?.social_links ?? [],
+    });
+    setError(null);
+    setMessage(null);
+    setIsEditing(false);
   };
 
   const handleAvatarChange = (url: string | null) => {
@@ -73,133 +92,219 @@ export function ProfileForm() {
 
   const inputClass = "w-full rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D] transition-all";
   const labelClass = "block text-xs font-bold font-civ-serif mb-1 text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)]";
+  const displayValueClass = "text-sm text-foreground py-2";
+
+  // Display values with sensible defaults for empty fields
+  const displayNickname = user.nickname || user.username || "—";
+  const displayTitle = user.title || "—";
+  const displayBio = user.bio || "这里还什么都没有~";
+  const displayGithub = user.github_username || "—";
+  const displayLocation = user.location || "—";
+  const displayWebsite = user.website || "—";
+  const userSocialLinks = (user.social_links ?? []) as SocialLink[];
 
   return (
     <div className="space-y-4">
-      {/* Avatar upload */}
-      <AvatarUpload
-        currentAvatarUrl={form.avatar_url ?? null}
-        onAvatarChange={handleAvatarChange}
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
-          <input
-            type="text"
-            value={form.nickname ?? ""}
-            onChange={(e) => setForm({ ...form, nickname: e.target.value })}
-            placeholder={t("settings.nicknamePlaceholder")}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>🛡️ {t("settings.title")}</label>
-          <input
-            type="text"
-            value={form.title ?? ""}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder={t("settings.titlePlaceholder")}
-            className={inputClass}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className={labelClass}>📜 {t("settings.bio")}</label>
-        <textarea
-          value={form.bio ?? ""}
-          onChange={(e) => setForm({ ...form, bio: e.target.value })}
-          placeholder={t("settings.bioPlaceholder")}
-          rows={3}
-          className={inputClass}
+      {/* Avatar upload — only editable in edit mode */}
+      {isEditing ? (
+        <AvatarUpload
+          currentAvatarUrl={form.avatar_url ?? null}
+          onAvatarChange={handleAvatarChange}
         />
-      </div>
+      ) : null}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className={labelClass}>🧭 {t("settings.githubUsername")}</label>
-          <input
-            type="text"
-            value={form.github_username ?? ""}
-            onChange={(e) => setForm({ ...form, github_username: e.target.value })}
-            placeholder={t("settings.githubPlaceholder")}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>📍 {t("settings.location")}</label>
-          <input
-            type="text"
-            value={form.location ?? ""}
-            onChange={(e) => setForm({ ...form, location: e.target.value })}
-            placeholder={t("settings.locationPlaceholder")}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>🌍 {t("settings.website")}</label>
-          <input
-            type="text"
-            value={form.website ?? ""}
-            onChange={(e) => setForm({ ...form, website: e.target.value })}
-            placeholder={t("settings.websitePlaceholder")}
-            className={inputClass}
-          />
-        </div>
-      </div>
-
-      {/* Social links editor */}
-      <div className="pt-2">
-        <label className={labelClass}>🔗 {t("settings.socialLinks")}</label>
-        {socialLinks.length > 0 && (
-          <div className="space-y-2 mb-3 max-w-xl">
-            {socialLinks.map((link, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-2 rounded-lg border border-border/80 bg-background/40 px-3 py-1.5"
-              >
-                <span className="text-xs font-bold text-foreground min-w-0 flex-1">
-                  {link.platform}
-                </span>
-                <span className="text-[11px] text-muted-foreground truncate max-w-[200px] font-mono">
-                  {link.url}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => removeSocialLink(i)}
-                  className="flex-shrink-0 text-[10px] font-bold font-civ-serif text-destructive hover:underline"
-                >
-                  {t("settings.remove")}
-                </button>
-              </div>
-            ))}
+      {isEditing ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
+              <input
+                type="text"
+                value={form.nickname ?? ""}
+                onChange={(e) => setForm({ ...form, nickname: e.target.value })}
+                placeholder={t("settings.nicknamePlaceholder")}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>🛡️ {t("settings.title")}</label>
+              <input
+                type="text"
+                value={form.title ?? ""}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder={t("settings.titlePlaceholder")}
+                className={inputClass}
+              />
+            </div>
           </div>
-        )}
-        <div className="flex gap-2 max-w-xl">
-          <input
-            type="text"
-            value={newPlatform}
-            onChange={(e) => setNewPlatform(e.target.value)}
-            placeholder={t("settings.platform")}
-            className="flex-1 rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
-          />
-          <input
-            type="text"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            placeholder={t("settings.url")}
-            className="flex-[2] rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
-          />
-          <button
-            type="button"
-            onClick={addSocialLink}
-            className="rounded-lg border border-border bg-secondary/70 px-4 py-1.5 text-xs font-bold font-civ-serif text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-          >
-            {t("settings.addLink")}
-          </button>
+
+          <div>
+            <label className={labelClass}>📜 {t("settings.bio")}</label>
+            <textarea
+              value={form.bio ?? ""}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              placeholder={t("settings.bioPlaceholder")}
+              rows={3}
+              className={inputClass}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className={labelClass}>🧭 {t("settings.githubUsername")}</label>
+              <input
+                type="text"
+                value={form.github_username ?? ""}
+                onChange={(e) => setForm({ ...form, github_username: e.target.value })}
+                placeholder={t("settings.githubPlaceholder")}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>📍 {t("settings.location")}</label>
+              <input
+                type="text"
+                value={form.location ?? ""}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                placeholder={t("settings.locationPlaceholder")}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>🌍 {t("settings.website")}</label>
+              <input
+                type="text"
+                value={form.website ?? ""}
+                onChange={(e) => setForm({ ...form, website: e.target.value })}
+                placeholder={t("settings.websitePlaceholder")}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* Social links editor */}
+          <div className="pt-2">
+            <label className={labelClass}>🔗 {t("settings.socialLinks")}</label>
+            {socialLinks.length > 0 && (
+              <div className="space-y-2 mb-3 max-w-xl">
+                {socialLinks.map((link, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 rounded-lg border border-border/80 bg-background/40 px-3 py-1.5"
+                  >
+                    <span className="text-xs font-bold text-foreground min-w-0 flex-1">
+                      {link.platform}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground truncate max-w-[200px] font-mono">
+                      {link.url}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeSocialLink(i)}
+                      className="flex-shrink-0 text-[10px] font-bold font-civ-serif text-destructive hover:underline"
+                    >
+                      {t("settings.remove")}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 max-w-xl">
+              <input
+                type="text"
+                value={newPlatform}
+                onChange={(e) => setNewPlatform(e.target.value)}
+                placeholder={t("settings.platform")}
+                className="flex-1 rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
+              />
+              <input
+                type="text"
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                placeholder={t("settings.url")}
+                className="flex-[2] rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
+              />
+              <button
+                type="button"
+                onClick={addSocialLink}
+                className="rounded-lg border border-border bg-secondary/70 px-4 py-1.5 text-xs font-bold font-civ-serif text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              >
+                {t("settings.addLink")}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* ── Read-only display view ── */
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
+              <p className={`${displayValueClass} ${!user.nickname ? "text-muted-foreground italic" : ""}`}>
+                {displayNickname}
+              </p>
+            </div>
+            <div>
+              <label className={labelClass}>🛡️ {t("settings.title")}</label>
+              <p className={`${displayValueClass} ${!user.title ? "text-muted-foreground italic" : ""}`}>
+                {displayTitle}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className={labelClass}>📜 {t("settings.bio")}</label>
+            <p className={`${displayValueClass} leading-relaxed ${!user.bio ? "text-muted-foreground italic" : ""}`}>
+              {displayBio}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className={labelClass}>🧭 {t("settings.githubUsername")}</label>
+              <p className={`${displayValueClass} ${!user.github_username ? "text-muted-foreground italic" : ""}`}>
+                {displayGithub}
+              </p>
+            </div>
+            <div>
+              <label className={labelClass}>📍 {t("settings.location")}</label>
+              <p className={`${displayValueClass} ${!user.location ? "text-muted-foreground italic" : ""}`}>
+                {displayLocation}
+              </p>
+            </div>
+            <div>
+              <label className={labelClass}>🌍 {t("settings.website")}</label>
+              <p className={`${displayValueClass} ${!user.website ? "text-muted-foreground italic" : ""} truncate`}>
+                {displayWebsite}
+              </p>
+            </div>
+          </div>
+
+          {/* Social links display */}
+          <div className="pt-2">
+            <label className={labelClass}>🔗 {t("settings.socialLinks")}</label>
+            {userSocialLinks.length > 0 ? (
+              <div className="space-y-2 max-w-xl">
+                {userSocialLinks.map((link, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 rounded-lg border border-border/80 bg-background/40 px-3 py-1.5"
+                  >
+                    <span className="text-xs font-bold text-foreground min-w-0 flex-1">
+                      {link.platform}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground truncate max-w-[200px] font-mono">
+                      {link.url}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic py-2">—</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {message && (
         <p className="text-xs font-bold text-success mt-2">✓ {message}</p>
@@ -208,13 +313,34 @@ export function ProfileForm() {
         <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>
       )}
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
-      >
-        {saving ? t("settings.saving") : t("settings.saveProfile")}
-      </button>
+      {/* Action buttons — Edit and Save are peer buttons */}
+      <div className="flex items-center gap-2 pt-2">
+        {!isEditing ? (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="rounded-lg border border-[#C4A77D]/40 bg-[#C4A77D]/5 text-[#8B7355] px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#C4A77D]/15 transition-colors shadow-sm"
+          >
+            ✍️ {t("common.edit")}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
+            >
+              {saving ? t("settings.saving") : t("settings.saveProfile")}
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={saving}
+              className="rounded-lg border border-border bg-secondary/70 px-5 py-2.5 text-xs font-bold font-civ-serif text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              {t("common.cancel")}
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import uuid as uuid_lib
 from sqlalchemy.orm import Session
 
 from app.auth.models import User
-from app.auth.schemas import RegisterRequest, UpdateProfileRequest
+from app.auth.schemas import RegisterRequest, UpdateProfileRequest, UserResponse
 from app.config import settings
 from app.core.exceptions import (
     ConflictException,
@@ -31,6 +31,27 @@ def get_user_by_id(db: Session, user_id: str) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
+def user_to_response(user: User) -> UserResponse:
+    """Build a UserResponse from a User ORM object.
+
+    Manually constructs the response with str(user.id) to avoid UUID→str
+    serialization issues when relying on from_attributes alone.
+    """
+    return UserResponse(
+        id=str(user.id),
+        username=user.username,
+        email=user.email,
+        nickname=user.nickname,
+        github_username=user.github_username,
+        avatar_url=user.avatar_url,
+        bio=user.bio,
+        title=user.title,
+        location=user.location,
+        website=user.website,
+        social_links=user.social_links,
+    )
+
+
 def register(db: Session, req: RegisterRequest) -> tuple[User, str]:
     """Create a new user and return (user, jwt_token)."""
     if _user_by_email(db, req.email):
@@ -41,6 +62,7 @@ def register(db: Session, req: RegisterRequest) -> tuple[User, str]:
     user = User(
         email=req.email,
         username=req.username,
+        nickname=req.username,
         password_hash=hash_password(req.password),
     )
     db.add(user)

@@ -21,9 +21,10 @@ import {
   type CivilizationQuestGroup,
 } from "@/types/quest";
 
-type TabId = "all" | "recommended" | "civilization";
+type TabId = "my" | "all" | "recommended" | "civilization";
 
 const TAB_KEYS: { id: TabId; key: string }[] = [
+  { id: "my", key: "quests.myQuests" },
   { id: "all", key: "quests.allQuests" },
   { id: "recommended", key: "quests.dailyRecommendations" },
   { id: "civilization", key: "quests.civilizationQuests" },
@@ -36,13 +37,23 @@ export default function QuestsPage() {
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
   const [civFilter, setCivFilter] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<TabId>("all");
+  const [activeTab, setActiveTab] = useState<TabId>("my");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.replace("/login");
     }
   }, [authLoading, isAuthenticated, router]);
+
+  // Sync active tab from URL ?tab= param (e.g. empty-state action links)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get("tab");
+    if (tabParam && (tabParam === "my" || tabParam === "all" || tabParam === "recommended" || tabParam === "civilization")) {
+      setActiveTab(tabParam);
+    }
+  }, []);
 
   // Fetch available skills for filter
   const { data: skills = [] } = useSWR(
@@ -234,6 +245,51 @@ export default function QuestsPage() {
           </div>
         </>
       )}
+
+      {/* ── Tab: My Quests ─────────────────────────────────── */}
+      {activeTab === "my" &&
+        (userQuestsLoading ? (
+          <Loading variant="skeleton-cards" cardCount={4} />
+        ) : userQuests.length === 0 ? (
+          <EmptyState
+            title={t("quests.noMyQuests")}
+            description={t("quests.browseQuestList")}
+            actionLabel={t("quests.allQuests")}
+            actionHref="/quests?tab=all"
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+            {userQuests.map((uq: UserQuest) => {
+              const questTitle =
+                locale === "en" && uq.quest_title_en
+                  ? uq.quest_title_en
+                  : uq.quest_title;
+              return (
+                <a
+                  key={uq.quest_id}
+                  href={`/quests/${uq.quest_id}`}
+                  className="block rounded-xl border border-border bg-background p-4 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 border-l-[3px] border-l-primary"
+                >
+                  <div className="mb-2">
+                    <QuestStatusBadge status={uq.status} size="sm" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                    {questTitle}
+                  </h4>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground">
+                    <span>
+                      {locale === "en" ? "Submissions" : "提交次数"}:{" "}
+                      <strong className="text-foreground font-mono">{uq.submission_count}</strong>
+                    </span>
+                    <span className="font-civ-serif text-primary">
+                      {locale === "en" ? "View Details" : "查看详情"} →
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        ))}
 
       {/* ── Tab: All Quests ────────────────────────────────── */}
       {activeTab === "all" &&

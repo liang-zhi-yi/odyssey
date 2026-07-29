@@ -620,8 +620,8 @@ export default function PathDetailPage() {
         /* ── 70/30 Roadmap + Mentor Split ── */
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Left 70% — Civilization Roadmap Timeline */}
-          <div className="lg:col-span-3">
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+          <div className="lg:col-span-3 min-w-0">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-card overflow-hidden">
               {roadmapNodes.length > 0 ? (
                 <PathRoadmap nodes={roadmapNodes} pathId={pathId} />
               ) : (
@@ -669,7 +669,7 @@ export default function PathDetailPage() {
           </div>
 
           {/* Right 30% — Odyssey Agent Mentor Panel */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <EnhancedMentorPanel
               suggestion={mentorSuggestion ?? null}
               isLoading={mentorLoading}

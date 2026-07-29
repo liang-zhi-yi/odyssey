@@ -189,13 +189,8 @@ export default function PersonalPage() {
   const stats = worldData?.stats;
   const displayName = user?.nickname || user?.username || "Odyssey Explorer";
   const avatarSrc = resolveAvatarSrc(user?.avatar_url ?? null);
-
-  // Passport ID
-  const passportId = useMemo(() => {
-    if (!user) return "#ODS-0000-0000";
-    const short = user.id.replace(/-/g, "").slice(0, 8).toUpperCase();
-    return `#ODS-${short.slice(0, 4)}-${short.slice(4, 8)}`;
-  }, [user]);
+  const displayTitle = user?.title || (locale === "en" ? "No title set" : "尚未设置头衔");
+  const displayBio = user?.bio || (locale === "en" ? "Nothing here yet~" : "这里还什么都没有~");
 
   // ── Auth guard render ─────────────────────────────────────────
 
@@ -207,13 +202,8 @@ export default function PersonalPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 py-6 animate-fade-in">
-      {/* ═══ HERO PROFILE HEADER (PASSPORT) ════════════════════════ */}
+      {/* ═══ HERO PROFILE HEADER ═══════════════════════ */}
       <section className="relative rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-md overflow-hidden p-6 sm:p-8">
-        {/* Absolute coordinates background watermark */}
-        <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-          [PASSPORT_SEC_ID_{passportId.replace(/#/g, "")}]
-        </div>
-
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Identity Info */}
           <div className="flex-1 flex flex-col sm:flex-row gap-5 items-start">
@@ -233,11 +223,9 @@ export default function PersonalPage() {
               <h1 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] truncate">
                 {displayName}
               </h1>
-              {user?.title && (
-                <p className="text-xs text-accent font-bold font-civ-serif mt-0.5 uppercase tracking-wide">
-                  🎖️ {user.title}
-                </p>
-              )}
+              <p className={`text-xs font-bold font-civ-serif mt-0.5 uppercase tracking-wide ${user?.title ? "text-accent" : "text-muted-foreground italic normal-case"}`}>
+                🎖️ {displayTitle}
+              </p>
               {tierLabel && (
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 flex-wrap font-medium">
                   <span>{tierLabel.icon}</span>
@@ -278,16 +266,9 @@ export default function PersonalPage() {
                   </span>
                 )}
               </div>
-              <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-secondary/80 px-3 py-1 text-[10px] font-mono text-muted-foreground border border-border/40">
-                <span>🛂</span>
-                {locale === "en" ? "Passport" : "能力通行证"}{" "}
-                <span className="font-bold text-foreground">{passportId}</span>
-              </div>
-              {user?.bio && (
-                <p className="mt-3 text-xs text-muted-foreground leading-relaxed italic border-l-2 border-border/50 pl-2">
-                  "{user.bio}"
-                </p>
-              )}
+              <p className={`mt-3 text-xs leading-relaxed italic border-l-2 border-border/50 pl-2 ${user?.bio ? "text-muted-foreground" : "text-muted-foreground/70"}`}>
+                "{displayBio}"
+              </p>
             </div>
           </div>
 

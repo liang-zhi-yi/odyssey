@@ -261,17 +261,17 @@ export function ModelConfigForm() {
       {/* ======== Divider ======== */}
       <hr className="border-border/60" />
 
-      {/* ======== Path Generation Model Section ======== */}
+      {/* ======== Odyssey Mentor Model Section ======== */}
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-1 flex items-center gap-1.5">
             <span>🗺️</span>
-            {isZh ? "路径生成模型" : "Path Generation Model"}
+            {isZh ? "Odyssey 导师模型" : "Odyssey Mentor Model"}
           </h3>
           <p className="text-xs text-muted-foreground italic">
             {isZh
-              ? "配置用于学习路径生成和内容创建的 LLM 模型。留空则使用评估模型配置。"
-              : "Configure the LLM used for learning path generation and content creation. Leave empty to use the assessment model configuration."}
+              ? "配置用于智能体对话与学习路径生成的 LLM 模型。留空则使用评估模型配置。"
+              : "Configure the LLM used for agent chat and learning path generation. Leave empty to use the assessment model configuration."}
           </p>
         </div>
 

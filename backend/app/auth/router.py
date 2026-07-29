@@ -38,19 +38,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):
     """Return the currently authenticated user's profile."""
-    return UserResponse(
-        id=str(current_user.id),
-        username=current_user.username,
-        email=current_user.email,
-        nickname=current_user.nickname,
-        github_username=current_user.github_username,
-        avatar_url=current_user.avatar_url,
-        bio=current_user.bio,
-        title=current_user.title,
-        location=current_user.location,
-        website=current_user.website,
-        social_links=current_user.social_links,
-    )
+    return service.user_to_response(current_user)
 
 
 @router.put("/me", response_model=UserResponse)
@@ -60,7 +48,8 @@ def update_current_user(
     db: Session = Depends(get_db),
 ):
     """Update the current user's profile."""
-    return service.update_profile(db, current_user, req)
+    updated_user = service.update_profile(db, current_user, req)
+    return service.user_to_response(updated_user)
 
 
 @router.put("/password")

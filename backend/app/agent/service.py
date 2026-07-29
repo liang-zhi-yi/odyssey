@@ -1194,23 +1194,23 @@ def _format_rich_context_for_prompt(context: dict) -> str:
 def _get_agent_llm_kwargs(db: Session, user_id: str) -> dict:
     """Extract LLM config from UserSettings for agent chat.
 
-    Uses unified LLM config. If use_path_llm_override is enabled,
-    falls back to path-specific settings for path generation only.
-    For agent chat, always uses the primary LLM config.
+    Uses the Odyssey Mentor Model (path_llm_* fields) with fallback to the
+    primary assessment LLM config (llm_* fields) for any unset fields.
+    This keeps agent chat consistent with learning path generation.
     """
     try:
         settings = db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
         if not settings:
             return {}
         kwargs = {}
-        if settings.llm_api_key:
-            kwargs["user_api_key"] = settings.llm_api_key
-        if settings.llm_base_url:
-            kwargs["user_base_url"] = settings.llm_base_url
-        if settings.llm_model:
-            kwargs["user_model"] = settings.llm_model
-        if settings.llm_provider:
-            kwargs["user_provider"] = settings.llm_provider
+        if settings.path_llm_api_key or settings.llm_api_key:
+            kwargs["user_api_key"] = settings.path_llm_api_key or settings.llm_api_key
+        if settings.path_llm_base_url or settings.llm_base_url:
+            kwargs["user_base_url"] = settings.path_llm_base_url or settings.llm_base_url
+        if settings.path_llm_model or settings.llm_model:
+            kwargs["user_model"] = settings.path_llm_model or settings.llm_model
+        if settings.path_llm_provider or settings.llm_provider:
+            kwargs["user_provider"] = settings.path_llm_provider or settings.llm_provider
         return kwargs
     except Exception as exc:
         logger.warning("Failed to get agent LLM kwargs: %s", exc)

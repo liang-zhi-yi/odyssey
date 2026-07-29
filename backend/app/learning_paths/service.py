@@ -1,4 +1,4 @@
-﻿"""
+"""
 Learning Paths service -- business logic for CRUD, AI generation, progress tracking.
 """
 import logging
@@ -697,34 +697,22 @@ def _resolve_building_target_id(db: Session, building_name: str | None) -> UUID 
 def _get_path_llm_kwargs(settings: UserSettings | None) -> dict:
     """Extract LLM config from UserSettings for path generation.
 
-    Unified by default: shares primary LLM config with Agent.
-    When use_path_llm_override=True, uses path-specific fields with
-    fallback to primary config for any unset fields.
+    Uses the Odyssey Mentor Model (path_llm_* fields) with fallback to the
+    primary assessment LLM config (llm_* fields) for any unset fields.
+    This keeps path generation consistent with agent chat.
     """
     if not settings:
         return {}
     kwargs = {}
 
-    if settings.use_path_llm_override:
-        # Override mode: path-specific first, primary as fallback
-        if settings.path_llm_api_key or settings.llm_api_key:
-            kwargs["user_api_key"] = settings.path_llm_api_key or settings.llm_api_key
-        if settings.path_llm_base_url or settings.llm_base_url:
-            kwargs["user_base_url"] = settings.path_llm_base_url or settings.llm_base_url
-        if settings.path_llm_model or settings.llm_model:
-            kwargs["user_model"] = settings.path_llm_model or settings.llm_model
-        if settings.path_llm_provider or settings.llm_provider:
-            kwargs["user_provider"] = settings.path_llm_provider or settings.llm_provider
-    else:
-        # Unified mode (default): use primary LLM config directly
-        if settings.llm_api_key:
-            kwargs["user_api_key"] = settings.llm_api_key
-        if settings.llm_base_url:
-            kwargs["user_base_url"] = settings.llm_base_url
-        if settings.llm_model:
-            kwargs["user_model"] = settings.llm_model
-        if settings.llm_provider:
-            kwargs["user_provider"] = settings.llm_provider
+    if settings.path_llm_api_key or settings.llm_api_key:
+        kwargs["user_api_key"] = settings.path_llm_api_key or settings.llm_api_key
+    if settings.path_llm_base_url or settings.llm_base_url:
+        kwargs["user_base_url"] = settings.path_llm_base_url or settings.llm_base_url
+    if settings.path_llm_model or settings.llm_model:
+        kwargs["user_model"] = settings.path_llm_model or settings.llm_model
+    if settings.path_llm_provider or settings.llm_provider:
+        kwargs["user_provider"] = settings.path_llm_provider or settings.llm_provider
 
     return kwargs
 
