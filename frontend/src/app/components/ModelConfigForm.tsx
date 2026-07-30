@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useLocale } from "@/hooks/useLocale";
 import { settingsService } from "@/services/settings.service";
-import type { UpdateSettingsRequest, UserSettings } from "@/types/settings";
+import type { UpdateSettingsRequest, UserSettings, TestLlmResponse } from "@/types/settings";
 
 const PROVIDERS: { value: string; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -49,10 +49,16 @@ function ProviderSelect({
 
 /**
  * Render an API key field — either masked display or password input.
+ *
+ * Uses an explicit `isEditing` flag instead of inferring from `formValue`,
+ * because formValue is initialized as "" (empty) — so the previous logic
+ * `maskedValue && !formValue` was always true and clicking "edit" (which
+ * set formValue to "") never toggled into the input state.
  */
 function ApiKeyField({
   maskedValue,
   formValue,
+  isEditing,
   onChange,
   onEditClick,
   placeholder,
@@ -60,12 +66,14 @@ function ApiKeyField({
 }: {
   maskedValue: string | null | undefined;
   formValue: string;
+  isEditing: boolean;
   onChange: (v: string) => void;
   onEditClick: () => void;
   placeholder: string;
   editLabel: string;
 }) {
-  if (maskedValue && !formValue) {
+  // Show masked display + edit button only when NOT editing and a key exists
+  if (!isEditing && maskedValue) {
     return (
       <div className="flex items-center gap-2">
         <p className="text-xs text-muted-foreground py-2 font-mono">{maskedValue}</p>
@@ -86,6 +94,7 @@ function ApiKeyField({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       className={inputClass}
+      autoFocus
     />
   );
 }
@@ -113,11 +122,80 @@ function TextInputField({
   );
 }
 
+/**
+ * Display the result of an LLM connection test — success or error with suggestions.
+ */
+function TestResultBanner({ result }: { result: TestLlmResponse | null }) {
+  if (!result) return null;
+
+  if (result.success) {
+    return (
+      <div className="rounded-lg border border-green-300/50 bg-green-50/50 dark:bg-green-950/20 dark:border-green-700/40 p-3 space-y-1">
+        <p className="text-xs font-bold text-green-700 dark:text-green-400 flex items-center gap-1.5">
+          <span>✓</span>
+          {result.message}
+          {result.latency_ms != null && (
+            <span className="text-[10px] font-mono text-green-600/60 dark:text-green-500/60 ml-1">
+              ({result.latency_ms}ms)
+            </span>
+          )}
+        </p>
+      </div>
+    );
+  }
+
+  // Error result
+  const errorTypeLabels: Record<string, string> = {
+    auth: "🔑 认证错误",
+    not_found: "🔍 未找到",
+    connection: "📡 连接失败",
+    timeout: "⏱️ 超时",
+    rate_limit: "🚦 频率限制",
+    config: "⚙️ 配置错误",
+    unknown: "❓ 未知错误",
+  };
+  const label = result.error_type ? (errorTypeLabels[result.error_type] || "❓ 错误") : "❓ 错误";
+
+  return (
+    <div className="rounded-lg border border-red-300/50 bg-red-50/50 dark:bg-red-950/20 dark:border-red-700/40 p-3 space-y-2">
+      <p className="text-xs font-bold text-red-700 dark:text-red-400 flex items-center gap-1.5">
+        <span>✗</span>
+        {label}
+        {result.latency_ms != null && (
+          <span className="text-[10px] font-mono text-red-600/60 dark:text-red-500/60 ml-1">
+            ({result.latency_ms}ms)
+          </span>
+        )}
+      </p>
+      <p className="text-xs text-red-600 dark:text-red-400/80 leading-relaxed">
+        {result.message}
+      </p>
+      {result.suggestions.length > 0 && (
+        <ul className="text-[11px] text-muted-foreground space-y-1 pl-4">
+          {result.suggestions.map((s, i) => (
+            <li key={i} className="list-disc leading-relaxed">{s}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function ModelConfigForm() {
   const { t, locale } = useLocale();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Explicit edit flags for API key fields — fixes the issue where clicking
+  // "edit" had no effect because formValue was already "" (empty).
+  const [isEditingLlmKey, setIsEditingLlmKey] = useState(false);
+  const [isEditingPathLlmKey, setIsEditingPathLlmKey] = useState(false);
+
+  // LLM connection test state
+  const [testingAssessment, setTestingAssessment] = useState(false);
+  const [testAssessmentResult, setTestAssessmentResult] = useState<TestLlmResponse | null>(null);
+  const [testingMentor, setTestingMentor] = useState(false);
+  const [testMentorResult, setTestMentorResult] = useState<TestLlmResponse | null>(null);
 
   // Fetch current settings
   const { data: settings, isLoading } = useSWR("user-settings", () =>
@@ -175,10 +253,46 @@ export function ModelConfigForm() {
       setMessage(t("settings.saved"));
       // Clear the api_key fields since they're not returned
       setForm((prev) => ({ ...prev, llm_api_key: "", path_llm_api_key: "" }));
+      // Exit edit mode after a successful save
+      setIsEditingLlmKey(false);
+      setIsEditingPathLlmKey(false);
     } catch (err: any) {
       setError(err?.message || t("common.error"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestConnection = async (configType: "assessment" | "mentor") => {
+    const isAssessment = configType === "assessment";
+    const setTesting = isAssessment ? setTestingAssessment : setTestingMentor;
+    const setResult = isAssessment ? setTestAssessmentResult : setTestMentorResult;
+
+    setTesting(true);
+    setResult(null);
+    try {
+      const result = await settingsService.testLlmConfig({
+        config_type: configType,
+        // Send api_key only if the user has entered a new one in edit mode;
+        // otherwise send empty so the backend uses the stored key.
+        provider: isAssessment ? form.llm_provider : form.path_llm_provider,
+        api_key: isAssessment
+          ? (isEditingLlmKey ? form.llm_api_key : "")
+          : (isEditingPathLlmKey ? form.path_llm_api_key : ""),
+        base_url: isAssessment ? form.llm_base_url : form.path_llm_base_url,
+        model: isAssessment ? form.llm_model : form.path_llm_model,
+      });
+      setResult(result);
+    } catch (err: any) {
+      setResult({
+        success: false,
+        message: err?.message || "请求失败，请检查网络连接",
+        error_type: "unknown",
+        suggestions: [],
+        latency_ms: null,
+      });
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -226,8 +340,9 @@ export function ModelConfigForm() {
           <ApiKeyField
             maskedValue={settings?.llm_api_key_masked}
             formValue={form.llm_api_key ?? ""}
+            isEditing={isEditingLlmKey}
             onChange={(v) => setForm({ ...form, llm_api_key: v })}
-            onEditClick={() => setForm({ ...form, llm_api_key: "" })}
+            onEditClick={() => setIsEditingLlmKey(true)}
             placeholder={t("settings.apiKeyPlaceholder")}
             editLabel={t("common.edit")}
           />
@@ -255,6 +370,28 @@ export function ModelConfigForm() {
             onChange={(v) => setForm({ ...form, llm_model: v })}
             placeholder={t("settings.modelPlaceholder")}
           />
+        </div>
+
+        {/* Test connection button + result */}
+        <div className="space-y-2">
+          <button
+            onClick={() => handleTestConnection("assessment")}
+            disabled={testingAssessment}
+            className="rounded-lg border border-[#C4A77D]/40 bg-[#C4A77D]/5 px-4 py-2 text-xs font-bold font-civ-serif text-[#C4A77D] hover:bg-[#C4A77D]/15 hover:border-[#C4A77D]/60 transition-all disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <span>{testingAssessment ? "⏳" : "🔌"}</span>
+            {testingAssessment
+              ? (isZh ? "测试中..." : "Testing...")
+              : (isZh ? "测试连接" : "Test Connection")}
+          </button>
+          {!isEditingLlmKey && settings?.llm_api_key_masked && (
+            <p className="text-[10px] text-muted-foreground italic">
+              {isZh
+                ? "测试将使用已保存的 API Key。如需测试新密钥，请先点击「编辑」输入。"
+                : "Test uses the saved API key. Click Edit to test a new key."}
+            </p>
+          )}
+          <TestResultBanner result={testAssessmentResult} />
         </div>
       </div>
 
@@ -295,8 +432,9 @@ export function ModelConfigForm() {
           <ApiKeyField
             maskedValue={settings?.path_llm_api_key_masked}
             formValue={form.path_llm_api_key ?? ""}
+            isEditing={isEditingPathLlmKey}
             onChange={(v) => setForm({ ...form, path_llm_api_key: v })}
-            onEditClick={() => setForm({ ...form, path_llm_api_key: "" })}
+            onEditClick={() => setIsEditingPathLlmKey(true)}
             placeholder={t("settings.apiKeyPlaceholder")}
             editLabel={t("common.edit")}
           />
@@ -324,6 +462,35 @@ export function ModelConfigForm() {
             onChange={(v) => setForm({ ...form, path_llm_model: v })}
             placeholder={t("settings.modelPlaceholder")}
           />
+        </div>
+
+        {/* Test connection button + result */}
+        <div className="space-y-2">
+          <button
+            onClick={() => handleTestConnection("mentor")}
+            disabled={testingMentor}
+            className="rounded-lg border border-[#C4A77D]/40 bg-[#C4A77D]/5 px-4 py-2 text-xs font-bold font-civ-serif text-[#C4A77D] hover:bg-[#C4A77D]/15 hover:border-[#C4A77D]/60 transition-all disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <span>{testingMentor ? "⏳" : "🔌"}</span>
+            {testingMentor
+              ? (isZh ? "测试中..." : "Testing...")
+              : (isZh ? "测试连接" : "Test Connection")}
+          </button>
+          {!isEditingPathLlmKey && settings?.path_llm_api_key_masked && (
+            <p className="text-[10px] text-muted-foreground italic">
+              {isZh
+                ? "测试将使用已保存的 API Key。如需测试新密钥，请先点击「编辑」输入。"
+                : "Test uses the saved API key. Click Edit to test a new key."}
+            </p>
+          )}
+          {!isEditingPathLlmKey && !settings?.path_llm_api_key_masked && settings?.llm_api_key_masked && (
+            <p className="text-[10px] text-muted-foreground italic">
+              {isZh
+                ? "导师模型未单独配置 API Key，将回退使用评估模型的配置进行测试。"
+                : "Mentor model has no separate API key — will fall back to assessment model config."}
+            </p>
+          )}
+          <TestResultBanner result={testMentorResult} />
         </div>
       </div>
 

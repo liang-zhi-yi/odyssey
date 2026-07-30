@@ -21,10 +21,11 @@ export interface StreamCallbacks {
 
 export const agentService = {
   /** Send a message to the agent and get a response with optional cards. */
-  sendMessage: (message: string, conversationId?: string) =>
+  sendMessage: (message: string, conversationId?: string, locale?: string) =>
     api.post<ChatResponse>("/agent/chat", {
       message,
       conversation_id: conversationId ?? undefined,
+      locale: locale ?? "zh",
     }),
 
   /**
@@ -38,6 +39,7 @@ export const agentService = {
     message: string,
     callbacks: StreamCallbacks,
     conversationId?: string,
+    locale?: string,
   ): Promise<void> => {
     const token = getToken();
     const headers: Record<string, string> = {
@@ -53,6 +55,7 @@ export const agentService = {
       body: JSON.stringify({
         message,
         conversation_id: conversationId ?? undefined,
+        locale: locale ?? "zh",
       }),
     });
 
@@ -133,5 +136,6 @@ export const agentService = {
   },
 
   /** Get a context-aware greeting from the agent. */
-  getGreeting: () => api.get<ChatResponse>("/agent/greeting"),
+  getGreeting: (locale?: string) =>
+    api.get<ChatResponse>(`/agent/greeting?locale=${locale ?? "zh"}`),
 };

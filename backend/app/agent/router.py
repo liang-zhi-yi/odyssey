@@ -47,6 +47,7 @@ def chat(
         user=current_user,
         message=body.message,
         conversation_id=body.conversation_id,
+        locale=body.locale or "zh",
     )
 
 
@@ -72,6 +73,7 @@ def chat_stream(
             user=current_user,
             message=body.message,
             conversation_id=body.conversation_id,
+            locale=body.locale or "zh",
         ),
         media_type="text/event-stream",
         headers={
@@ -105,6 +107,7 @@ def get_history(
 
 @router.get("/agent/greeting", response_model=ChatResponse)
 def greeting(
+    locale: str | None = Query("zh", description="User preferred language: zh | en"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ChatResponse:
@@ -113,4 +116,4 @@ def greeting(
     The greeting includes time-of-day awareness and mentions
     near-upgrade buildings, active quests, and recent activity.
     """
-    return generate_greeting(db=db, user=current_user)
+    return generate_greeting(db=db, user=current_user, locale=locale or "zh")

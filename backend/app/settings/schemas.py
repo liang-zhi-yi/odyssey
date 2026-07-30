@@ -1,5 +1,5 @@
 """Settings schemas — unified LLM configuration with optional path override."""
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserSettingsResponse(BaseModel):
@@ -35,3 +35,28 @@ class UpdateSettingsRequest(BaseModel):
     path_llm_api_key: str | None = None
     path_llm_base_url: str | None = None
     path_llm_model: str | None = None
+
+
+class TestLlmRequest(BaseModel):
+    """Request to test an LLM connection.
+
+    If api_key is empty, the backend uses the stored key from the database.
+    This lets users test the saved config without re-entering the key.
+    """
+    config_type: str = Field(
+        "assessment",
+        description="Which config to test: 'assessment' (primary llm_*) or 'mentor' (path_llm_*)",
+    )
+    provider: str | None = None
+    api_key: str | None = None  # empty → use stored key
+    base_url: str | None = None
+    model: str | None = None
+
+
+class TestLlmResponse(BaseModel):
+    """Result of an LLM connection test."""
+    success: bool
+    message: str
+    error_type: str | None = None  # auth, not_found, connection, timeout, config, unknown
+    suggestions: list[str] = []
+    latency_ms: int | None = None

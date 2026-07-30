@@ -1364,6 +1364,7 @@ def generate_response(
     user: User,
     message: str,
     conversation_id: str | None = None,
+    locale: str = "zh",
 ) -> ChatResponse:
     """Generate a Civilization Mentor response to a user message.
 
@@ -1411,6 +1412,11 @@ def generate_response(
         user_context=user_context_str,
         current_time=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
+    # Append language directive based on locale
+    if locale == "en":
+        system_prompt += "\n\n## Language Requirement\nYou MUST respond in English. All explanations, suggestions, and analysis must be in English."
+    else:
+        system_prompt += "\n\n## 语言要求\n你必须使用中文回答。所有解释、建议和分析都必须使用中文。"
 
     # ── User message with history ──
     user_content = message
@@ -1439,7 +1445,7 @@ def generate_response(
         )
     except Exception as exc:
         logger.error("Agent LLM call failed: %s", exc)
-        agent_text = _generate_fallback_response(intent, user_context)
+        agent_text = _generate_fallback_response(intent, user_context, locale=locale)
 
     # ── Parse cards ──
     cards = _extract_cards_from_text(agent_text)
@@ -1469,6 +1475,7 @@ def generate_response_stream(
     user: User,
     message: str,
     conversation_id: str | None = None,
+    locale: str = "zh",
 ):
     """SSE streaming variant of generate_response.
 
@@ -1513,6 +1520,11 @@ def generate_response_stream(
         user_context=user_context_str,
         current_time=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
+    # Append language directive based on locale
+    if locale == "en":
+        system_prompt += "\n\n## Language Requirement\nYou MUST respond in English. All explanations, suggestions, and analysis must be in English."
+    else:
+        system_prompt += "\n\n## 语言要求\n你必须使用中文回答。所有解释、建议和分析都必须使用中文。"
 
     # ── User message with history ──
     user_content = message
@@ -1552,7 +1564,7 @@ def generate_response_stream(
             yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
     except Exception as exc:
         logger.error("Agent streaming LLM call failed: %s", exc)
-        fallback = _generate_fallback_response(intent, user_context)
+        fallback = _generate_fallback_response(intent, user_context, locale=locale)
         full_text = fallback
         # Yield the fallback as a single token for display
         yield f"data: {json.dumps({'type': 'token', 'content': fallback}, ensure_ascii=False)}\n\n"
@@ -1581,7 +1593,7 @@ def generate_response_stream(
 # Proactive Greeting (Stage 3)
 # ═══════════════════════════════════════════════════════════════════════
 
-def generate_greeting(db: Session, user: User) -> ChatResponse:
+def generate_greeting(db: Session, user: User, locale: str = "zh") -> ChatResponse:
     """Generate a proactive, data-rich greeting for the agent sidebar.
 
     Uses build_rich_user_context() to get complete user state,
@@ -1597,6 +1609,7 @@ def generate_greeting(db: Session, user: User) -> ChatResponse:
     greeting_text = build_proactive_greeting(
         context.get("profile", {}).get("name", "there"),
         context,
+        locale=locale,
     )
 
     # Save as agent greeting message
@@ -1761,9 +1774,52 @@ def _extract_cards_from_text(text: str) -> list[AgentCard] | None:
         return None
 
 
-def _generate_fallback_response(intent: str, context: dict) -> str:
+def _generate_fallback_response(intent: str, context: dict, locale: str = "zh") -> str:
     """Generate a graceful fallback when LLM is unavailable."""
     user_name = context.get("profile", {}).get("name", "there")
+    is_en = locale == "en"
+
+    if is_en:
+        responses = {
+            "civilization_analysis": (
+                f"{user_name}, I'm unable to connect to the analysis engine to detail your civilization state right now. "
+                f"Please try again later — I can give you a full analysis based on your skills, buildings, and quest data."
+            ),
+            "growth_planning": (
+                f"{user_name}, I'm trying to plan your optimal growth path, but the analysis engine is temporarily unavailable. "
+                f"Please ask me 'what should I do next' later — I'll use your real data to advise."
+            ),
+            "building_advisor": (
+                f"{user_name}, I can help you analyze which buildings to unlock, but the data engine is temporarily unreachable. "
+                f"Please try again later."
+            ),
+            "learning_advisor": (
+                f"{user_name}, I can recommend learning content based on your skill gaps, but the analysis engine needs time to recover. "
+                f"Please ask me 'what should I learn' later."
+            ),
+            "skill_query": (
+                f"{user_name}, I can analyze your skill status in detail, but my analysis engine is temporarily unavailable. "
+                f"Please try again later."
+            ),
+            "world_query": (
+                f"{user_name}, the Odyssey world has a complete system of eras, buildings, and civilization rules. "
+                f"I'm temporarily unable to connect to the data engine to show specifics. Please check your model configuration in Settings and try again."
+            ),
+            "quest_query": (
+                f"{user_name}, I have quest suggestions to share, but the analysis engine needs a moment to recover. "
+                f"Please ask me again later."
+            ),
+            "progress_query": (
+                f"{user_name}, I'd love to tell you about your recent growth! But my analysis engine is temporarily unavailable. "
+                f"Please try again later."
+            ),
+        }
+        return responses.get(
+            intent,
+            f"{user_name}, I'm Odyssey, your Civilization Mentor. I'm here to help you understand your ability growth, "
+            f"civilization building, and learning paths. However, the analysis engine is temporarily unavailable. "
+            f"\n\nYou can ask me about skills, buildings, eras, quests, and learning paths.",
+        )
 
     responses = {
         "civilization_analysis": (
@@ -1788,7 +1844,7 @@ def _generate_fallback_response(intent: str, context: dict) -> str:
         ),
         "world_query": (
             f"{user_name}，Odyssey 世界有完整的时代、建筑和文明规则体系。"
-            f"我暂时无法连接数据引擎来展示具体数据，请稍后再试。"
+            f"我暂时无法连接数据引擎来展示具体数据，请检查设置中的模型配置后重试。"
         ),
         "quest_query": (
             f"{user_name}，我有一些 Quest 建议想分享给你，但分析引擎需要一点时间恢复。"

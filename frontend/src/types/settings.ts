@@ -38,3 +38,21 @@ export const LLM_PROVIDER_OPTIONS: { value: string; label: string; description: 
   { value: "ollama", label: "Ollama (本地模型)", description: "Local LLM — qwen2.5, llama3.1, etc." },
   { value: "custom", label: "Custom", description: "Any OpenAI-compatible endpoint" },
 ];
+
+/** Request to test an LLM connection */
+export interface TestLlmRequest {
+  config_type: "assessment" | "mentor";
+  provider?: string | null;
+  api_key?: string | null; // empty → backend uses stored key
+  base_url?: string | null;
+  model?: string | null;
+}
+
+/** Result of an LLM connection test */
+export interface TestLlmResponse {
+  success: boolean;
+  message: string;
+  error_type: string | null;
+  suggestions: string[];
+  latency_ms: number | null;
+}

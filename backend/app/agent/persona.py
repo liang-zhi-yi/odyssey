@@ -219,10 +219,21 @@ Current time: {current_time}"""
 # Greeting System (Proactive Guidance)
 # ═══════════════════════════════════════════════════════════════════════
 
-def get_time_greeting() -> str:
+def get_time_greeting(locale: str = "zh") -> str:
     """Return a time-of-day-appropriate greeting (UTC+8 CST)."""
     hour = datetime.now(timezone.utc).hour
     local_hour = (hour + 8) % 24
+    if locale == "en":
+        if local_hour < 6:
+            return "Late night"
+        elif local_hour < 12:
+            return "Good morning"
+        elif local_hour < 14:
+            return "Good noon"
+        elif local_hour < 18:
+            return "Good afternoon"
+        else:
+            return "Good evening"
     if local_hour < 6:
         return "夜深了"
     elif local_hour < 12:
@@ -235,14 +246,15 @@ def get_time_greeting() -> str:
         return "晚上好"
 
 
-def build_proactive_greeting(user_name: str, context: dict) -> str:
+def build_proactive_greeting(user_name: str, context: dict, locale: str = "zh") -> str:
     """Build a proactive, data-rich greeting message.
 
     The greeting is generated server-side using real user data.
     It includes: time greeting, civilization status, near-unlock buildings,
     active quests/paths, and a suggested next action.
     """
-    greeting = get_time_greeting()
+    is_en = locale == "en"
+    greeting = get_time_greeting(locale)
     civ = context.get("civilization", {})
     buildings = context.get("buildings", {})
     quests = context.get("quests", {})
@@ -250,9 +262,14 @@ def build_proactive_greeting(user_name: str, context: dict) -> str:
     skills = context.get("skills", [])
 
     # ── Opening ──
-    lines = [
-        f"{greeting}，{user_name}。我是 Odyssey，你的文明导师。",
-    ]
+    if is_en:
+        lines = [
+            f"{greeting}, {user_name}. I'm Odyssey, your Civilization Mentor.",
+        ]
+    else:
+        lines = [
+            f"{greeting}，{user_name}。我是 Odyssey，你的文明导师。",
+        ]
 
     # ── Civilization Status ──
     era_name = civ.get("era_name", "")
@@ -260,7 +277,10 @@ def build_proactive_greeting(user_name: str, context: dict) -> str:
     civ_level = civ.get("civilization_level", 1)
 
     if era_name and tier_name:
-        lines.append(f"\n🌍 你当前处于 **{era_name}** · **{tier_name}**（文明等级 {civ_level}）")
+        if is_en:
+            lines.append(f"\n🌍 You are in **{era_name}** · **{tier_name}** (Civ Level {civ_level})")
+        else:
+            lines.append(f"\n🌍 你当前处于 **{era_name}** · **{tier_name}**（文明等级 {civ_level}）")
 
     # ── Stats Summary ──
     regular_buildings = buildings.get("regular", [])
@@ -274,18 +294,32 @@ def build_proactive_greeting(user_name: str, context: dict) -> str:
     completed_quests = quests.get("total_completed", 0)
     active_paths = len(paths.get("active", []))
 
-    lines.append(
-        f"📊 已解锁 **{total_unlocked}** 座建筑 · "
-        f"激活 **{skills_activated}** 项技能 · "
-        f"完成 **{completed_quests}** 个 Quest"
-    )
+    if is_en:
+        lines.append(
+            f"📊 Unlocked **{total_unlocked}** buildings · "
+            f"Activated **{skills_activated}** skills · "
+            f"Completed **{completed_quests}** quests"
+        )
+    else:
+        lines.append(
+            f"📊 已解锁 **{total_unlocked}** 座建筑 · "
+            f"激活 **{skills_activated}** 项技能 · "
+            f"完成 **{completed_quests}** 个 Quest"
+        )
 
     # ── Core Mechanics (for new / early-stage users) ──
     if skills_activated <= 3:
-        lines.append(
-            f"\n💡 **Odyssey 成长公式**：完成任务 → 获得技能分数 → 建筑自动升级 → 文明指数提升 → 时代/等级推进。"
-            f"每项能力有 4 个维度（知识、推理、应用、创造），综合分数 ÷ 10 = 建筑等级。"
-        )
+        if is_en:
+            lines.append(
+                f"\n💡 **Odyssey Growth Formula**: Complete quests → gain skill scores → buildings auto-upgrade → "
+                f"civ index rises → era/tier advances. Each skill has 4 dimensions (Knowledge, Reasoning, Application, Creation). "
+                f"Composite score ÷ 10 = building level."
+            )
+        else:
+            lines.append(
+                f"\n💡 **Odyssey 成长公式**：完成任务 → 获得技能分数 → 建筑自动升级 → 文明指数提升 → 时代/等级推进。"
+                f"每项能力有 4 个维度（知识、推理、应用、创造），综合分数 ÷ 10 = 建筑等级。"
+            )
 
     # ── Era Progress ──
     era_score = civ.get("era_score", 0)
@@ -294,7 +328,10 @@ def build_proactive_greeting(user_name: str, context: dict) -> str:
         era_pct = min(100, int(era_score / next_era_at * 100)) if next_era_at > 0 else 100
         remaining = next_era_at - era_score
         if remaining > 0:
-            lines.append(f"⏳ 距下一时代还有 **{remaining}** 文明指数（{era_pct}% 完成）")
+            if is_en:
+                lines.append(f"⏳ **{remaining}** civ index to next era ({era_pct}% done)")
+            else:
+                lines.append(f"⏳ 距下一时代还有 **{remaining}** 文明指数（{era_pct}% 完成）")
 
     # ── Buildings Near Unlock ──
     near_unlock = context.get("buildings_near_unlock", [])
@@ -302,33 +339,64 @@ def build_proactive_greeting(user_name: str, context: dict) -> str:
 
     if unlockable:
         b = unlockable[0]
-        lines.append(f"\n🔓 **可立即解锁**：{b.get('name', '')} — 条件已满足！")
+        if is_en:
+            lines.append(f"\n🔓 **Ready to unlock**: {b.get('name', '')} — conditions met!")
+        else:
+            lines.append(f"\n🔓 **可立即解锁**：{b.get('name', '')} — 条件已满足！")
     elif near_unlock:
         b = near_unlock[0]
         conditions = b.get("missing_conditions", [])
-        cond_str = "、".join(conditions[:2]) if conditions else "继续提升相关技能"
+        cond_str = "; ".join(conditions[:2]) if conditions else ("Keep leveling related skills" if is_en else "继续提升相关技能")
         pct = b.get("completion_pct", 0)
-        lines.append(f"\n🔜 **接近解锁**：{b.get('name', '')}（{pct}% — {cond_str}）")
+        if is_en:
+            lines.append(f"\n🔜 **Near unlock**: {b.get('name', '')} ({pct}% — {cond_str})")
+        else:
+            lines.append(f"\n🔜 **接近解锁**：{b.get('name', '')}（{pct}% — {cond_str}）")
 
     # ── Active Reminders ──
     if active_quests > 0:
-        lines.append(f"📋 你有 **{active_quests}** 个进行中的 Quest")
+        if is_en:
+            lines.append(f"📋 You have **{active_quests}** active quest(s)")
+        else:
+            lines.append(f"📋 你有 **{active_quests}** 个进行中的 Quest")
     if active_paths > 0:
-        lines.append(f"🛤️ 你有 **{active_paths}** 条活跃学习路径")
+        if is_en:
+            lines.append(f"🛤️ You have **{active_paths}** active learning path(s)")
+        else:
+            lines.append(f"🛤️ 你有 **{active_paths}** 条活跃学习路径")
 
     # ── Suggested Question ──
-    lines.append(f"\n你可以问我：")
-    if skills_activated == 0:
-        lines.append("• 如何开始我的第一项能力？")
-    elif total_unlocked <= 2:
-        lines.append("• 我下一步应该学习什么？")
-        lines.append("• 如何解锁更多建筑？")
-    elif near_unlock:
-        lines.append(f"• 如何解锁 {near_unlock[0].get('name', '下一座建筑')}？")
-        lines.append("• 分析我的文明状态")
+    if is_en:
+        lines.append(f"\nYou can ask me:")
     else:
-        lines.append("• 分析我的文明")
-        lines.append("• 我距离下一时代还有多远？")
-        lines.append("• 推荐最优成长路线")
+        lines.append(f"\n你可以问我：")
+    if skills_activated == 0:
+        if is_en:
+            lines.append("• How do I start my first skill?")
+        else:
+            lines.append("• 如何开始我的第一项能力？")
+    elif total_unlocked <= 2:
+        if is_en:
+            lines.append("• What should I learn next?")
+            lines.append("• How to unlock more buildings?")
+        else:
+            lines.append("• 我下一步应该学习什么？")
+            lines.append("• 如何解锁更多建筑？")
+    elif near_unlock:
+        if is_en:
+            lines.append(f"• How to unlock {near_unlock[0].get('name', 'the next building')}?")
+            lines.append("• Analyze my civilization")
+        else:
+            lines.append(f"• 如何解锁 {near_unlock[0].get('name', '下一座建筑')}？")
+            lines.append("• 分析我的文明状态")
+    else:
+        if is_en:
+            lines.append("• Analyze my civilization")
+            lines.append("• How far am I from the next era?")
+            lines.append("• Recommend the best growth path")
+        else:
+            lines.append("• 分析我的文明")
+            lines.append("• 我距离下一时代还有多远？")
+            lines.append("• 推荐最优成长路线")
 
     return "\n".join(lines)

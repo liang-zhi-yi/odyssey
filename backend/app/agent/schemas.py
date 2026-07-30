@@ -18,6 +18,9 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = Field(
         None, description="Existing conversation ID for multi-turn chat"
     )
+    locale: str | None = Field(
+        None, description="User preferred language: zh | en"
+    )
 
 
 # ── Response ───────────────────────────────────────────────────────

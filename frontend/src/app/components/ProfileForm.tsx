@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { authService } from "@/services/auth.service";
 import { AvatarUpload } from "./AvatarUpload";
+import { resolveAvatarSrc } from "@/lib/avatar";
 import type { UpdateProfileRequest, SocialLink } from "@/types/user";
 
 export function ProfileForm() {
   const { user } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -237,6 +239,31 @@ export function ProfileForm() {
       ) : (
         /* ── Read-only display view ── */
         <div className="space-y-4">
+          {/* Avatar display (read-only) */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0 h-20 w-20 rounded-full overflow-hidden border-2 border-border bg-muted/30">
+              {resolveAvatarSrc(user.avatar_url) ? (
+                <Image
+                  src={resolveAvatarSrc(user.avatar_url)!}
+                  alt="Avatar"
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-2xl text-muted-foreground">
+                  🧑‍🎓
+                </div>
+              )}
+            </div>
+            <div>
+              <label className={labelClass}>🖼️ {t("settings.avatar")}</label>
+              <p className="text-xs text-muted-foreground italic">
+                {user.avatar_url ? t("settings.avatarHint") : (locale === "en" ? "No avatar set" : "未设置头像")}
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
