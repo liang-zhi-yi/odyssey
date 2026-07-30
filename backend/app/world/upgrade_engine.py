@@ -469,15 +469,11 @@ def _recalculate_civilization_tier(
     world.tech_points = (world.tech_points or 0) + max(1, len(active_compounds))
     world.population = (world.population or 0) + max(1, len(active_buildings) // 3)
 
-    # era_score = tier_score + accumulated resources
+    # era_score = tier_score only (building levels + compound levels + milestones)
+    # Resources (knowledge_points, tech_points, population, exploration) are NOT
+    # included in era_score to prevent inflation on every recalculation.
     world.tier_score = total_score
-    world.era_score = (
-        total_score
-        + (world.knowledge_points or 0)
-        + (world.tech_points or 0)
-        + (world.population or 0)
-        + (world.exploration_progress or 0)
-    )
+    world.era_score = total_score
 
     # Look up tier from TIER_RANGES
     old_tier = world.tier

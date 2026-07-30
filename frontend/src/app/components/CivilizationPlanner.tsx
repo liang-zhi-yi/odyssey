@@ -84,7 +84,7 @@ export function CivilizationPlanner({
 
   // ── Generate handler ────────────────────────────────────────────────
   const handleGenerate = useCallback(
-    async (goal: string, category: string, _targetWeeks: number) => {
+    async (goal: string, category: string, _targetWeeks: number, pathTitle: string) => {
       if (!goal.trim() || isGenerating) return;
 
       setIsGenerating(true);
@@ -98,7 +98,7 @@ export function CivilizationPlanner({
       try {
         // Step 1: Create path (fast — returns immediately)
         const path = await learningPathService.createPath({
-          title: goal.slice(0, 200),
+          title: pathTitle || goal.slice(0, 50),
           description: goal,
           category: category || null,
           target_date: null,

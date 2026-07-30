@@ -7,8 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
 import { PathRoadmap } from "@/app/components/PathRoadmap";
-import { AIMentorPanel } from "@/app/components/AIMentorPanel";
-import { PathMilestoneList } from "@/app/components/PathMilestoneList";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
@@ -51,7 +49,6 @@ export default function PathDetailPage() {
   const [generatingAI, setGeneratingAI] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const autoGenTriggered = useRef(false);
-  const [viewMode, setViewMode] = useState<"roadmap" | "milestones">("roadmap");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -382,13 +379,6 @@ export default function PathDetailPage() {
     }
   };
 
-  const handleToggleMilestone = async (milestoneId: string) => {
-    try {
-      await learningPathService.toggleMilestone(pathId, milestoneId);
-      mutate(`learning-path-${pathId}`);
-    } catch { /* SWR handles */ }
-  };
-
   // ── Styles ──────────────────────────────────────────────────
   const warmStyles = {
     sage: "#8B9D83",
@@ -594,114 +584,79 @@ export default function PathDetailPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          MAIN CONTENT: 70/30 SPLIT
+          MAIN CONTENT: 70/30 SPLIT — Unified Roadmap (milestones merged)
           ═══════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">
           {locale === "zh" ? "文明发展路线图" : "Civilization Development Roadmap"}
         </h2>
-        <div className="flex gap-1 rounded-lg bg-secondary p-0.5">
-          <button onClick={() => setViewMode("roadmap")}
-            className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
-              viewMode === "roadmap" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}>
-            {locale === "zh" ? "路线图" : "Roadmap"}
-          </button>
-          <button onClick={() => setViewMode("milestones")}
-            className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
-              viewMode === "milestones" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}>
-            {locale === "zh" ? "里程碑列表" : "List"}
-          </button>
-        </div>
       </div>
 
-      {viewMode === "roadmap" ? (
-        /* ── 70/30 Roadmap + Mentor Split ── */
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Left 70% — Civilization Roadmap Timeline */}
-          <div className="lg:col-span-3 min-w-0">
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card overflow-hidden">
-              {roadmapNodes.length > 0 ? (
-                <PathRoadmap nodes={roadmapNodes} pathId={pathId} />
-              ) : (
-                <EmptyState
-                  title={locale === "zh" ? "暂无里程碑" : "No Milestones Yet"}
-                  description={locale === "zh"
-                    ? "AI 生成或预设路径将自动创建里程碑和路线图"
-                    : "Milestones and roadmap will be created automatically"}
-                />
-              )}
-            </div>
-
-            {/* Building targets summary */}
-            {path.targeted_buildings && path.targeted_buildings.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🏗️</span>
-                  <h3 className="text-sm font-semibold">
-                    {locale === "zh" ? "可解锁/升级建筑" : "Unlockable Buildings"}
-                  </h3>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {path.targeted_buildings.map((tb) => (
-                    <a key={tb.building_id} href={`/world?building=${tb.building_id}`}
-                      className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.97_0.005_92)] px-4 py-3 transition-all hover:shadow-card hover:border-[#C4A77D]/30 group">
-                      <span className="text-2xl group-hover:scale-110 transition-transform">{tb.building_icon || "🏛️"}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {locale === "en" && tb.building_name_en ? tb.building_name_en : tb.building_name}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {tb.remaining_milestones > 0
-                            ? `${tb.remaining_milestones} ${locale === "zh" ? "个里程碑可推动升级" : "milestones to upgrade"}`
-                            : locale === "zh" ? "已完成所有里程碑" : "All milestones completed"}
-                        </p>
-                      </div>
-                      <svg className="w-3 h-3 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                      </svg>
-                    </a>
-                  ))}
-                </div>
-              </div>
+      {/* ── 70/30 Roadmap + Mentor Split ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Left 70% — Civilization Roadmap Timeline */}
+        <div className="lg:col-span-3 min-w-0">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-card overflow-hidden">
+            {roadmapNodes.length > 0 ? (
+              <PathRoadmap nodes={roadmapNodes} pathId={pathId} />
+            ) : (
+              <EmptyState
+                title={locale === "zh" ? "暂无里程碑" : "No Milestones Yet"}
+                description={locale === "zh"
+                  ? "AI 生成或预设路径将自动创建里程碑和路线图"
+                  : "Milestones and roadmap will be created automatically"}
+              />
             )}
           </div>
 
-          {/* Right 30% — Odyssey Agent Mentor Panel */}
-          <div className="lg:col-span-2 min-w-0">
-            <EnhancedMentorPanel
-              suggestion={mentorSuggestion ?? null}
-              isLoading={mentorLoading}
-              pathId={pathId}
-              currentStage={currentStage}
-              estimatedRemaining={estimatedRemaining}
-              civIndexGain={civIndexGain}
-              progressPct={path.progress_pct}
-              milestones={path.milestones}
-            />
-          </div>
-        </div>
-      ) : (
-        /* ── Classic Milestone List View ── */
-        <>
-          {path.milestones.length === 0 ? (
-            <EmptyState
-              title={locale === "zh" ? "暂无里程碑" : "No Milestones Yet"}
-              description={locale === "zh"
-                ? "AI 生成或预设路径将自动创建里程碑"
-                : "Milestones will be created automatically"}
-            />
-          ) : (
-            <PathMilestoneList
-              pathId={pathId}
-              milestones={path.milestones}
-              onToggle={handleToggleMilestone}
-              targetedBuildings={path.targeted_buildings ?? null}
-            />
+          {/* Building targets summary */}
+          {path.targeted_buildings && path.targeted_buildings.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🏗️</span>
+                <h3 className="text-sm font-semibold">
+                  {locale === "zh" ? "可解锁/升级建筑" : "Unlockable Buildings"}
+                </h3>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {path.targeted_buildings.map((tb) => (
+                  <a key={tb.building_id} href={`/world?building=${tb.building_id}`}
+                    className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.97_0.005_92)] px-4 py-3 transition-all hover:shadow-card hover:border-[#C4A77D]/30 group">
+                    <span className="text-2xl group-hover:scale-110 transition-transform">{tb.building_icon || "🏛️"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {locale === "en" && tb.building_name_en ? tb.building_name_en : tb.building_name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {tb.remaining_milestones > 0
+                          ? `${tb.remaining_milestones} ${locale === "zh" ? "个里程碑可推动升级" : "milestones to upgrade"}`
+                          : locale === "zh" ? "已完成所有里程碑" : "All milestones completed"}
+                      </p>
+                    </div>
+                    <svg className="w-3 h-3 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
-        </>
-      )}
+        </div>
+
+        {/* Right 30% — Odyssey Agent Mentor Panel */}
+        <div className="lg:col-span-2 min-w-0">
+          <EnhancedMentorPanel
+            suggestion={mentorSuggestion ?? null}
+            isLoading={mentorLoading}
+            pathId={pathId}
+            currentStage={currentStage}
+            estimatedRemaining={estimatedRemaining}
+            civIndexGain={civIndexGain}
+            progressPct={path.progress_pct}
+            milestones={path.milestones}
+          />
+        </div>
+      </div>
     </div>
   );
 }

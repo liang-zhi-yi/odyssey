@@ -281,10 +281,121 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
     # ── 9. Update submission status ─────────────────────────────────
     submission.status = SubmissionStatus.PASSED if passed else SubmissionStatus.FAILED
 
+    # ── 10. Sync checkpoint completion if quest is linked to a path ──
+    if passed:
+        try:
+            _sync_checkpoint_completion(db, submission)
+        except Exception as exc:
+            logger.warning("Checkpoint sync failed (non-fatal): %s", exc)
+
     db.commit()
     logger.info(
         "Assessment completed — assessment=%s status=%s passed=%s overall=%d",
         assessment_id, assessment.status.value, passed, overall_assessment,
+    )
+
+
+def _sync_checkpoint_completion(db: Session, submission: QuestSubmission) -> None:
+    """When a quest submission passes, check if the linked checkpoint's
+    all quests are passed, and if so, mark the checkpoint as completed.
+
+    Also recalculates milestone and path progress_pct.
+    """
+    from app.learning_paths.models import (
+        LearningPathQuest,
+        PathCheckpoint,
+        LearningPathMilestone,
+        LearningPath,
+    )
+    from app.core.enums import SubmissionStatus
+
+    # Find the LearningPathQuest link for this quest
+    lpq = (
+        db.query(LearningPathQuest)
+        .filter(LearningPathQuest.quest_id == submission.quest_id)
+        .first()
+    )
+    if lpq is None or lpq.checkpoint_id is None:
+        return  # Quest not linked to a checkpoint
+
+    checkpoint_id = lpq.checkpoint_id
+
+    # Get all quest links for this checkpoint
+    all_links = (
+        db.query(LearningPathQuest)
+        .filter(LearningPathQuest.checkpoint_id == checkpoint_id)
+        .all()
+    )
+    if not all_links:
+        return
+
+    # Check if ALL quests for this checkpoint have PASSED submissions
+    all_passed = True
+    for link in all_links:
+        # Find the latest submission for this quest by this user
+        latest_sub = (
+            db.query(QuestSubmission)
+            .filter(
+                QuestSubmission.quest_id == link.quest_id,
+                QuestSubmission.user_id == submission.user_id,
+            )
+            .order_by(QuestSubmission.submitted_at.desc().nullslast())
+            .first()
+        )
+        if latest_sub is None or latest_sub.status != SubmissionStatus.PASSED:
+            all_passed = False
+            break
+
+    if not all_passed:
+        return  # Not all quests passed yet
+
+    # Mark checkpoint as completed
+    checkpoint = (
+        db.query(PathCheckpoint)
+        .filter(PathCheckpoint.id == checkpoint_id)
+        .first()
+    )
+    if checkpoint is None or checkpoint.is_completed:
+        return  # Already completed or not found
+
+    checkpoint.is_completed = True
+    checkpoint.completed_at = datetime.now(timezone.utc)
+
+    # Recalculate milestone progress
+    milestone = (
+        db.query(LearningPathMilestone)
+        .filter(LearningPathMilestone.id == checkpoint.milestone_id)
+        .first()
+    )
+    if milestone:
+        all_checkpoints = milestone.checkpoints or []
+        if all_checkpoints:
+            completed_cps = sum(1 for cp in all_checkpoints if cp.is_completed)
+            if completed_cps == len(all_checkpoints):
+                milestone.is_completed = True
+                milestone.completed_at = datetime.now(timezone.utc)
+
+    # Recalculate path progress_pct
+    if milestone:
+        path = (
+            db.query(LearningPath)
+            .filter(LearningPath.id == milestone.learning_path_id)
+            .first()
+        )
+        if path:
+            all_milestones = (
+                db.query(LearningPathMilestone)
+                .filter(LearningPathMilestone.learning_path_id == path.id)
+                .all()
+            )
+            if all_milestones:
+                completed_ms = sum(1 for m in all_milestones if m.is_completed)
+                path.progress_pct = int(completed_ms / len(all_milestones) * 100)
+            path.updated_at = datetime.now(timezone.utc)
+
+    logger.info(
+        "Checkpoint completed via assessment — checkpoint=%s quest=%s",
+        checkpoint_id, submission.quest_id,
     )
 
 

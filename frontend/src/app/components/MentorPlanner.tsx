@@ -9,7 +9,7 @@ interface MentorPlannerProps {
   world: World | null;
   activePathsCount: number;
   isGenerating: boolean;
-  onGenerate: (goal: string, category: string, targetWeeks: number) => void;
+  onGenerate: (goal: string, category: string, targetWeeks: number, pathTitle: string) => void;
 }
 
 const QUICK_GOALS = [
@@ -55,6 +55,7 @@ export function MentorPlanner({
   const { locale } = useLocale();
 
   const [goal, setGoal] = useState("");
+  const [pathTitle, setPathTitle] = useState("");
   const [category, setCategory] = useState("");
   const [targetWeeks, setTargetWeeks] = useState(8);
 
@@ -69,7 +70,7 @@ export function MentorPlanner({
   // ── Submit ──────────────────────────────────────────────────────────
   const handleSubmit = () => {
     if (!goal.trim() || isGenerating) return;
-    onGenerate(goal.trim(), category || "", targetWeeks);
+    onGenerate(goal.trim(), category || "", targetWeeks, pathTitle.trim());
   };
 
   const canSubmit = goal.trim().length > 0 && !isGenerating;
@@ -135,6 +136,39 @@ export function MentorPlanner({
       </div>
 
       {/* ── Goal input ───────────────────────────────────────────── */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {locale === "zh"
+            ? "🏷️ 路径名称（简短标题）"
+            : "🏷️ Path Name (short title)"}
+        </label>
+        <input
+          type="text"
+          value={pathTitle}
+          onChange={(e) => setPathTitle(e.target.value.slice(0, 50))}
+          placeholder={
+            locale === "zh"
+              ? "给你的学习路径起个简短的名字，如：AI Agent 工程师之路"
+              : "Give your path a short name, e.g.: AI Agent Engineer Journey"
+          }
+          maxLength={50}
+          disabled={isGenerating}
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#8B9D83]/30 focus:border-[#8B9D83]/40 resize-none disabled:opacity-50 transition-all"
+        />
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-[10px] text-muted-foreground">
+            {locale === "zh"
+              ? "将显示在仪表盘和路径列表中，建议 50 字以内"
+              : "Shows in dashboard & path list, keep under 50 chars"}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            {pathTitle.length > 0
+              ? `${pathTitle.length}/50`
+              : ""}
+          </span>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium mb-2">
           {locale === "zh"

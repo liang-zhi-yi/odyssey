@@ -14,11 +14,12 @@ Implements the safeguard rules from the assessment system design:
 """
 import logging
 
+from app.config import settings
 from app.core.llm import evaluate_submission, LLMClientError
 
 logger = logging.getLogger(__name__)
 
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 2
 MAX_DELTA_THRESHOLD = 20
 MIN_JUSTIFICATION_LENGTH = 60  # characters
 
@@ -78,6 +79,7 @@ def run_consistent_assessment(
                 user_base_url=user_base_url,
                 user_model=user_model,
                 user_provider=user_provider,
+                timeout=settings.assessment_timeout_seconds,
             )
         except LLMClientError as exc:
             logger.warning("Attempt %d failed: %s", attempt_num, exc)

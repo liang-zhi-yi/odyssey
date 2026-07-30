@@ -439,15 +439,29 @@ export function CivilizationCompass({
         </svg>
       </div>
 
-      {/* Summary text */}
-      <p className="text-xs text-muted-foreground text-center mt-3 leading-relaxed">
-        {direction.summary}
-      </p>
-
-      {direction.suggested_focus && (
-        <p className="text-[11px] text-primary text-center mt-1 font-medium">
-          💡 {direction.suggested_focus}
-        </p>
+      {/* Summary text — localized on the frontend (backend summary is EN-only) */}
+      {locale === "zh" ? (
+        <>
+          <p className="text-xs text-muted-foreground text-center mt-3 leading-relaxed">
+            你的文明正通过 {direction.active_paths.length} 条路径发展，驱动 {uniqueBuildings.length} 个建筑成长
+          </p>
+          {direction.active_paths[0]?.targeted_buildings[0] && (
+            <p className="text-[11px] text-primary text-center mt-1 font-medium">
+              💡 优先推进「{direction.active_paths[0].path_title}」，达成 {direction.active_paths[0].targeted_buildings[0].building_name} Lv.{direction.active_paths[0].targeted_buildings[0].projected_level}
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="text-xs text-muted-foreground text-center mt-3 leading-relaxed">
+            {direction.summary}
+          </p>
+          {direction.suggested_focus && (
+            <p className="text-[11px] text-primary text-center mt-1 font-medium">
+              💡 {direction.suggested_focus}
+            </p>
+          )}
+        </>
       )}
     </div>
   );

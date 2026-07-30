@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.0
     # Timeout per LLM call in seconds
     llm_timeout_seconds: int = 60
+    # Assessment-specific timeout (longer for complex evaluation with json_schema)
+    assessment_timeout_seconds: int = 120
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
