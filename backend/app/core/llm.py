@@ -307,6 +307,8 @@ def evaluate_submission(
     if content is None:
         raise LLMClientError("LLM returned empty response")
 
+    logger.debug("LLM raw response (first 1000 chars): %s", content[:1000])
+
     # Parse JSON — with fallback extraction for non-schema modes
     result = _parse_json_response(content, provider_key=effective_provider_key)
 

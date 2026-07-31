@@ -530,7 +530,7 @@
     "dimensionDetails": "Dimension Details",
     "weight": "Weight {percent}%",
     "elapsed": "Elapsed {seconds}s",
-    "maxWait": "Max wait 60s",
+    "maxWait": "Max wait 180s",
     "justification": "AI Justification",
     "viewJustification": "View justification"
   },

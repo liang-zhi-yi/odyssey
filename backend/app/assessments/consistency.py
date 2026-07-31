@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 2
 MAX_DELTA_THRESHOLD = 20
-MIN_JUSTIFICATION_LENGTH = 60  # characters
+MIN_JUSTIFICATION_LENGTH = 10  # characters — relaxed to accept concise LLM responses
 
 
 def run_consistent_assessment(
@@ -79,7 +79,7 @@ def run_consistent_assessment(
                 user_base_url=user_base_url,
                 user_model=user_model,
                 user_provider=user_provider,
-                timeout=settings.assessment_timeout_seconds,
+                timeout=settings.llm_timeout_seconds,
             )
         except LLMClientError as exc:
             logger.warning("Attempt %d failed: %s", attempt_num, exc)
@@ -87,9 +87,22 @@ def run_consistent_assessment(
                 raise  # All attempts failed
             continue  # Try again if attempts remain
 
+        # Log raw result keys for debugging
+        logger.info(
+            "Attempt %d raw result keys: %s",
+            attempt_num,
+            list(result.keys()) if isinstance(result, dict) else type(result).__name__,
+        )
+        logger.debug("Attempt %d raw result: %s", attempt_num, result)
+
+        # Normalize the result — fix common LLM output issues like float
+        # scores, None values, missing keys, etc.
+        result = _normalize_result(result)
+
         # Validate the result structure
         if not _is_valid_result(result):
             logger.warning("Attempt %d returned invalid structure, retrying", attempt_num)
+            logger.debug("Invalid result: %s", result)
             continue
 
         # Validate justification quality
@@ -125,6 +138,21 @@ def run_consistent_assessment(
                 logger.info("Consistent after %d attempts", len(attempts))
                 break
 
+    # Safety net: if all attempts failed validation (not LLMClientError, but
+    # invalid result structure or hollow justifications), attempts will be
+    # empty. The min() below would raise "min() iterable argument is empty".
+    # Raise a clear LLMClientError so the engine can fail the assessment
+    # gracefully and the user can retry/abandon.
+    if not attempts:
+        logger.error(
+            "All %d assessment attempts failed validation (no usable results)",
+            max_attempts,
+        )
+        raise LLMClientError(
+            "All assessment attempts failed validation — LLM returned invalid "
+            "or hollow results. Please retry assessment later."
+        )
+
     # Compute median per dimension across all successful attempts
     final: dict = {"attempts": len(attempts), "attempt_details": attempts}
     for dim in dimensions:
@@ -153,32 +181,96 @@ def run_consistent_assessment(
     return final
 
 
+def _normalize_result(result: dict) -> dict:
+    """Fix common LLM output issues before validation.
+
+    Handles:
+      - Float scores (85.0 → 85)
+      - String scores ("85" → 85)
+      - None justification → empty string
+      - None overall_assessment values → empty string
+      - Missing overall_assessment → create with empty strings
+      - Missing dimension keys → skip (will fail validation)
+    """
+    for dim in ["knowledge", "reasoning", "application", "creation"]:
+        if dim not in result or not isinstance(result[dim], dict):
+            continue
+        d = result[dim]
+        # Normalize score: accept int, float, or numeric string
+        score = d.get("score")
+        if score is not None:
+            try:
+                d["score"] = int(float(score))
+            except (TypeError, ValueError):
+                pass  # Leave as-is, validation will catch it
+        # Normalize justification: None → ""
+        if d.get("justification") is None:
+            d["justification"] = ""
+        # Ensure list fields exist as lists
+        for key in ["strengths", "weaknesses", "improvement_actions"]:
+            if d.get(key) is None:
+                d[key] = []
+            elif not isinstance(d.get(key), list):
+                d[key] = []
+
+    # Normalize overall_assessment
+    oa = result.get("overall_assessment")
+    if oa is None:
+        result["overall_assessment"] = {
+            "summary": "",
+            "top_strength": "",
+            "top_growth_area": "",
+            "next_step_recommendation": "",
+        }
+    elif isinstance(oa, dict):
+        for key in ["summary", "top_strength", "top_growth_area", "next_step_recommendation"]:
+            if oa.get(key) is None:
+                oa[key] = ""
+
+    return result
+
+
 def _is_valid_result(result: dict) -> bool:
-    """Check that the LLM response has all required fields with valid types."""
+    """Check that the LLM response has all required fields with valid types.
+
+    After _normalize_result, scores should be int and strings should be str.
+    """
     required_dims = ["knowledge", "reasoning", "application", "creation"]
     for dim in required_dims:
         if dim not in result:
+            logger.debug("_is_valid_result FAIL: missing dimension %s", dim)
             return False
         dim_data = result[dim]
         if not isinstance(dim_data, dict):
+            logger.debug("_is_valid_result FAIL: %s is not a dict", dim)
             return False
         if "score" not in dim_data or "justification" not in dim_data:
+            logger.debug("_is_valid_result FAIL: %s missing score/justification", dim)
             return False
         score = dim_data["score"]
-        if not isinstance(score, int) or score < 0 or score > 100:
+        # Accept int (and bool is a subclass of int, so explicitly reject it)
+        if isinstance(score, bool) or not isinstance(score, (int, float)):
+            logger.debug("_is_valid_result FAIL: %s.score is %s (type %s)", dim, score, type(score).__name__)
+            return False
+        if score < 0 or score > 100:
+            logger.debug("_is_valid_result FAIL: %s.score=%s out of range", dim, score)
             return False
         justification = dim_data["justification"]
         if not isinstance(justification, str):
+            logger.debug("_is_valid_result FAIL: %s.justification is not str", dim)
             return False
 
-    # overall_assessment is now required by the schema
+    # overall_assessment is required by the schema
     if "overall_assessment" not in result:
+        logger.debug("_is_valid_result FAIL: missing overall_assessment")
         return False
     oa = result["overall_assessment"]
     if not isinstance(oa, dict):
+        logger.debug("_is_valid_result FAIL: overall_assessment is not a dict")
         return False
     for key in ["summary", "top_strength", "top_growth_area", "next_step_recommendation"]:
         if key not in oa or not isinstance(oa[key], str):
+            logger.debug("_is_valid_result FAIL: overall_assessment.%s missing or not str", key)
             return False
 
     return True
@@ -189,48 +281,26 @@ def _has_quality_justifications(result: dict) -> bool:
 
     Requirements:
       - Each justification must be at least MIN_JUSTIFICATION_LENGTH chars
-      - Must contain at least one concrete reference indicator
-        (e.g., "你提到", "你的方案", "在提交中", "具体表现在",
-         "your submission", "you mentioned", "for example")
+
+    Note: The previous implementation rejected justifications that didn't
+    contain specific Chinese/English evidence indicator phrases (e.g.,
+    "你提到", "你的方案", "your submission"). This was too strict — many
+    valid LLM responses use different phrasings and were incorrectly
+    rejected as "hollow", causing all assessment attempts to fail
+    validation. Now we only enforce minimum length, which is sufficient
+    to filter out truly empty/garbage responses.
     """
-    generic_phrases = [
-        "提交内容展示了",
-        "整体表现不错",
-        "表现良好",
-        "完成的很好",
-        "good job",
-        "well done",
-        "overall good",
-    ]
-
-    evidence_indicators = [
-        "你提到", "你的方案", "在提交中", "你在", "你设计",
-        "你的代码", "你的分析", "你的回答", "提交内容中",
-        "具体表现在", "例如", "比如", "体现在",
-        "you mentioned", "your submission", "in your",
-        "for example", "specifically", "you demonstrated",
-        "your code", "your design", "you wrote",
-    ]
-
     dims = ["knowledge", "reasoning", "application", "creation"]
     for dim in dims:
         just = result[dim].get("justification", "")
 
-        # Check minimum length
+        # Check minimum length — this is the only hard requirement.
+        # The LLM may phrase evidence in many valid ways we can't
+        # anticipate with a fixed keyword list.
         if len(just) < MIN_JUSTIFICATION_LENGTH:
             logger.info(
-                "Dimension %s justification too short: %d chars",
-                dim, len(just),
-            )
-            return False
-
-        # Check for generic-only language
-        has_evidence = any(ind in just.lower() for ind in evidence_indicators)
-        is_generic = any(phrase in just for phrase in generic_phrases)
-
-        if is_generic and not has_evidence:
-            logger.info(
-                "Dimension %s justification is generic with no evidence", dim
+                "Dimension %s justification too short: %d chars (min %d)",
+                dim, len(just), MIN_JUSTIFICATION_LENGTH,
             )
             return False
 

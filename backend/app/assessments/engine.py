@@ -159,6 +159,12 @@ def run_assessment(db: Session, assessment_id: str | UUID) -> None:
     except LLMClientError as exc:
         _fail_assessment(db, assessment, f"LLM evaluation failed: {exc}")
         return
+    except Exception as exc:
+        # Catch any unexpected errors (e.g., validation, parsing) so the
+        # assessment is marked FAILED gracefully instead of crashing the
+        # background task and leaving the submission stuck in ASSESSING.
+        _fail_assessment(db, assessment, f"Assessment pipeline error: {exc}")
+        return
 
     if result.get("attempts", 0) == 0:
         _fail_assessment(db, assessment, "All evaluation attempts failed")

@@ -155,12 +155,19 @@ def _launch_background_assessment(assessment_id: str) -> None:
         run_assessment(db=db, assessment_id=assessment_id)
     except Exception as exc:
         logger.exception("Background assessment crashed: %s", exc)
-        # Attempt to mark as FAILED
+        # Attempt to mark as FAILED — both the Assessment AND the Submission.
+        # The submission MUST be transitioned out of ASSESSING, otherwise the
+        # user is permanently blocked from abandoning or retrying the quest.
         try:
-            assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+            assessment = (
+                db.query(Assessment).filter(Assessment.id == assessment_id).first()
+            )
             if assessment and assessment.status == AssessmentStatus.PROCESSING:
                 assessment.status = AssessmentStatus.FAILED
                 assessment.error_message = str(exc)[:512]
+                # Reset submission from ASSESSING → FAILED so user can retry/abandon
+                if assessment.submission is not None:
+                    assessment.submission.status = SubmissionStatus.FAILED
                 db.commit()
         except Exception:
             pass

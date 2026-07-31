@@ -530,7 +530,7 @@
     "dimensionDetails": "维度详情",
     "weight": "权重 {percent}%",
     "elapsed": "已用时 {seconds}s",
-    "maxWait": "最长等待 60s",
+    "maxWait": "最长等待 180s",
     "justification": "AI 评估说明",
     "viewJustification": "查看评估说明"
   },

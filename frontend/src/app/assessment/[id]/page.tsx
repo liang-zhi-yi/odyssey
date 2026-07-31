@@ -33,7 +33,7 @@ export default function AssessmentPage() {
       interval: 3000,
       stopWhen: (result) =>
         result.status === "COMPLETED" || result.status === "FAILED",
-      timeout: 60000,
+      timeout: 180000,
       onTimeout: () => {
         // Timeout — keep last data so user can see partial
       },

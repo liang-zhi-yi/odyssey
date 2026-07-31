@@ -4,6 +4,15 @@ Odyssey API — FastAPI application entry point.
 Base URL: /api/v1
 """  # pragma: no cover — docstring only
 import os
+import sys
+
+# Ensure UTF-8 encoding for stdout/stderr — Windows defaults to cp1252/ascii
+# which causes UnicodeEncodeError when logging Chinese characters (e.g.,
+# LLM assessment prompts/responses). This must run before any logging.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure") and _stream.encoding != "utf-8":
+        _stream.reconfigure(encoding="utf-8")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
