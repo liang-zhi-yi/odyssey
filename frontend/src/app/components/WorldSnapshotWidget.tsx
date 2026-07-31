@@ -86,7 +86,7 @@ export function WorldSnapshotWidget({
           {/* Building count */}
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <svg className="w-3.5 h-3.5 text-muted-foreground/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-3.5 h-3.5 text-muted-foreground/50 dark:text-muted-foreground/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
               </svg>
               {t("dashboard.buildings")}
@@ -99,7 +99,7 @@ export function WorldSnapshotWidget({
           {/* Region count */}
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <svg className="w-3.5 h-3.5 text-muted-foreground/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-3.5 h-3.5 text-muted-foreground/50 dark:text-muted-foreground/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2 L22 8.5 L22 15.5 L12 22 L2 15.5 L2 8.5 Z" />
               </svg>
               {t("dashboard.regions")}

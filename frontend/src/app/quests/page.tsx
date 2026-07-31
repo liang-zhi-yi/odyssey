@@ -2,23 +2,43 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
-import { QuestCenterCard } from "@/app/components/QuestCenterCard";
+import { CivilizationSection } from "@/app/components/CivilizationSection";
+import { QuestHallCard } from "@/app/components/QuestHallCard";
+import { CivilizationBadge, type CivilizationType } from "@/app/components/CivilizationBadge";
+import { CivilizationArchiveChapter } from "@/app/components/CivilizationArchiveChapter";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
-import { EmptyState } from "@/app/components/EmptyState";
-import {
-  SUBMISSION_STATUS_LABELS,
-  type QuestListItem,
-  type UserQuest,
-  type SubmissionStatus,
+import type {
+  UserQuest,
+  CivilizationQuestGroup,
+  CivilizationQuestItem,
 } from "@/types/quest";
 
 type TabKey = "recommended" | "myQuests";
+
+/** Tab icon — SVG geometric (replaces emoji) */
+function TabIcon({ type, className = "" }: { type: "scroll" | "shield"; className?: string }) {
+  if (type === "scroll") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
+        <path d="M4 4 L 14 4 C 15 4 16 5 16 6 L 16 15 C 16 16 15 17 14 17 L 6 17 C 5 17 4 16 4 15 Z" />
+        <path d="M7 8 L 13 8 M 7 11 L 13 11 M 7 14 L 11 14" strokeWidth="1" opacity="0.6" />
+        <circle cx="4" cy="6" r="1" fill="currentColor" stroke="none" opacity="0.5" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
+      <path d="M10 2 L 16 4 L 16 10 C 16 14 13 17 10 18 C 7 17 4 14 4 10 L 4 4 Z" />
+      <path d="M8 10 L 10 12 L 13 8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function QuestsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -32,24 +52,34 @@ export default function QuestsPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch recommended quests
+  // Fetch all global quests grouped by civilization
   const {
-    data: recommendedQuests = [],
+    data: civQuestGroups = [],
     isLoading: recommendedLoading,
     error: recommendedError,
   } = useSWR(
-    isAuthenticated ? "recommended-quests" : null,
-    () => questService.listRecommendedQuests()
+    isAuthenticated ? "quests-by-civ" : null,
+    () => questService.listQuestsByCivilization()
   );
 
-  // Fetch user's quests (for status badges on recommended cards + my tasks tab)
+  // Fetch user's quests (for filtering accepted + status badges)
   const {
     data: userQuests = [],
-    isLoading: myQuestsLoading,
   } = useSWR(
     isAuthenticated ? "user-quests" : null,
     () => questService.listUserQuests()
   );
+
+  // Fetch user's own quests grouped by civilization (for "My Tasks" tab)
+  const {
+    data: userQuestGroups = [],
+    isLoading: myQuestsLoading,
+  } = useSWR(
+    isAuthenticated && activeTab === "myQuests" ? "user-quests-by-civ" : null,
+    () => questService.listUserQuestsByCivilization()
+  );
+
+  const totalUserQuests = userQuestGroups.reduce((sum, g) => sum + g.count, 0);
 
   if (authLoading || !isAuthenticated) {
     return <Loading text={t("auth.validating")} />;
@@ -60,163 +90,220 @@ export default function QuestsPage() {
     userQuests.map((uq: UserQuest) => [uq.quest_id, uq])
   );
 
-  // Status badge colors
-  const statusBadgeClass = (status: SubmissionStatus): string => {
-    switch (status) {
-      case "PASSED":
-        return "bg-[#8B9D83]/15 text-[#5C7A5C] border-[#8B9D83]/30";
-      case "FAILED":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      case "ASSESSING":
-      case "SUBMITTED":
-        return "bg-[#C4A77D]/15 text-[#8B7355] border-[#C4A77D]/30";
-      case "ACCEPTED":
-      case "IN_PROGRESS":
-        return "bg-primary/10 text-primary border-primary/20";
-      case "ABANDONED":
-        return "bg-muted text-muted-foreground border-border";
-      default:
-        return "bg-muted text-muted-foreground border-border";
-    }
-  };
+  // Filter recommended groups:
+  //   - Exclude quests that are "active" or "passed" (user already finished
+  //     or is currently working on them).
+  //   - KEEP quests with ABANDONED / FAILED status so the user can retry.
+  //   - If ALL quests have been interacted with (no fresh recommendations),
+  //     fall back to showing all quests (matches backend get_recommended_quests
+  //     behavior — never show an empty "Today's Recommendations" tab unless
+  //     there are truly no quests in the system).
+  const ACTIVE_OR_PASSED_STATUSES = new Set([
+    "ACCEPTED",
+    "IN_PROGRESS",
+    "SUBMITTED",
+    "ASSESSING",
+    "PASSED",
+  ]);
 
-  const tabs: { key: TabKey; label: string; icon: string }[] = [
-    {
-      key: "recommended",
-      label: t("quests.todayRecommendation"),
-      icon: "💡",
-    },
-    {
-      key: "myQuests",
-      label: locale === "zh" ? "我的任务" : "My Tasks",
-      icon: "📋",
-    },
+  const freshCivGroups = civQuestGroups
+    .map((group: CivilizationQuestGroup) => ({
+      ...group,
+      quests: group.quests.filter(
+        (q) => {
+          const uq = userQuestMap.get(q.id);
+          // No interaction yet → recommend
+          if (!uq) return true;
+          // Abandoned/Failed → user can retry, keep recommending
+          return !ACTIVE_OR_PASSED_STATUSES.has(uq.status);
+        }
+      ),
+    }))
+    .filter((g) => g.quests.length > 0);
+
+  const totalFresh = freshCivGroups.reduce((sum, g) => sum + g.quests.length, 0);
+
+  // Fallback: if no fresh recommendations, show ALL global quests (so the
+  // "Today's Recommendations" tab is never blank unless there are truly no
+  // preset quests in the system).
+  const filteredCivGroups = totalFresh === 0 ? civQuestGroups : freshCivGroups;
+  const totalRecommended = totalFresh === 0
+    ? civQuestGroups.reduce((sum, g) => sum + g.quests.length, 0)
+    : totalFresh;
+
+  const tabs: { key: TabKey; label: string; icon: "scroll" | "shield" }[] = [
+    { key: "recommended", label: t("quests.todayRecommendation"), icon: "scroll" },
+    { key: "myQuests", label: locale === "zh" ? "我的任务" : "My Tasks", icon: "shield" },
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8 relative overflow-hidden">
-      <div>
-        <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">{t("quests.title")}</h1>
-        <p className="mt-1 text-sm font-civ-serif text-[oklch(0.5_0.02_85)]">
-          {t("quests.subtitle")}
+    <div className="quest-scroll-page px-4 py-6 sm:px-8 sm:py-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+      {/* ── Page Header — 文明任务档案馆 ─────────────────── */}
+      <div className="relative z-10 page-enter">
+        <div className="flex items-center gap-3 mb-2">
+          {/* Hall emblem — world-core icon */}
+          <div className="flex-shrink-0 text-[oklch(0.50_0.08_150)] dark:text-[oklch(0.62_0.08_150)]">
+            <QuestScrollIcon name="world-core" size={30} strokeWidth={1.2} />
+          </div>
+          <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
+            {t("quests.title")}
+          </h1>
+        </div>
+        <p className="text-sm font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_82)] ml-11 italic tracking-[0.08em]">
+          {locale === "zh" ? "探索文明，解锁能力" : "Explore civilizations, unlock abilities"}
         </p>
       </div>
 
-      {/* Tab switcher */}
-      <div className="flex rounded-xl border border-border bg-card p-1 shadow-sm">
+      {/* ── Tab Switcher — 文明档案馆分页 ───────────────── */}
+      <div className="relative z-10 flex rounded-xl scroll-fuse ornamental-border p-1 overflow-hidden">
+        <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
+            className={`relative flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-civ-serif font-semibold tracking-wide transition-all ${
               activeTab === tab.key
-                ? "bg-gradient-to-br from-[#8B9D83]/15 to-[#8B9D83]/5 text-[#5C7A5C] border border-[#8B9D83]/30 shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"
+                ? "bg-[oklch(0.92_0.025_80_/_0.60)] dark:bg-[oklch(0.22_0.015_78_/_0.60)] text-[oklch(0.35_0.05_70)] dark:text-[oklch(0.82_0.06_145)] border border-[oklch(0.60_0.06_80_/_0.30)] shadow-sm"
+                : "text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.58_0.03_80)] hover:text-[oklch(0.35_0.025_70)] dark:hover:text-[oklch(0.82_0.04_80)] hover:bg-[oklch(0.92_0.02_80_/_0.30)] dark:hover:bg-[oklch(0.22_0.012_78_/_0.30)] border border-transparent"
             }`}
           >
-            <span>{tab.icon}</span>
+            <TabIcon type={tab.icon} className="w-4 h-4" />
             <span>{tab.label}</span>
-            {tab.key === "myQuests" && userQuests.length > 0 && (
-              <span className="ml-1 rounded-full bg-[#8B9D83]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#5C7A5C]">
-                {userQuests.length}
+            {tab.key === "myQuests" && totalUserQuests > 0 && (
+              <span className="ml-1 rounded-full bg-[oklch(0.60_0.08_145_/_0.18)] px-1.5 py-0.5 text-[10px] font-bold text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.72_0.09_145)] tabular-nums">
+                {totalUserQuests}
+              </span>
+            )}
+            {tab.key === "recommended" && totalRecommended > 0 && (
+              <span className="ml-1 rounded-full bg-[oklch(0.65_0.07_75_/_0.18)] px-1.5 py-0.5 text-[10px] font-bold text-[oklch(0.40_0.06_70)] dark:text-[oklch(0.72_0.08_80)] tabular-nums">
+                {totalRecommended}
               </span>
             )}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
+      {/* ── Tab Content ──────────────────────────────────── */}
       {activeTab === "recommended" && (
-        <div className="space-y-4">
+        <div className="relative z-10 space-y-4">
           {recommendedLoading ? (
             <Loading variant="skeleton-cards" cardCount={4} />
           ) : recommendedError ? (
             <ErrorState message={t("quests.loadRecommendedError")} />
-          ) : recommendedQuests.length === 0 ? (
-            <EmptyState
-              title={t("quests.noRecommended")}
-              description={t("quests.allAccepted")}
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
-              {recommendedQuests.map((quest: QuestListItem) => (
-                <div key={quest.id} className="card-hover">
-                  <QuestCenterCard
-                    quest={quest}
-                    userQuest={
-                      acceptedQuestIds.has(quest.id)
-                        ? userQuestMap.get(quest.id)
-                        : undefined
-                    }
-                  />
+          ) : totalRecommended === 0 ? (
+            <div className="relative z-10 rounded-xl scroll-fuse ornamental-border overflow-hidden">
+              <div className="px-6 py-14 text-center">
+                <div className="mb-4 flex justify-center">
+                  <CivilizationBadge type="KNOWLEDGE" size={52} glow />
                 </div>
-              ))}
+                <h3 className="font-civ-serif text-base font-bold text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
+                  {t("quests.noRecommended")}
+                </h3>
+                <p className="mt-2 font-civ-serif text-xs text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] italic max-w-xs mx-auto">
+                  {t("quests.allAccepted")}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 animate-stagger">
+              {filteredCivGroups.map((group: CivilizationQuestGroup) => {
+                const civType = group.civilization_type as CivilizationType;
+                const completedInGroup = group.quests.filter(
+                  (q) => userQuestMap.get(q.id)?.status === "PASSED"
+                ).length;
+                return (
+                  <CivilizationSection
+                    key={group.civilization_type}
+                    type={civType}
+                    totalQuests={group.count}
+                    completedQuests={completedInGroup}
+                    level={Math.min(10, completedInGroup + 1)}
+                    defaultExpanded={filteredCivGroups.length === 1}
+                    quests={group.quests.map((quest: CivilizationQuestItem) => (
+                      <QuestHallCard
+                        key={quest.id}
+                        quest={quest}
+                        civType={group.civilization_type}
+                        userQuest={
+                          acceptedQuestIds.has(quest.id)
+                            ? userQuestMap.get(quest.id)
+                            : undefined
+                        }
+                      />
+                    ))}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
       {activeTab === "myQuests" && (
-        <div className="space-y-4">
+        <div className="relative z-10 space-y-4">
           {myQuestsLoading ? (
-            <Loading variant="skeleton-cards" cardCount={3} />
-          ) : userQuests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border rounded-2xl bg-card px-6">
-              <div className="mb-4 flex items-center justify-center w-14 h-14 rounded-full bg-secondary/80 border border-border/40 text-2xl">
-                📋
-              </div>
-              <h3 className="text-base font-bold">
-                {locale === "zh" ? "暂无任务" : "No Tasks Yet"}
-              </h3>
-              <p className="mt-2 text-xs text-muted-foreground italic max-w-xs">
-                {locale === "zh"
-                  ? "你还没有接受任何任务，去每日推荐接受任务吧"
-                  : "You haven't accepted any quests yet. Check the daily recommendations."}
-              </p>
-              <button
-                onClick={() => setActiveTab("recommended")}
-                className="mt-5 rounded-lg bg-primary text-primary-foreground border border-primary/20 px-5 py-2 text-xs font-bold tracking-wide hover:bg-primary/90 transition-all shadow-sm"
-              >
-                {locale === "zh" ? "去接受任务" : "Accept a Quest"}
-              </button>
-            </div>
+            <Loading variant="skeleton-cards" cardCount={4} />
+          ) : totalUserQuests === 0 ? (
+            <ArchiveEmptyState
+              isZh={locale === "zh"}
+              onExplore={() => setActiveTab("recommended")}
+            />
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
-              {userQuests.map((uq: UserQuest) => (
-                <Link
-                  key={uq.quest_id}
-                  href={`/quests/${uq.quest_id}`}
-                  className="block rounded-2xl border border-border bg-card p-5 shadow-card transition-all hover:shadow-card-hover hover:border-[#8B9D83]/30 card-hover"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="text-sm font-semibold line-clamp-2 flex-1">
-                      {locale === "en" && uq.quest_title_en
-                        ? uq.quest_title_en
-                        : uq.quest_title}
-                    </h3>
-                    <span
-                      className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(
-                        uq.status
-                      )}`}
-                    >
-                      {SUBMISSION_STATUS_LABELS[uq.status] || uq.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>
-                      {locale === "zh" ? "提交次数" : "Submissions"}:{" "}
-                      {uq.submission_count}
-                    </span>
-                    <span className="text-[#8B9D83] font-medium">
-                      {locale === "zh" ? "查看详情 →" : "View Details →"}
-                    </span>
-                  </div>
-                </Link>
+            <div className="space-y-4 animate-stagger">
+              {userQuestGroups.map((group, idx) => (
+                <CivilizationArchiveChapter
+                  key={group.civilization_type}
+                  group={group}
+                  defaultExpanded={userQuestGroups.length === 1 || idx === 0}
+                />
               ))}
             </div>
           )}
         </div>
       )}
+      </div>
+    </div>
+  );
+}
+
+/** 个人档案空状态 — 文明探索卷轴卡 */
+function ArchiveEmptyState({
+  isZh,
+  onExplore,
+}: {
+  isZh: boolean;
+  onExplore: () => void;
+}) {
+  return (
+    <div className="relative z-10 rounded-xl scroll-fuse ornamental-border overflow-hidden">
+      <div className="px-6 py-12 sm:py-16 text-center relative">
+        {/* 文明印章 */}
+        <div className="mb-5 flex justify-center">
+          <div className="relative">
+            <CivilizationBadge type="KNOWLEDGE" size={56} glow />
+            {/* 印章环 */}
+            <div className="absolute inset-0 rounded-full border border-[oklch(0.65_0.06_80_/_0.25)] animate-[spin_60s_linear_infinite]" />
+          </div>
+        </div>
+
+        <h3 className="font-civ-serif text-lg font-bold text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] mb-2 tracking-wide">
+          {isZh ? "探索档案尚未开启" : "Archive Unopened"}
+        </h3>
+        <p className="font-civ-serif text-xs text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] italic max-w-sm mx-auto leading-relaxed">
+          {isZh
+            ? "创建学习路径后，路径中的试炼会自动记录于你的文明档案。"
+            : "After creating a learning path, its trials will be recorded in your archive."}
+        </p>
+
+        <button
+          onClick={onExplore}
+          className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[oklch(0.60_0.06_80_/_0.30)] bg-[oklch(0.92_0.025_80_/_0.50)] dark:bg-[oklch(0.22_0.015_78_/_0.50)] px-5 py-2.5 text-xs font-bold font-civ-serif tracking-[0.12em] text-[oklch(0.35_0.04_70)] dark:text-[oklch(0.82_0.04_80)] hover:bg-[oklch(0.88_0.03_80_/_0.60)] dark:hover:bg-[oklch(0.26_0.018_78_/_0.60)] hover:border-[oklch(0.55_0.07_75_/_0.45)] transition-all btn-press"
+        >
+          <QuestScrollIcon name="scroll" size={14} strokeWidth={1.5} />
+          {isZh ? "前往今日探索" : "Begin Exploration"}
+        </button>
+      </div>
     </div>
   );
 }

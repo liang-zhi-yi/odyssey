@@ -416,15 +416,30 @@ export function CivilizationOverviewTab({
       )}
 
       {/* ═══════ 3. Next Goal ═══════ */}
-      {nextGoal && (
+      {/* Priority: use the backend's personalized suggested_focus (from the
+          user's active learning paths). Fall back to building-based computation
+          only if no direction data is available. This ensures each user sees
+          a goal tailored to their own progress, not a static hardcoded target. */}
+      {(direction?.suggested_focus || nextGoal) && (
         <div className="vintage-parchment-card p-6 shadow-sm border border-dashed border-[oklch(0.7_0.12_85_/_0.4)] relative transition-all duration-300 hover:shadow-md">
           <div className="flex items-start gap-4">
-            <VintageShieldIcon icon={nextGoal.type === "upgrade" ? "🚀" : "🎯"} size="sm" tier="gold" />
+            <VintageShieldIcon icon={direction?.suggested_focus ? "🧭" : nextGoal?.type === "upgrade" ? "🚀" : "🎯"} size="sm" tier="gold" />
             <div className="flex-1 min-w-0">
               <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
                 {locale === "en" ? "Next Goal" : "下一个战略目标"}
               </p>
-              {nextGoal.type === "upgrade" ? (
+              {direction?.suggested_focus ? (
+                <>
+                  <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
+                    {direction.suggested_focus}
+                  </h3>
+                  {direction.summary && (
+                    <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1">
+                      {direction.summary}
+                    </p>
+                  )}
+                </>
+              ) : nextGoal?.type === "upgrade" ? (
                 <>
                   <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
                     {locale === "en"
@@ -437,7 +452,7 @@ export function CivilizationOverviewTab({
                       : "继续修建和升级核心地标建筑，以增强整座文明古国的底蕴实力"}
                   </p>
                 </>
-              ) : (
+              ) : nextGoal ? (
                 <>
                   <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
                     {locale === "en"
@@ -458,7 +473,7 @@ export function CivilizationOverviewTab({
                       </div>
                     )}
                 </>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

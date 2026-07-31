@@ -381,7 +381,7 @@ function Sparkle({
 
 /** Small icon for the registry stats row. */
 function RegistryIcon({ name }: { name: string }) {
-  const common = "w-3.5 h-3.5 text-muted-foreground/50";
+  const common = "w-3.5 h-3.5 text-muted-foreground/50 dark:text-muted-foreground/80";
   const paths: Record<string, React.ReactNode> = {
     codex: <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2M4 4h16v16H4z M8 8h8M8 12h8M8 16h5" strokeLinecap="round" strokeLinejoin="round" />,
     flag: <path d="M4 22V4a1 1 0 011-1h12l-2 4 2 4H5" strokeLinecap="round" strokeLinejoin="round" />,

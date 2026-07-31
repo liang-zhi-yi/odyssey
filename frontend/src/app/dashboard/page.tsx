@@ -198,8 +198,8 @@ export default function DashboardPage() {
             {/* Medium: Active quests (1 col) */}
             <div className="lg:col-span-1">
               <ActiveQuestsWidget
-                quests={userQuests}
-                isLoading={questsLoading}
+                paths={allPaths}
+                isLoading={allPathsLoading}
               />
             </div>
 
