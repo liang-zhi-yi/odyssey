@@ -8,6 +8,8 @@ import type {
   UserQuest,
   CivilizationQuestGroup,
   CivilizationQuestsMap,
+  UserCivilizationQuestGroup,
+  UserCivilizationQuestsMap,
 } from "@/types/quest";
 
 export const questService = {
@@ -36,6 +38,12 @@ export const questService = {
   /** List quests the current user has interacted with */
   listUserQuests(): Promise<UserQuest[]> {
     return api.get<UserQuest[]>("/user-quests");
+  },
+
+  /** List the user's own quests grouped by civilization type (with submission status) */
+  async listUserQuestsByCivilization(): Promise<UserCivilizationQuestGroup[]> {
+    const data = await api.get<UserCivilizationQuestsMap>("/user-quests/by-civilization");
+    return Object.values(data).sort((a, b) => b.count - a.count);
   },
 
   /** Get daily recommended quests (not yet accepted). Set context="world" for world-aware. */

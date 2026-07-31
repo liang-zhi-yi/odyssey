@@ -141,3 +141,21 @@ export interface CivilizationQuestItem {
 }
 
 export type CivilizationQuestsMap = Record<string, CivilizationQuestGroup>;
+
+// ── User-specific Civilization-grouped Quests (with submission status) ──
+
+export interface UserCivilizationQuestItem extends CivilizationQuestItem {
+  submission_status: SubmissionStatus | null;
+  submission_count: number;
+}
+
+export interface UserCivilizationQuestGroup {
+  civilization_type: string;
+  label: string;
+  label_en: string;
+  icon: string;
+  count: number;
+  quests: UserCivilizationQuestItem[];
+}
+
+export type UserCivilizationQuestsMap = Record<string, UserCivilizationQuestGroup>;
