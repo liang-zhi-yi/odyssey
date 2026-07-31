@@ -47,6 +47,18 @@ Desktop.ini
 .claude/
 .cursor/
 .trae-cn/
+.trae/
+
+# Local test / temp files
+Odyssey创建内容.html
+*.html
+!frontend/**/*.html
+!backend/**/*.html
+
+# Local start scripts (user-specific)
+start-backend.bat
+start-frontend.bat
+start.bat
 .marscode/
 .junie/
 .codex/
