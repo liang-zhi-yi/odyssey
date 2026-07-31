@@ -50,17 +50,26 @@ def calculate_reward_preview(difficulty: str, quest_type: str) -> dict:
     }
 
 
-def get_building_for_skill(db: Session, skill_id: str | UUID) -> dict | None:
-    """Resolve the BuildingTemplate associated with a skill."""
-    from app.world.models import BuildingTemplate
-    from app.skills.models import UserSkill
+def get_building_for_skill(
+    db: Session,
+    skill_id: str | UUID,
+    user_id: str | UUID | None = None,
+) -> dict | None:
+    """Resolve the BuildingTemplate associated with a skill.
+
+    When user_id is provided, also returns the user's current building level
+    (0 if the user has no UserBuilding record yet, indicating the building
+    is still locked). This keeps the level display consistent with the
+    user's database state and prevents "Lv.NaN" in the frontend.
+    """
+    from app.world.models import BuildingTemplate, UserBuilding
 
     skill_id = UUID(str(skill_id)) if isinstance(skill_id, str) else skill_id
     tpl = db.query(BuildingTemplate).filter(BuildingTemplate.skill_id == skill_id).first()
     if not tpl:
         return None
 
-    return {
+    result = {
         "id": str(tpl.id),
         "name": tpl.name,
         "name_en": tpl.name_en,
@@ -68,7 +77,22 @@ def get_building_for_skill(db: Session, skill_id: str | UUID) -> dict | None:
         "region": tpl.region,
         "region_en": tpl.region_en,
         "max_level": tpl.max_level,
+        "current_level": 0,  # Default: building not yet constructed
     }
+
+    if user_id is not None:
+        user_id = UUID(str(user_id)) if isinstance(user_id, str) else user_id
+        ub = db.query(UserBuilding).filter(
+            UserBuilding.user_id == user_id,
+            UserBuilding.building_template_id == tpl.id,
+        ).first()
+        # Use the user's actual building level; 0 if no record exists.
+        # This ensures the frontend shows "Lv.0" (not "Lv.1" or "Lv.NaN")
+        # for unconstructed buildings, matching the user's DB state.
+        result["current_level"] = ub.level if ub else 0
+        result["status"] = ub.status.value if ub and hasattr(ub.status, "value") else "LOCKED"
+
+    return result
 
 
 def get_building_context(db: Session, skill_id: str | UUID, user_id: str | UUID | None = None) -> dict | None:
@@ -169,10 +193,12 @@ def get_recommended_quests(
         .all()
     }
 
-    # All available quests with skill loaded
+    # All available global preset quests (user_id IS NULL).
+    # Exclude other users' AI-generated quests (user_id is set for those).
     all_quests = (
         db.query(Quest)
         .options(joinedload(Quest.skill))
+        .filter(Quest.user_id.is_(None))
         .order_by(Quest.difficulty, Quest.title)
         .all()
     )

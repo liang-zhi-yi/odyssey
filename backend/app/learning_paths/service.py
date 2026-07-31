@@ -20,6 +20,8 @@ from app.learning_paths.memory import build_memory_context, record_interaction
 from app.settings.models import UserSettings
 from app.skills.models import Skill
 from app.quests.models import Quest
+from app.submissions.models import QuestSubmission
+from app.core.enums import SubmissionStatus
 from app.world.events import event_path_milestone_completed
 from app.core.exceptions import NotFoundException, ConflictException
 
@@ -359,13 +361,22 @@ def _generate_checkpoint_quests_internal(
         )
         db.add(link)
 
+        # Auto-accept: create QuestSubmission(ACCEPTED) so the quest
+        # immediately appears in the user's "My Tasks" list.
+        submission = QuestSubmission(
+            user_id=UUID(user_id),
+            quest_id=quest.id,
+            status=SubmissionStatus.ACCEPTED,
+        )
+        db.add(submission)
+
         generated.append({
             "id": str(link.id),
             "quest_id": str(quest.id),
             "title": quest.title,
             "skill_id": str(skill_id) if skill_id else None,
             "skill_name": skill_name,
-            "status": "ACTIVE",
+            "status": "ACCEPTED",
         })
 
     # Update checkpoint status

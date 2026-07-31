@@ -302,8 +302,14 @@ def get_quests_grouped_by_civilization(
             "quests": [],
         }
 
-    # Query all quests with their skill → building mapping
-    quests = db.query(QuestModel).order_by(QuestModel.difficulty).all()
+    # Query only global preset quests (user_id IS NULL).
+    # User-specific AI-generated quests are excluded — they appear in "My Tasks" only.
+    quests = (
+        db.query(QuestModel)
+        .filter(QuestModel.user_id.is_(None))
+        .order_by(QuestModel.difficulty)
+        .all()
+    )
 
     for quest in quests:
         # Determine civilization type from skill → building
@@ -373,6 +379,147 @@ def _get_civ_type_for_quest(db: Session, quest) -> str:
     return "KNOWLEDGE"
 
 
+def get_user_quests_grouped_by_civilization(
+    db: Session,
+    user_id: UUID,
+) -> dict:
+    """Group the current user's quests by civilization type.
+
+    Unlike get_quests_grouped_by_civilization (which returns ALL quests),
+    this only returns quests owned by the user (Quest.user_id == user_id),
+    i.e. AI-generated subtasks from learning paths. Each quest item includes
+    the latest QuestSubmission status so the frontend can show state badges.
+
+    Robustness: also includes quests linked to the user via LearningPathQuest
+    (in case Quest.user_id was not set for legacy paths). Auto-creates a
+    QuestSubmission(ACCEPTED) for any path-linked quest missing one, so the
+    quest always appears in "My Tasks" with a proper status.
+    """
+    from app.quests.models import Quest as QuestModel
+    from app.submissions.models import QuestSubmission
+    from app.learning_paths.models import LearningPathQuest
+    from app.core.enums import SubmissionStatus
+    from sqlalchemy import desc
+
+    groups: dict[str, dict] = {}
+
+    for civ_type, info in CIVILIZATION_TYPES.items():
+        groups[civ_type] = {
+            "civilization_type": civ_type,
+            "label": info["zh"],
+            "label_en": info["en"],
+            "icon": info["icon"],
+            "count": 0,
+            "quests": [],
+        }
+
+    # Collect the user's quests from two sources (union by id):
+    #   1. Quest.user_id == user_id  (new AI-generated subtasks)
+    #   2. LearningPathQuest.user_id == user_id  (legacy / safety net)
+    # This ensures subtasks always appear even if Quest.user_id was not set.
+    owned_quest_ids = {
+        str(qid)
+        for (qid,) in db.query(QuestModel.id)
+        .filter(QuestModel.user_id == user_id)
+        .all()
+    }
+    linked_quest_ids = {
+        str(lpq.quest_id)
+        for lpq in db.query(LearningPathQuest)
+        .filter(
+            LearningPathQuest.user_id == user_id,
+            LearningPathQuest.quest_id.isnot(None),
+        )
+        .all()
+    }
+    all_quest_ids = owned_quest_ids | linked_quest_ids
+
+    if not all_quest_ids:
+        return {}  # No quests → empty result (frontend shows empty state)
+
+    quests = (
+        db.query(QuestModel)
+        .filter(QuestModel.id.in_(list(all_quest_ids)))
+        .order_by(QuestModel.difficulty)
+        .all()
+    )
+
+    for quest in quests:
+        civ_type = _get_civ_type_for_quest(db, quest)
+        if civ_type not in groups:
+            civ_type = "KNOWLEDGE"
+
+        building_info = _get_building_for_quest(db, quest, user_id)
+        reward = _estimate_skill_rewards(quest)
+        civ_contribution = _estimate_civ_contribution(quest, building_info)
+
+        # Latest submission status for this quest
+        latest_sub = (
+            db.query(QuestSubmission)
+            .filter(
+                QuestSubmission.quest_id == quest.id,
+                QuestSubmission.user_id == user_id,
+            )
+            .order_by(desc(QuestSubmission.submitted_at).nullslast())
+            .first()
+        )
+
+        # Auto-heal: if a path-linked quest has NO submission at all, create
+        # an ACCEPTED one so the quest shows up in "My Tasks" with a proper
+        # status. This covers paths generated before the auto-accept feature
+        # was added, or any race condition that left the submission missing.
+        if latest_sub is None:
+            try:
+                new_sub = QuestSubmission(
+                    user_id=user_id,
+                    quest_id=quest.id,
+                    status=SubmissionStatus.ACCEPTED,
+                )
+                db.add(new_sub)
+                db.commit()
+                latest_sub = new_sub
+            except Exception:
+                db.rollback()
+                # If auto-create fails, continue with None status rather
+                # than crashing the whole endpoint.
+                latest_sub = None
+
+        submission_status = latest_sub.status.value if latest_sub else None
+        submission_count = (
+            db.query(QuestSubmission)
+            .filter(
+                QuestSubmission.quest_id == quest.id,
+                QuestSubmission.user_id == user_id,
+            )
+            .count()
+        )
+
+        quest_item = {
+            "id": str(quest.id),
+            "title": quest.title,
+            "title_en": quest.title_en,
+            "description": quest.description,
+            "description_en": quest.description_en,
+            "skill_id": str(quest.skill_id),
+            "skill_name": quest.skill.name if quest.skill else None,
+            "difficulty": quest.difficulty.value if hasattr(quest.difficulty, 'value') else str(quest.difficulty),
+            "quest_type": quest.quest_type.value if hasattr(quest.quest_type, 'value') else str(quest.quest_type),
+            "expected_deliverable": quest.expected_deliverable.value if hasattr(quest.expected_deliverable, 'value') else str(quest.expected_deliverable),
+            "associated_building": building_info,
+            "reward_preview": {
+                **reward,
+                "civilization_contribution": civ_contribution,
+            },
+            "submission_status": submission_status,
+            "submission_count": submission_count,
+        }
+        groups[civ_type]["quests"].append(quest_item)
+        groups[civ_type]["count"] += 1
+
+    result = {k: v for k, v in groups.items() if v["count"] > 0}
+    return dict(sorted(result.items(), key=lambda x: x[1]["count"], reverse=True))
+
+
 def _get_building_for_quest(db: Session, quest, user_id: UUID | None = None) -> dict | None:
     """Get building info for a quest's skill."""
     tpl = (
@@ -383,7 +530,9 @@ def _get_building_for_quest(db: Session, quest, user_id: UUID | None = None) -> 
     if not tpl:
         return None
 
-    current_level = 1
+    # Default: building not yet constructed by the user → Lv.0.
+    # This matches the user's DB state (no UserBuilding row = unconstructed).
+    current_level = 0
     if user_id:
         ub = (
             db.query(UserBuilding)
@@ -404,5 +553,5 @@ def _get_building_for_quest(db: Session, quest, user_id: UUID | None = None) -> 
         "civilization_type": tpl.civilization_type,
         "region": tpl.region,
         "current_level": current_level,
-        "next_level_at": current_level * 100,
+        "next_level_at": max(1, (current_level + 1) * 10),
     }

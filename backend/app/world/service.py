@@ -792,21 +792,20 @@ def get_civilization_direction(db: Session, user_id: UUID) -> dict:
         region_list = list(all_regions)[:2]
         building_list = all_building_names[:3]
         summary = (
-            f"Your civilization is evolving toward "
-            f"{' and '.join(region_list)} mastery. "
-            f"Active paths are driving {len(all_building_names)} buildings."
+            f"你的文明正朝着{'、'.join(region_list)}的方向发展。"
+            f"当前学习路径正在推动 {len(all_building_names)} 座建筑成长。"
         )
         if path_directions:
             top_path = path_directions[0]
             if top_path["targeted_buildings"]:
                 first_bld = top_path["targeted_buildings"][0]
                 suggested_focus = (
-                    f"Prioritize '{top_path['path_title']}' "
-                    f"to reach {first_bld['building_name']} Lv.{first_bld['projected_level']}"
+                    f"优先推进「{top_path['path_title']}」，"
+                    f"助力 {first_bld['building_name']} 达到 Lv.{first_bld['projected_level']}"
                 )
     else:
-        summary = "No active learning paths. Create a path to guide your civilization's growth."
-        suggested_focus = "Start by creating a learning path to define your civilization's direction."
+        summary = "暂无进行中的学习路径。创建一条路径来引导你的文明成长方向。"
+        suggested_focus = "从创建一条学习路径开始，定义你的文明发展方向。"
 
     return {
         "active_paths": path_directions,

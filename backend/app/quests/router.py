@@ -17,7 +17,7 @@ from app.quests.service import (
     get_building_for_skill,
 )
 from app.learning_paths import service as lp_service
-from app.world.growth_loop import get_quests_grouped_by_civilization
+from app.world.growth_loop import get_quests_grouped_by_civilization, get_user_quests_grouped_by_civilization
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.auth.models import User
@@ -34,7 +34,9 @@ def _build_quest_list_item(q, building_context=None, user_id=None, db=None) -> Q
     deliv = q.expected_deliverable.value if hasattr(q.expected_deliverable, 'value') else str(q.expected_deliverable)
 
     reward = calculate_reward_preview(difficulty, quest_type)
-    associated_building = get_building_for_skill(db, q.skill_id) if db else None
+    associated_building = (
+        get_building_for_skill(db, q.skill_id, user_id=user_id) if db else None
+    )
 
     return QuestListResponse(
         id=str(q.id),
@@ -51,14 +53,20 @@ def _build_quest_list_item(q, building_context=None, user_id=None, db=None) -> Q
     )
 
 
-def _build_quest_detail(q, db=None) -> QuestDetailResponse:
-    """Build enhanced QuestDetailResponse with building + reward info."""
+def _build_quest_detail(q, db=None, user_id=None) -> QuestDetailResponse:
+    """Build enhanced QuestDetailResponse with building + reward info.
+
+    When user_id is provided, the associated_building includes the user's
+    current building level so the frontend can display "Lv.X" correctly.
+    """
     difficulty = q.difficulty.value if hasattr(q.difficulty, 'value') else str(q.difficulty)
     quest_type = q.quest_type.value if hasattr(q.quest_type, 'value') else str(q.quest_type)
     deliv = q.expected_deliverable.value if hasattr(q.expected_deliverable, 'value') else str(q.expected_deliverable)
 
     reward = calculate_reward_preview(difficulty, quest_type)
-    associated_building = get_building_for_skill(db, q.skill_id) if db else None
+    associated_building = (
+        get_building_for_skill(db, q.skill_id, user_id=user_id) if db else None
+    )
 
     return QuestDetailResponse(
         id=str(q.id),
@@ -82,11 +90,12 @@ def _build_quest_detail(q, db=None) -> QuestDetailResponse:
 def list_quests(
     skill_id: str | None = Query(None, description="Filter by skill UUID"),
     difficulty: str | None = Query(None, description="Filter by LEVEL_1..LEVEL_4"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Return quests, optionally filtered by skill or difficulty. Includes reward previews."""
     quests = service.get_quests(db, skill_id=skill_id, difficulty=difficulty)
-    return [_build_quest_list_item(q, db=db) for q in quests]
+    return [_build_quest_list_item(q, db=db, user_id=str(current_user.id)) for q in quests]
 
 
 @router.get("/quests/recommended", response_model=list[QuestListResponse])
@@ -108,6 +117,7 @@ def list_recommended_quests(
             q,
             building_context=building_context.get(str(q.id)) if building_context else None,
             db=db,
+            user_id=str(current_user.id),
         )
         for q in quests
     ]
@@ -123,7 +133,7 @@ def list_path_node_quests(
 
     if next_checkpoint and next_checkpoint.get("skill_id"):
         quests = service.get_quests_by_skill(db, next_checkpoint["skill_id"])
-        return [_build_quest_list_item(q, db=db) for q in quests]
+        return [_build_quest_list_item(q, db=db, user_id=str(current_user.id)) for q in quests]
 
     return []
 
@@ -142,10 +152,19 @@ def list_quests_by_civilization(
 
 
 @router.get("/quests/{quest_id}", response_model=QuestDetailResponse)
-def get_quest_detail(quest_id: str, db: Session = Depends(get_db)):
-    """Return full details for a single quest with building info and reward preview."""
+def get_quest_detail(
+    quest_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return full details for a single quest with building info and reward preview.
+
+    Authenticated: the associated_building now includes the current user's
+    building level so the frontend can display "Lv.X" correctly (instead
+    of "Lv.undefined" / "Lv.NaN").
+    """
     q = service.get_quest_detail(db, quest_id)
-    return _build_quest_detail(q, db=db)
+    return _build_quest_detail(q, db=db, user_id=str(current_user.id))
 
 
 @router.post("/quests/{quest_id}/accept", response_model=AcceptQuestResponse)
@@ -167,6 +186,20 @@ def list_user_quests(
     """Return all quests the current user has interacted with."""
     rows = service.get_user_quests(db, str(current_user.id))
     return [UserQuestResponse(**r) for r in rows]
+
+
+@router.get("/user-quests/by-civilization")
+def list_user_quests_by_civilization(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return the current user's own quests grouped by civilization type.
+
+    Only returns quests owned by the user (AI-generated subtasks from
+    learning paths), NOT global preset quests. Each quest includes the
+    latest submission status for state badge display.
+    """
+    return get_user_quests_grouped_by_civilization(db, user_id=current_user.id)
 
 
 @router.post("/quests/{quest_id}/abandon")
