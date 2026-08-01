@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import Image from "next/image";
 import type { AgentCard as AgentCardType } from "@/types/agent";
 import { CARD_TYPE_LABELS } from "@/types/agent";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface AgentMessageBubbleProps {
   role: "user" | "agent";
@@ -263,7 +264,7 @@ function InlineCard({ card }: { card: AgentCardType }) {
       )}
       {card.card_type === "quest_recommendation" && (
         <div className="text-xs">
-          <span className="font-bold text-foreground">📍 {String(data.quest_title || "Quest")}</span>
+          <span className="font-bold text-foreground inline-flex items-center gap-1"><QuestScrollIcon name="mission" size={12} /> {String(data.quest_title || "Quest")}</span>
           {data.why != null && (
             <p className="mt-1 text-[11px] text-muted-foreground italic leading-relaxed">"{String(data.why)}"</p>
           )}
@@ -271,7 +272,7 @@ function InlineCard({ card }: { card: AgentCardType }) {
       )}
       {card.card_type === "world_update" && (
         <div className="text-xs">
-          <span className="font-bold text-foreground">🏗️ {String(data.building_name || "Building")}</span>
+          <span className="font-bold text-foreground inline-flex items-center gap-1"><QuestScrollIcon name="building" size={12} /> {String(data.building_name || "Building")}</span>
           <p className="mt-0.5 text-[11px] text-muted-foreground leading-relaxed">
             {String(data.description || "")}
           </p>
@@ -279,7 +280,7 @@ function InlineCard({ card }: { card: AgentCardType }) {
       )}
       {card.card_type === "progress_insight" && (
         <div className="text-xs">
-          <span className="font-bold text-foreground">💡 {String(data.title || "Insight")}</span>
+          <span className="font-bold text-foreground inline-flex items-center gap-1"><QuestScrollIcon name="sparkle" size={12} /> {String(data.title || "Insight")}</span>
           {data.summary != null && (
             <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">{String(data.summary)}</p>
           )}
@@ -287,7 +288,7 @@ function InlineCard({ card }: { card: AgentCardType }) {
       )}
       {card.card_type === "path_suggestion" && (
         <div className="text-xs">
-          <span className="font-bold text-foreground">🧭 {String(data.path_title || "Path")}</span>
+          <span className="font-bold text-foreground inline-flex items-center gap-1"><QuestScrollIcon name="mission" size={12} /> {String(data.path_title || "Path")}</span>
           {data.match_reason != null && (
             <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">{String(data.match_reason)}</p>
           )}
@@ -334,7 +335,7 @@ export function AgentMessageBubble({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-xs font-bold">
-                👤
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
               </div>
             )}
           </div>

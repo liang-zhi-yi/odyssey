@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface StreakWidgetProps {
   streakDays: number;
@@ -39,8 +40,8 @@ export function StreakWidget({ streakDays, totalQuests, isLoading }: StreakWidge
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-accent/20 blur-md animate-glow-pulse" />
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-lg">
-              🔥
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+              <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 6 6 10 8 14a4 4 0 008 0c0-4-2-8-4-12z" /></svg>
             </span>
           </div>
           <div>
@@ -55,8 +56,8 @@ export function StreakWidget({ streakDays, totalQuests, isLoading }: StreakWidge
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-primary/20 blur-md animate-glow-pulse" />
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-lg">
-              ✨
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <QuestScrollIcon name="sparkle" size={20} />
             </span>
           </div>
           <div>

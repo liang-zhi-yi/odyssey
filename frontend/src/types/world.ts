@@ -275,24 +275,24 @@ export const BUILDING_STATUS_LABELS: Record<BuildingStatus, { zh: string; en: st
 };
 
 export const CIVILIZATION_TIER_LABELS: Record<CivilizationTierValue, { zh: string; en: string; icon: string }> = {
-  SETTLER: { zh: "定居者", en: "Settler", icon: "🏕️" },
-  VILLAGE: { zh: "村落", en: "Village", icon: "🏘️" },
-  TOWN: { zh: "城镇", en: "Town", icon: "🏙️" },
-  CITY: { zh: "城市", en: "City", icon: "🌆" },
-  METROPOLIS: { zh: "大都会", en: "Metropolis", icon: "🏛️" },
-  CIVILIZATION: { zh: "文明", en: "Civilization", icon: "🌍" },
+  SETTLER: { zh: "定居者", en: "Settler", icon: "building" },
+  VILLAGE: { zh: "村落", en: "Village", icon: "building" },
+  TOWN: { zh: "城镇", en: "Town", icon: "building-emblem" },
+  CITY: { zh: "城市", en: "City", icon: "building-emblem" },
+  METROPOLIS: { zh: "大都会", en: "Metropolis", icon: "building-emblem" },
+  CIVILIZATION: { zh: "文明", en: "Civilization", icon: "civilization" },
 };
 
 export const ERA_LABELS: Record<CivilizationEra, { zh: string; en: string; icon: string }> = {
-  WILDERNESS: { zh: "荒野时代", en: "Wilderness Era", icon: "🏕️" },
-  AGRICULTURE: { zh: "农耕时代", en: "Agriculture Era", icon: "🌾" },
-  ACADEMY: { zh: "学院时代", en: "Academy Era", icon: "📖" },
-  INDUSTRY: { zh: "工业时代", en: "Industry Era", icon: "⚙️" },
-  INFORMATION: { zh: "信息时代", en: "Information Era", icon: "💻" },
-  AI: { zh: "AI时代", en: "AI Era", icon: "🤖" },
-  INTELLIGENCE: { zh: "智能时代", en: "Intelligence Era", icon: "🧠" },
-  DIGITAL: { zh: "数字文明时代", en: "Digital Civilization Era", icon: "🌐" },
-  FUTURE: { zh: "未来文明时代", en: "Future Civilization Era", icon: "🚀" },
+  WILDERNESS: { zh: "荒野时代", en: "Wilderness Era", icon: "building" },
+  AGRICULTURE: { zh: "农耕时代", en: "Agriculture Era", icon: "creation" },
+  ACADEMY: { zh: "学院时代", en: "Academy Era", icon: "knowledge" },
+  INDUSTRY: { zh: "工业时代", en: "Industry Era", icon: "application" },
+  INFORMATION: { zh: "信息时代", en: "Information Era", icon: "reasoning" },
+  AI: { zh: "AI时代", en: "AI Era", icon: "reasoning" },
+  INTELLIGENCE: { zh: "智能时代", en: "Intelligence Era", icon: "reasoning" },
+  DIGITAL: { zh: "数字文明时代", en: "Digital Civilization Era", icon: "civilization" },
+  FUTURE: { zh: "未来文明时代", en: "Future Civilization Era", icon: "world-core" },
 };
 
 export const CIVILIZATION_TYPE_LABELS: Record<CivilizationType, { zh: string; en: string }> = {
@@ -311,16 +311,16 @@ export const CIVILIZATION_TYPE_LABELS: Record<CivilizationType, { zh: string; en
 };
 
 export const EVENT_TYPE_LABELS: Record<WorldEventType, { zh: string; en: string; icon: string }> = {
-  BUILDING_UPGRADE: { zh: "建筑升级", en: "Building Upgrade", icon: "⬆️" },
-  COMPOUND_UNLOCK: { zh: "复合建筑解锁", en: "Compound Unlock", icon: "🔓" },
-  COMPOUND_UPGRADE: { zh: "复合建筑升级", en: "Compound Upgrade", icon: "⬆️" },
-  REGION_UNLOCK: { zh: "区域解锁", en: "Region Unlock", icon: "🗺️" },
-  TIER_ADVANCE: { zh: "文明晋级", en: "Tier Advance", icon: "⭐" },
-  MILESTONE_REACHED: { zh: "里程碑达成", en: "Milestone", icon: "🎯" },
-  PATH_MILESTONE_COMPLETED: { zh: "路径里程碑", en: "Path Milestone", icon: "🛤️" },
-  ERA_ADVANCE: { zh: "时代进阶", en: "Era Advance", icon: "⏳" },
-  EXPLORATION_UNLOCK: { zh: "探索解锁", en: "Exploration Unlock", icon: "🔍" },
-  RESOURCE_BOOST: { zh: "资源增益", en: "Resource Boost", icon: "📈" },
+  BUILDING_UPGRADE: { zh: "建筑升级", en: "Building Upgrade", icon: "building-emblem" },
+  COMPOUND_UNLOCK: { zh: "复合建筑解锁", en: "Compound Unlock", icon: "lock" },
+  COMPOUND_UPGRADE: { zh: "复合建筑升级", en: "Compound Upgrade", icon: "building-emblem" },
+  REGION_UNLOCK: { zh: "区域解锁", en: "Region Unlock", icon: "civilization" },
+  TIER_ADVANCE: { zh: "文明晋级", en: "Tier Advance", icon: "star" },
+  MILESTONE_REACHED: { zh: "里程碑达成", en: "Milestone", icon: "mission" },
+  PATH_MILESTONE_COMPLETED: { zh: "路径里程碑", en: "Path Milestone", icon: "scroll" },
+  ERA_ADVANCE: { zh: "时代进阶", en: "Era Advance", icon: "sparkle" },
+  EXPLORATION_UNLOCK: { zh: "探索解锁", en: "Exploration Unlock", icon: "quest" },
+  RESOURCE_BOOST: { zh: "资源增益", en: "Resource Boost", icon: "creation" },
 };
 
 // ── Civilization Direction ──────────────────────────────────────────────
@@ -362,14 +362,14 @@ export interface CivilizationGroup {
 }
 
 export const CIVILIZATION_GROUPS: CivilizationGroup[] = [
-  { key: "ai", label: "AI文明", labelEn: "AI Civilization", icon: "🤖", domains: ["AI"] },
-  { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "⚙️", domains: ["PROGRAMMING"] },
-  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "📚", domains: ["RESEARCH"] },
-  { key: "business", label: "商业文明", labelEn: "Business", icon: "💼", domains: ["BUSINESS"] },
-  { key: "design", label: "设计文明", labelEn: "Design", icon: "🎨", domains: ["DESIGN"] },
-  { key: "language", label: "语言文明", labelEn: "Language", icon: "🗣️", domains: ["LANGUAGE"] },
-  { key: "science", label: "科学文明", labelEn: "Science", icon: "🔬", domains: ["SCIENCE"] },
-  { key: "health", label: "健康文明", labelEn: "Health", icon: "💪", domains: ["HEALTH"] },
-  { key: "finance", label: "金融文明", labelEn: "Finance", icon: "💰", domains: ["FINANCE"] },
-  { key: "society", label: "社会文明", labelEn: "Society", icon: "🌐", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
+  { key: "ai", label: "AI文明", labelEn: "AI Civilization", icon: "reasoning", domains: ["AI"] },
+  { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "application", domains: ["PROGRAMMING"] },
+  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "knowledge", domains: ["RESEARCH"] },
+  { key: "business", label: "商业文明", labelEn: "Business", icon: "seal", domains: ["BUSINESS"] },
+  { key: "design", label: "设计文明", labelEn: "Design", icon: "creation", domains: ["DESIGN"] },
+  { key: "language", label: "语言文明", labelEn: "Language", icon: "scroll", domains: ["LANGUAGE"] },
+  { key: "science", label: "科学文明", labelEn: "Science", icon: "reasoning", domains: ["SCIENCE"] },
+  { key: "health", label: "健康文明", labelEn: "Health", icon: "shield", domains: ["HEALTH"] },
+  { key: "finance", label: "金融文明", labelEn: "Finance", icon: "star", domains: ["FINANCE"] },
+  { key: "society", label: "社会文明", labelEn: "Society", icon: "civilization", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
 ];

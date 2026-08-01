@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import type { CivilizationDirection, TargetedBuilding } from "@/types/world";
 import { CIVILIZATION_TIER_LABELS } from "@/types/world";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface CivilizationCompassProps {
   direction: CivilizationDirection | null;
@@ -63,7 +64,7 @@ export function CivilizationCompass({
   ) {
     return (
       <div className="rounded-xl border-2 border-dashed border-border/60 bg-muted/10 p-5 text-center">
-        <span className="text-3xl block mb-2">🧭</span>
+        <span className="text-3xl block mb-2 text-[oklch(0.55_0.12_85)] inline-flex justify-center"><QuestScrollIcon name="compass" size={32} /></span>
         <p className="text-xs text-muted-foreground">
           {locale === "en"
             ? "Create a learning path to set your civilization's direction"
@@ -124,7 +125,7 @@ export function CivilizationCompass({
   return (
     <div className="vintage-parchment-card p-4 transition-all duration-300 hover:shadow-lg">
       <div className="flex items-center gap-2 mb-3 border-b border-[oklch(0.88_0.02_90)] pb-2">
-        <span className="text-lg animate-rhumb-spin inline-block">🧭</span>
+        <span className="text-lg animate-rhumb-spin inline-block text-[oklch(0.55_0.12_85)]"><QuestScrollIcon name="compass" size={18} /></span>
         <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
           {locale === "en" ? "Civilization Compass" : "文明导航罗盘"}
         </h3>
@@ -291,15 +292,20 @@ export function CivilizationCompass({
             strokeWidth={1.5}
             className="shadow-sm animate-glow-pulse"
           />
-          <text
-            x={centerX}
-            y={centerY - (isSm ? 4 : 6)}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize={isSm ? 16 : 22}
+          {/* Center compass glyph — drawn as SVG primitives */}
+          <g
+            transform={`translate(${centerX}, ${centerY - (isSm ? 4 : 6)})`}
+            stroke="oklch(0.45 0.12 85)"
+            strokeWidth={1.4}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            🧭
-          </text>
+            <circle cx="0" cy="0" r={isSm ? 7 : 9} />
+            <path d={`M0 ${isSm ? -9 : -12} L${isSm ? 2 : 2.5} 0 L0 ${isSm ? 4 : 5} L${isSm ? -2 : -2.5} 0 Z`} fill="oklch(0.45 0.12 85)" strokeWidth="0.8" />
+            <path d={`M0 ${isSm ? 9 : 12} L${isSm ? 2 : 2.5} 0 L0 ${isSm ? -4 : -5} L${isSm ? -2 : -2.5} 0 Z`} strokeWidth="1" opacity="0.6" />
+            <circle cx="0" cy="0" r="1" fill="oklch(0.45 0.12 85)" stroke="none" />
+          </g>
           <text
             x={centerX}
             y={centerY + (isSm ? 14 : 20)}
@@ -357,16 +363,19 @@ export function CivilizationCompass({
                   className="hidden dark:inline"
                 />
 
-                {/* Building icon */}
-                <text
-                  x={node.x}
-                  y={node.y - (isSm ? 2 : 3)}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={isSm ? 12 : 16}
+                {/* Building glyph — SVG primitive (columned structure) */}
+                <g
+                  transform={`translate(${node.x}, ${node.y - (isSm ? 2 : 3)})`}
+                  stroke={color}
+                  strokeWidth={1.3}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  {b.building_icon}
-                </text>
+                  <path d={`M${isSm ? -5 : -7} ${isSm ? 5 : 7} L${isSm ? 5 : 7} ${isSm ? 5 : 7}`} />
+                  <path d={`M${isSm ? -4 : -5} ${isSm ? 5 : 7} L${isSm ? -4 : -5} ${isSm ? -2 : -3} L0 ${isSm ? -5 : -7} L${isSm ? 4 : 5} ${isSm ? -2 : -3} L${isSm ? 4 : 5} ${isSm ? 5 : 7}`} />
+                  <path d={`M${isSm ? -2 : -2.5} ${isSm ? 2 : 3} L${isSm ? -2 : -2.5} ${isSm ? 5 : 7} M0 ${isSm ? 2 : 3} L0 ${isSm ? 5 : 7} M${isSm ? 2 : 2.5} ${isSm ? 2 : 3} L${isSm ? 2 : 2.5} ${isSm ? 5 : 7}`} strokeWidth="0.9" opacity="0.7" />
+                </g>
 
                 {/* Level badge */}
                 <circle
@@ -446,8 +455,8 @@ export function CivilizationCompass({
             你的文明正通过 {direction.active_paths.length} 条路径发展，驱动 {uniqueBuildings.length} 个建筑成长
           </p>
           {direction.active_paths[0]?.targeted_buildings[0] && (
-            <p className="text-[11px] text-primary text-center mt-1 font-medium">
-              💡 优先推进「{direction.active_paths[0].path_title}」，达成 {direction.active_paths[0].targeted_buildings[0].building_name} Lv.{direction.active_paths[0].targeted_buildings[0].projected_level}
+            <p className="text-[11px] text-primary text-center mt-1 font-medium inline-flex items-center justify-center gap-1">
+              <QuestScrollIcon name="idea" size={12} className="inline-block" /> 优先推进「{direction.active_paths[0].path_title}」，达成 {direction.active_paths[0].targeted_buildings[0].building_name} Lv.{direction.active_paths[0].targeted_buildings[0].projected_level}
             </p>
           )}
         </>
@@ -457,8 +466,8 @@ export function CivilizationCompass({
             {direction.summary}
           </p>
           {direction.suggested_focus && (
-            <p className="text-[11px] text-primary text-center mt-1 font-medium">
-              💡 {direction.suggested_focus}
+            <p className="text-[11px] text-primary text-center mt-1 font-medium inline-flex items-center justify-center gap-1">
+              <QuestScrollIcon name="idea" size={12} className="inline-block" /> {direction.suggested_focus}
             </p>
           )}
         </>

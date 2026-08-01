@@ -13,6 +13,7 @@ import { TechTreeView } from "@/app/components/TechTreeView";
 import { EraTransitionOverlay } from "@/app/components/EraTransitionOverlay";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
+import { QuestScrollIcon, type ScrollIconName } from "@/app/components/QuestScrollIcon";
 import type {
   UserBuilding,
   UserCompoundBuilding,
@@ -109,10 +110,10 @@ function WorldPageContent() {
     return <Loading text={t("auth.validating")} />;
   }
 
-  const tabs: { key: ViewMode; icon: string; label: string }[] = [
-    { key: "overview", icon: "🏛️", label: t("world.overviewTab") },
-    { key: "map", icon: "🗺️", label: t("world.mapTab") },
-    { key: "techtree", icon: "🌳", label: t("world.techTreeTab") },
+  const tabs: { key: ViewMode; icon: ScrollIconName; label: string }[] = [
+    { key: "overview", icon: "building", label: t("world.overviewTab") },
+    { key: "map", icon: "map", label: t("world.mapTab") },
+    { key: "techtree", icon: "tree", label: t("world.techTreeTab") },
   ];
 
   return (
@@ -124,7 +125,7 @@ function WorldPageContent() {
             {/* Left: Title + tab toggle */}
             <div className="flex items-center gap-4 shrink-0">
               <h1 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] tracking-wide flex items-center gap-2">
-                <span className="animate-rhumb-spin inline-block text-lg">🧭</span> {t("world.myWorld")}
+                <span className="animate-rhumb-spin inline-block text-lg text-[oklch(0.55_0.12_85)] inline-flex"><QuestScrollIcon name="compass" size={18} /></span> {t("world.myWorld")}
               </h1>
               {/* Three-tab toggle */}
               <div className="flex rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.95_0.005_90)] p-0.5 shadow-inner">
@@ -141,7 +142,7 @@ function WorldPageContent() {
                         : "text-[oklch(0.55_0.02_85)] hover:text-[oklch(0.35_0.02_80)] hover:bg-[oklch(0.98_0.005_95)]/50"
                     }`}
                   >
-                    <span className="text-sm">{tab.icon}</span>
+                    <span className="text-sm inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name={tab.icon} size={14} /></span>
                     <span className="hidden sm:inline">{tab.label}</span>
                   </button>
                 ))}
@@ -151,9 +152,9 @@ function WorldPageContent() {
             {/* Right: Quick stats */}
             {world && (
               <div className="hidden lg:flex items-center gap-3 text-xs shrink-0">
-                <QuickStat icon="🏛️" label={t("world.activeBuildings")} value={String(world.stats.active_buildings)} />
-                <QuickStat icon="⭐" label={t("world.compoundBuildings")} value={String(world.stats.active_compound_buildings)} />
-                <QuickStat icon="📈" label={t("world.civilizationLevel")} value={`Lv.${world.civilization_level}`} isLevel />
+                <QuickStat icon="building" label={t("world.activeBuildings")} value={String(world.stats.active_buildings)} />
+                <QuickStat icon="star" label={t("world.compoundBuildings")} value={String(world.stats.active_compound_buildings)} />
+                <QuickStat icon="chart-up" label={t("world.civilizationLevel")} value={`Lv.${world.civilization_level}`} isLevel />
               </div>
             )}
           </div>
@@ -237,7 +238,7 @@ function QuickStat({
   value,
   isLevel = false,
 }: {
-  icon: string;
+  icon: ScrollIconName;
   label: string;
   value: string;
   isLevel?: boolean;
@@ -250,7 +251,11 @@ function QuickStat({
           : "bg-[oklch(0.98_0.005_95)] border-[oklch(0.88_0.02_90)] hover:border-[oklch(0.72_0.12_85_/_0.3)]"
       }`}
     >
-      <span className={`text-sm ${isLevel ? "animate-gentle-float" : ""}`}>{icon}</span>
+      <span
+        className={`text-sm inline-flex ${isLevel ? "animate-gentle-float text-[oklch(0.45_0.12_85)]" : "text-[oklch(0.4_0.02_80)]"}`}
+      >
+        <QuestScrollIcon name={icon} size={14} />
+      </span>
       <div className="flex items-baseline gap-1.5 leading-tight">
         <span className="hidden xl:inline text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
           {label}:

@@ -196,7 +196,7 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         {
           id: generateId(),
           role: "agent",
-          content: `Hello ${user?.username || "there"}! 👋 I'm Odyssey, your growth companion. How can I help you today?`,
+          content: `Hello ${user?.username || "there"}! I'm Odyssey, your growth companion. How can I help you today?`,
           timestamp: formatTime(),
         },
       ]);

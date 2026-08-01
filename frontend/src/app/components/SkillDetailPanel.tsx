@@ -14,23 +14,24 @@ import { masteryColor } from "@/app/components/GrowthRing";
 import { computeAggregateScores } from "@/lib/scores";
 import { useLocale } from "@/hooks/useLocale";
 import { VintageShieldIcon } from "./VintageShieldIcon";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import type { DimensionScores } from "@/types/assessment";
 
 // ── Civilization group lookup (shared with SkillTreeSidebar) ──────
 
-const DOMAIN_TO_CIV: Record<string, { label: string; labelEn: string; icon: string }> = {
-  AI: { label: "AI文明", labelEn: "AI Civilization", icon: "🤖" },
-  PROGRAMMING: { label: "工程文明", labelEn: "Engineering", icon: "⚙️" },
-  RESEARCH: { label: "知识文明", labelEn: "Knowledge", icon: "📚" },
-  BUSINESS: { label: "商业文明", labelEn: "Business", icon: "💼" },
-  DESIGN: { label: "设计文明", labelEn: "Design", icon: "🎨" },
-  LANGUAGE: { label: "语言文明", labelEn: "Language", icon: "🗣️" },
-  SCIENCE: { label: "科学文明", labelEn: "Science", icon: "🔬" },
-  HEALTH: { label: "健康文明", labelEn: "Health", icon: "💪" },
-  FINANCE: { label: "金融文明", labelEn: "Finance", icon: "💰" },
-  MANAGEMENT: { label: "社会文明", labelEn: "Society", icon: "🌐" },
-  CAREER: { label: "社会文明", labelEn: "Society", icon: "🌐" },
-  MEDIA: { label: "社会文明", labelEn: "Society", icon: "🌐" },
+const DOMAIN_TO_CIV: Record<string, { label: string; labelEn: string; icon: ScrollIconName }> = {
+  AI: { label: "AI文明", labelEn: "AI Civilization", icon: "sparkle" },
+  PROGRAMMING: { label: "工程文明", labelEn: "Engineering", icon: "application" },
+  RESEARCH: { label: "知识文明", labelEn: "Knowledge", icon: "knowledge" },
+  BUSINESS: { label: "商业文明", labelEn: "Business", icon: "building" },
+  DESIGN: { label: "设计文明", labelEn: "Design", icon: "creation" },
+  LANGUAGE: { label: "语言文明", labelEn: "Language", icon: "seal" },
+  SCIENCE: { label: "科学文明", labelEn: "Science", icon: "reasoning" },
+  HEALTH: { label: "健康文明", labelEn: "Health", icon: "shield" },
+  FINANCE: { label: "金融文明", labelEn: "Finance", icon: "building-emblem" },
+  MANAGEMENT: { label: "社会文明", labelEn: "Society", icon: "civilization" },
+  CAREER: { label: "社会文明", labelEn: "Society", icon: "civilization" },
+  MEDIA: { label: "社会文明", labelEn: "Society", icon: "civilization" },
 };
 
 // ── Props ─────────────────────────────────────────────────────────
@@ -142,7 +143,14 @@ export function SkillDetailPanel({
         <div className="max-w-3xl mx-auto px-8 py-12 animate-fade-in relative z-10">
           {/* Welcome header */}
           <div className="text-center mb-10 flex flex-col items-center">
-            <VintageShieldIcon icon="🌱" size="lg" tier="gold" className="mb-4 animate-gentle-float" />
+            <div className="w-18 h-18 rounded-2xl border-2 border-double border-[oklch(0.7_0.12_85)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.72_0.12_82_/_0.2)] shadow-md animate-pedestal-glow text-[oklch(0.35_0.12_85)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.72_0.12_82_/_0.2)] mb-4 animate-gentle-float flex items-center justify-center shrink-0 relative overflow-hidden">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.12] dark:opacity-[0.18] pointer-events-none select-none" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+            <path d="M 10,10 L 90,10 L 90,45 C 90,75 50,92 50,92 C 50,92 10,75 10,45 Z" strokeWidth="3.5" strokeLinejoin="round" />
+            <line x1="50" y1="5" x2="50" y2="92" strokeWidth="2" strokeDasharray="3 3" />
+            <line x1="10" y1="40" x2="90" y2="40" strokeWidth="1.5" strokeDasharray="4 4" />
+          </svg>
+          <QuestScrollIcon name="sparkle" size={36} className="relative z-10" />
+        </div>
             <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-2">
               {locale === "en" ? "Capability Ledger" : "能力技能大总账"}
             </h1>
@@ -158,7 +166,7 @@ export function SkillDetailPanel({
             {/* Aggregate radar */}
             <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm">
               <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
-                <span>🧭</span> {locale === "en" ? "Capability Landscape" : "综合能力星图"}
+                <QuestScrollIcon name="mission" size={14} /> {locale === "en" ? "Capability Landscape" : "综合能力星图"}
               </h3>
               <div className="flex justify-center">
                 <RadarChart scores={aggregateScores} size={220} />
@@ -168,7 +176,7 @@ export function SkillDetailPanel({
             {/* Skill stats summary */}
             <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm flex flex-col justify-center">
               <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
-                <span>📜</span> {locale === "en" ? "Ledger Summary" : "账目统计"}
+                <QuestScrollIcon name="scroll" size={14} /> {locale === "en" ? "Ledger Summary" : "账目统计"}
               </h3>
               <div className="space-y-3">
                 <StatRow
@@ -272,7 +280,7 @@ export function SkillDetailPanel({
           {domainInfo && (
             <>
               <span className="hover:text-[oklch(0.3_0.02_80)] transition-colors cursor-pointer">
-                {domainInfo.icon} {locale === "en" ? domainInfo.labelEn : domainInfo.label}
+                <QuestScrollIcon name={domainInfo.icon} size={12} className="inline-block align-middle" /> {locale === "en" ? domainInfo.labelEn : domainInfo.label}
               </span>
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -339,7 +347,7 @@ export function SkillDetailPanel({
             {/* Radar chart */}
             <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm">
               <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
-                <span>🗺️</span> {locale === "en" ? "4-Dimension Analysis" : "四维能力剖面"}
+                <QuestScrollIcon name="world-core" size={14} /> {locale === "en" ? "4-Dimension Analysis" : "四维能力剖面"}
               </h3>
               <div className="flex items-center gap-4">
                 <RadarChart
@@ -385,7 +393,7 @@ export function SkillDetailPanel({
             {/* Growth trend */}
             <div className="vintage-parchment-card rounded-2xl border border-[oklch(0.88_0.02_90)] p-6 shadow-sm relative overflow-hidden">
               <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 flex items-center gap-1.5">
-                <span>📈</span> {locale === "en" ? "Growth Trend" : "文明成长曲线"}
+                <QuestScrollIcon name="star" size={14} /> {locale === "en" ? "Growth Trend" : "文明成长曲线"}
               </h3>
               {trendPoints.length >= 2 ? (
                 <div className="space-y-3 relative z-10">
@@ -435,7 +443,7 @@ export function SkillDetailPanel({
         {relatedBuildings.length > 0 && (
           <section className="mb-6">
             <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
-              <span>🏛️</span> {locale === "en" ? "Related Buildings" : "所辖领域内建筑"}
+              <QuestScrollIcon name="building" size={14} /> {locale === "en" ? "Related Buildings" : "所辖领域内建筑"}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {relatedBuildings.map((building) => {
@@ -451,9 +459,7 @@ export function SkillDetailPanel({
                     className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.96_0.005_90)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-3.5 transition-all hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group relative overflow-hidden"
                   >
                     <div className="absolute inset-0 border border-double border-[oklch(0.7_0.12_85_/_0.2)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-xl" />
-                    <span className="text-2xl transition-transform group-hover:scale-110">
-                      {tpl?.icon ?? "🏛️"}
-                    </span>
+                    <QuestScrollIcon name="building" size={28} className="transition-transform group-hover:scale-110 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[oklch(0.3_0.02_80)] truncate">
                         {name}
@@ -479,7 +485,7 @@ export function SkillDetailPanel({
         {relatedSkills.length > 1 && (
           <section className="mb-6">
             <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
-              <span>🔗</span> {locale === "en" ? "Related Skills" : "同源关联技能"}
+              <QuestScrollIcon name="seal" size={14} /> {locale === "en" ? "Related Skills" : "同源关联技能"}
             </h3>
             <div className="flex flex-wrap gap-1.5">
               {relatedSkills
@@ -523,7 +529,7 @@ export function SkillDetailPanel({
           {/* Completed quests */}
           <section>
             <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
-              <span>⚔️</span> {locale === "en" ? "Completed Quests" : "已征服探索任务"}
+              <QuestScrollIcon name="quest" size={14} /> {locale === "en" ? "Completed Quests" : "已征服探索任务"}
             </h3>
             {completedQuests.length > 0 ? (
               <div className="vintage-parchment-card rounded-xl border border-[oklch(0.88_0.02_90)] divide-y divide-[oklch(0.88_0.02_90_/_0.4)] shadow-sm">
@@ -532,7 +538,7 @@ export function SkillDetailPanel({
                     key={q.quest_id}
                     className="flex items-center gap-2 px-4 py-2.5"
                   >
-                    <span className="text-xs text-[oklch(0.55_0.1_150)] font-bold shrink-0">✓</span>
+                    <svg className="w-3 h-3 text-[oklch(0.55_0.1_150)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     <span className="text-xs text-[oklch(0.3_0.02_80)] font-semibold flex-1 truncate">
                       {q.quest_title}
                     </span>
@@ -556,7 +562,7 @@ export function SkillDetailPanel({
           {/* Recommended quests */}
           <section>
             <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
-              <span>🧭</span> {locale === "en" ? "Recommended Quests" : "建议开拓路线"}
+              <QuestScrollIcon name="mission" size={14} /> {locale === "en" ? "Recommended Quests" : "建议开拓路线"}
             </h3>
             {recommendedQuests.length > 0 ? (
               <div className="vintage-parchment-card rounded-xl border border-[oklch(0.88_0.02_90)] divide-y divide-[oklch(0.88_0.02_90_/_0.4)] shadow-sm">
@@ -591,7 +597,7 @@ export function SkillDetailPanel({
         {/* ── Recent Growth Records ─────────────────────────── */}
         <section>
           <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-3 flex items-center gap-1.5">
-            <span>📖</span> {locale === "en" ? "Recent Growth Records" : "航海开发成长日志"}
+            <QuestScrollIcon name="scroll" size={14} /> {locale === "en" ? "Recent Growth Records" : "航海开发成长日志"}
           </h3>
           {recentLogs.length > 0 ? (
             <div className="vintage-parchment-card rounded-xl border border-[oklch(0.88_0.02_90)] divide-y divide-[oklch(0.88_0.02_90_/_0.4)] shadow-sm">
@@ -694,11 +700,11 @@ function PhaseIndicator({
       className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
       style={{ backgroundColor: phaseColors[phase] ?? phaseColors.seed }}
     >
-      {phase === "seed" && "🌱"}
-      {phase === "sprout" && "🌿"}
-      {phase === "growing" && "🪴"}
-      {phase === "blooming" && "🌺"}
-      {phase === "thriving" && "🌳"}
+      {phase === "seed" && <QuestScrollIcon name="sparkle" size={12} className="inline-block" />}
+      {phase === "sprout" && <QuestScrollIcon name="star-outline" size={12} className="inline-block" />}
+      {phase === "growing" && <QuestScrollIcon name="star" size={12} className="inline-block" />}
+      {phase === "blooming" && <QuestScrollIcon name="creation" size={12} className="inline-block" />}
+      {phase === "thriving" && <QuestScrollIcon name="world-core" size={12} className="inline-block" />}
       {locale === "en" ? info.en : info.zh}
     </span>
   );

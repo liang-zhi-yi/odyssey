@@ -5,6 +5,7 @@ import { worldService } from "@/services/world.service";
 import { EVENT_TYPE_LABELS } from "@/types/world";
 import type { WorldEvent, WorldEventType } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
 interface WorldEventTimelineProps {
   /** Pre-fetched events (optional — falls back to SWR fetch) */
@@ -46,7 +47,7 @@ function EventItem({ event, locale }: { event: WorldEvent; locale: string }) {
   const typeInfo = EVENT_TYPE_LABELS[event.event_type as WorldEventType] ?? {
     zh: event.event_type,
     en: event.event_type,
-    icon: "📌",
+    icon: "location",
   };
 
   const title =
@@ -65,7 +66,7 @@ function EventItem({ event, locale }: { event: WorldEvent; locale: string }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2">
-          <span className="text-sm">{typeInfo.icon}</span>
+          <QuestScrollIcon name={resolveScrollIconName(typeInfo.icon)} size={14} className="flex-shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
               {title}

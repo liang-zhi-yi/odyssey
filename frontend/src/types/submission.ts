@@ -41,6 +41,7 @@ export interface SubmissionHistoryItem {
   content: string | null;
   github_url: string | null;
   demo_url: string | null;
+  assessment_id: string | null;
   assessment: AssessmentResult | null;
   submitted_at: string | null;
 }

@@ -9,6 +9,7 @@ import type {
   GeneratedQuest,
   TargetedBuilding,
 } from "@/types/learningPath";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface PathMilestoneListProps {
   pathId: string;
@@ -152,8 +153,8 @@ export function PathMilestoneList({
                   </h4>
                   <div className="flex items-center gap-2 flex-wrap">
                     {milestone.skill_name && (
-                      <span className="text-xs text-muted-foreground">
-                        🎯 {milestone.skill_name}
+                      <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                        <QuestScrollIcon name="mission" size={12} /> {milestone.skill_name}
                       </span>
                     )}
                     {/* Building indicator from targetedBuildings */}
@@ -175,7 +176,7 @@ export function PathMilestoneList({
               {/* Expand/collapse chevron + checkpoint count */}
               <div className="flex items-center gap-2">
                 {milestone.checkpoints && milestone.checkpoints.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                     {milestone.checkpoints.length} checkpoints
                   </span>
                 )}

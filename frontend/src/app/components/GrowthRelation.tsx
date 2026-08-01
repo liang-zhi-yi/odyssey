@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/hooks/useLocale";
 import type { Project } from "@/types/project";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface GrowthRelationProps {
   projects: Project[];
@@ -68,8 +69,9 @@ export function GrowthRelation({ projects, isLoading }: GrowthRelationProps) {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-      <h3 className="text-sm font-semibold mb-4">
-        {locale === "zh" ? "📜 成长关联" : "📜 Growth Relations"}
+      <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+        <QuestScrollIcon name="scroll" size={18} />
+        {locale === "zh" ? "成长关联" : "Growth Relations"}
       </h3>
 
       <div className="relative">

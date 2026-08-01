@@ -7,6 +7,7 @@ import { LEVEL_LABELS } from "@/types/world";
 import type { TechTreeNode, TechTreeData } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
 import { VintageShieldIcon } from "./VintageShieldIcon";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 
 interface TechTreeViewProps {
   data?: TechTreeData;
@@ -64,7 +65,7 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
   ) {
     return (
       <div className="rounded-xl border border-dashed border-[oklch(0.88_0.02_90)] bg-[oklch(0.97_0.003_90)] p-8 text-center">
-        <span className="text-4xl block mb-3">🌳</span>
+        <QuestScrollIcon name="world-core" size={40} className="block mx-auto mb-3" />
         <p className="text-sm text-[oklch(0.5_0.02_85)]">
           {locale === "en"
             ? "No tech tree data available yet"
@@ -96,12 +97,12 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
     }
   };
 
-  const layerIcon = (key: string): string => {
+  const layerIcon = (key: string): ScrollIconName => {
     switch (key) {
-      case "wonder": return "🏛️";
-      case "compound": return "⭐";
-      case "basic": return "🏗️";
-      default: return "📦";
+      case "wonder": return "building";
+      case "compound": return "star";
+      case "basic": return "building-emblem";
+      default: return "scroll";
     }
   };
 
@@ -110,7 +111,7 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
       {/* Header */}
       <div className="text-center space-y-1">
         <h3 className="text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
-          🌳 {locale === "en" ? "Building Tech Tree" : "文明建筑大科技树"}
+          <QuestScrollIcon name="world-core" size={20} className="inline-block align-middle" /> {locale === "en" ? "Building Tech Tree" : "文明建筑大科技树"}
         </h3>
         <p className="text-xs text-[oklch(0.55_0.02_85)]">
           {locale === "en"
@@ -176,7 +177,7 @@ function LayerConnector({ locale }: { locale: string }) {
       <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.35)] to-[oklch(0.7_0.12_85_/_0.5)] border-t border-b border-[oklch(0.7_0.12_85_/_0.2)] animate-route-flow" />
       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[oklch(0.95_0.005_90)] border border-[oklch(0.7_0.12_85_/_0.3)] shadow-sm text-xs font-bold text-[oklch(0.4_0.03_80)] font-civ-serif">
         <span>{locale === "en" ? "requires" : "必须前提"}</span>
-        <span className="animate-gentle-float text-sm">⚓</span>
+        <QuestScrollIcon name="arrow-right" size={14} className="animate-gentle-float inline-block" />
         <span>{locale === "en" ? "unlocks" : "方可开拓"}</span>
       </div>
       <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-[oklch(0.7_0.12_85_/_0.5)] via-[oklch(0.7_0.12_85_/_0.35)] to-transparent border-t border-b border-[oklch(0.7_0.12_85_/_0.2)] animate-route-flow" />
@@ -195,7 +196,7 @@ function TechTreeLayer({
 }: {
   nodes: TechTreeNode[];
   label: string;
-  icon: string;
+  icon: ScrollIconName;
   locale: string;
   accentColor: string;
   isEmpty: boolean;
@@ -204,7 +205,7 @@ function TechTreeLayer({
     <div className="space-y-4">
       {/* Layer header */}
       <div className="flex items-center justify-center gap-2">
-        <span className="text-lg">{icon}</span>
+        <QuestScrollIcon name={icon} size={18} />
         <h4
           className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full font-civ-serif"
           style={{
@@ -299,7 +300,7 @@ function TechTreeNodeCard({
           </p>
         </div>
         {!isLocked && node.node_type === "compound" && (
-          <span className="text-yellow-500 text-sm shrink-0">⭐</span>
+          <QuestScrollIcon name="star" size={14} className="shrink-0 text-yellow-500" />
         )}
       </div>
 
@@ -321,7 +322,7 @@ function TechTreeNodeCard({
                     : "text-[oklch(0.5_0.02_85)]"
                 }
               >
-                {p.met ? "✓" : "○"} {p.skill_name}
+                {p.met ? <svg className="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : "○"} {p.skill_name}
               </span>
               <span
                 className={`font-mono tabular-nums ${
@@ -342,14 +343,14 @@ function TechTreeNodeCard({
         <div className="text-[10px] font-bold pt-1.5 border-t border-[oklch(0.88_0.02_90)]">
           {node.all_prereqs_met ? (
             <span className="text-[oklch(0.55_0.08_160)]">
-              ✓{" "}
+              <svg className="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>{" "}
               {locale === "en"
                 ? "All prerequisites met"
                 : "技术前提已就绪"}
             </span>
           ) : (
             <span className="text-[oklch(0.5_0.02_85)]">
-              ⚙️ {metCount}/{totalCount}{" "}
+              <QuestScrollIcon name="application" size={10} className="inline-block align-middle" /> {metCount}/{totalCount}{" "}
               {locale === "en" ? "prerequisites" : "项前提已满足"}
             </span>
           )}
@@ -359,7 +360,7 @@ function TechTreeNodeCard({
       {/* Region tag */}
       {node.region && (
         <div className="text-[9px] font-medium text-[oklch(0.5_0.02_85)] pt-1 border-t border-[oklch(0.88_0.02_90)]/50">
-          📍 {locale === "en" && node.region_en ? node.region_en : node.region}
+          <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="inline-block align-middle"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z" /><circle cx="12" cy="9" r="2.5" /></svg> {locale === "en" && node.region_en ? node.region_en : node.region}
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@
 import type { UserCompoundBuilding } from "@/types/world";
 import { LEVEL_LABELS } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
 interface CompoundBuildingTileProps {
   building: UserCompoundBuilding;
@@ -84,8 +85,10 @@ export function CompoundBuildingTile({
       {/* Upgrading indicator */}
       {isUpgrading && (
         <div className="absolute -top-1 -right-1 z-10">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85)] text-[10px] text-white shadow-md animate-bounce">
-            ⬆
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85)] text-white shadow-md animate-bounce">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 8V2M2 5L5 2L8 5" />
+            </svg>
           </span>
         </div>
       )}
@@ -100,7 +103,7 @@ export function CompoundBuildingTile({
       {/* ── Compound synergy badge ── */}
       <div className="absolute -top-0.5 -left-0.5 z-10">
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85_/_0.15)] border border-[oklch(0.72_0.12_85_/_0.35)] text-xs shadow-sm">
-          🔗
+          <QuestScrollIcon name="seal" size={14} />
         </span>
       </div>
 
@@ -113,7 +116,7 @@ export function CompoundBuildingTile({
         `}
         style={{ filter: !isLocked ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" : undefined }}
       >
-        {tpl?.icon ?? "🏰"}
+        <QuestScrollIcon name={resolveScrollIconName(tpl?.icon || "building")} size={30} />
       </span>
 
       {/* ── Building name ── */}

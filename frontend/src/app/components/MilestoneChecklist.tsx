@@ -115,7 +115,7 @@ function MilestoneItem({
             {name}
           </span>
           {milestone.unlocked && (
-            <span className="text-xs text-green-500">✓</span>
+            <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="text-green-500"><path d="M5 13l4 4L19 7" /></svg>
           )}
         </div>
         {desc && (

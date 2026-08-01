@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 import type { GeneratePathResponse, TargetedBuilding } from "@/types/learningPath";
 
 interface PathGeneratorFormProps {
@@ -157,7 +158,8 @@ export function PathGeneratorForm({ onSuccess }: PathGeneratorFormProps) {
         {targetedBuildings && targetedBuildings.length > 0 && (
           <div className="rounded-lg bg-primary/5 border border-primary/10 p-3 space-y-1.5">
             <p className="text-xs font-medium text-primary">
-              🏗️ {t("pathGenerator.drivesBuildings") || "This path will grow:"}
+              <QuestScrollIcon name="building" size={14} className="inline-block mr-1" />
+              {t("pathGenerator.drivesBuildings") || "This path will grow:"}
             </p>
             <div className="flex items-center gap-1.5 flex-wrap">
               {targetedBuildings.map((tb) => (

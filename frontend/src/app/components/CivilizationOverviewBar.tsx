@@ -3,6 +3,7 @@
 import { useLocale } from "@/hooks/useLocale";
 import { ERA_LABELS, CIVILIZATION_TIER_LABELS } from "@/types/world";
 import type { World } from "@/types/world";
+import { QuestScrollIcon, resolveScrollIconName } from "./QuestScrollIcon";
 
 interface CivilizationOverviewBarProps {
   world: World;
@@ -44,7 +45,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
       <div className="flex items-center gap-3 flex-wrap">
         {/* Era badge */}
         <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.72_0.12_85_/_0.15)] border border-[oklch(0.72_0.12_85_/_0.3)] px-3 py-2">
-          <span className="text-2xl">{eraInfo.icon}</span>
+          <span className="text-2xl inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name={resolveScrollIconName(eraInfo.icon)} size={24} /></span>
           <div className="leading-tight">
             <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
               {locale === "en" ? "Era" : "时代"}
@@ -57,7 +58,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
 
         {/* Tier badge */}
         <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.65_0.05_145_/_0.1)] border border-[oklch(0.65_0.05_145_/_0.25)] px-3 py-2">
-          <span className="text-2xl">{tierInfo.icon}</span>
+          <span className="text-2xl inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name={resolveScrollIconName(tierInfo.icon)} size={24} /></span>
           <div className="leading-tight">
             <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
               {locale === "en" ? "Tier" : "文明等级"}
@@ -70,7 +71,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
 
         {/* Civilization Level */}
         <div className="flex items-center gap-2 rounded-xl bg-[oklch(0.97_0.003_90)] border border-[oklch(0.88_0.02_90)] px-3 py-2">
-          <span className="text-xl">🏛️</span>
+          <span className="text-xl inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name="building" size={20} /></span>
           <div className="leading-tight">
             <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
               {locale === "en" ? "Level" : "等级"}
@@ -109,7 +110,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
       <div className="flex items-center gap-2 flex-wrap">
         {/* Knowledge Points */}
         <ResourceChip
-          icon="📚"
+          icon="knowledge"
           label={locale === "en" ? "Knowledge" : "知识点"}
           value={fmt(world.knowledge_points)}
           color="oklch(0.65 0.05 145)"
@@ -117,7 +118,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
 
         {/* Tech Points */}
         <ResourceChip
-          icon="⚡"
+          icon="application"
           label={locale === "en" ? "Tech" : "科技点"}
           value={fmt(world.tech_points)}
           color="oklch(0.55 0.12 250)"
@@ -125,7 +126,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
 
         {/* Population */}
         <ResourceChip
-          icon="👥"
+          icon="population"
           label={locale === "en" ? "Population" : "人口"}
           value={fmt(world.population)}
           color="oklch(0.55 0.08 25)"
@@ -136,7 +137,7 @@ export function CivilizationOverviewBar({ world }: CivilizationOverviewBarProps)
 
         {/* Exploration progress */}
         <div className="flex items-center gap-2 rounded-lg bg-[oklch(0.97_0.003_90)] border border-[oklch(0.88_0.02_90)] px-3 py-2 min-w-[180px]">
-          <span className="text-lg">🗺️</span>
+          <span className="text-lg inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name="map" size={18} /></span>
           <div className="flex-1 min-w-0 leading-tight">
             <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium">
               {locale === "en" ? "Exploration" : "探索进度"}
@@ -179,7 +180,9 @@ function ResourceChip({
         border: `1px solid ${color} / 0.18`,
       }}
     >
-      <span className="text-lg">{icon}</span>
+      <span className="text-lg inline-flex" style={{ color }}>
+        <QuestScrollIcon name={resolveScrollIconName(icon)} size={18} />
+      </span>
       <div className="leading-tight min-w-0">
         <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-medium leading-none">
           {label}

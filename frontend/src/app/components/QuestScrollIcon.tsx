@@ -23,11 +23,98 @@ export type ScrollIconName =
   | "shield"
   | "arrow-left"
   | "arrow-right"
+  | "arrow-up"
   | "star"
   | "star-outline"
   | "lock"
+  | "unlock"
   | "sparkle"
-  | "seal";
+  | "seal"
+  | "compass"
+  | "map"
+  | "chart"
+  | "chart-up"
+  | "population"
+  | "location"
+  | "rocket"
+  | "crane"
+  | "idea"
+  | "dragon"
+  | "tree"
+  | "tent"
+  | "wheat"
+  | "monitor"
+  | "robot"
+  | "path"
+  | "hourglass"
+  | "search"
+  | "business"
+  | "language"
+  | "science"
+  | "health"
+  | "finance";
+
+/**
+ * Map descriptive icon names (from types/world.ts constants) and legacy
+ * emoji strings to ScrollIconName. Falls back to "scroll" for unknown
+ * strings so callers always get a valid civilization glyph.
+ *
+ * Shared by VintageShieldIcon and any component that needs to render a
+ * world/era/tier/event/building icon coming from the backend or constants.
+ */
+const ICON_NAME_MAP: Record<string, ScrollIconName> = {
+  // Descriptive names from world.ts constants
+  tent: "tent",
+  building: "building",
+  civilization: "civilization",
+  wheat: "wheat",
+  knowledge: "knowledge",
+  application: "application",
+  monitor: "monitor",
+  robot: "robot",
+  reasoning: "reasoning",
+  rocket: "rocket",
+  "arrow-up": "arrow-up",
+  unlock: "unlock",
+  star: "star",
+  mission: "mission",
+  path: "path",
+  hourglass: "hourglass",
+  search: "search",
+  "chart-up": "chart-up",
+  business: "business",
+  creation: "creation",
+  language: "language",
+  science: "science",
+  health: "health",
+  finance: "finance",
+  // Legacy emoji → icon name mapping (for backend-provided icon strings)
+  "🏛️": "building",
+  "🏗️": "crane",
+  "🗺️": "map",
+  "🧭": "compass",
+  "📊": "chart",
+  "📈": "chart-up",
+  "⭐": "star",
+  "🌟": "sparkle",
+  "📚": "knowledge",
+  "⚡": "application",
+  "👥": "population",
+  "🌍": "civilization",
+  "💡": "idea",
+  "🎯": "mission",
+  "🚀": "rocket",
+  "⚙️": "application",
+  "📍": "location",
+  "📋": "checklist",
+  "🐉": "dragon",
+  "🌳": "tree",
+};
+
+/** Resolve any icon string (descriptive name or emoji) to a ScrollIconName. */
+export function resolveScrollIconName(icon: string): ScrollIconName {
+  return ICON_NAME_MAP[icon] ?? "scroll";
+}
 
 interface IconProps {
   name: ScrollIconName;
@@ -182,6 +269,215 @@ export function QuestScrollIcon({
         <rect x="4" y="4" width="16" height="16" rx="1.5" />
         <path d="M8 9h8M8 12h8M8 15h5" strokeWidth="1" opacity="0.6" />
         <path d="M4 4L20 20M20 4L4 20" strokeWidth="0.8" opacity="0.3" />
+      </>
+    ),
+    // 罗盘 — 四方位星 (compass rose)
+    compass: (
+      <>
+        <circle cx="12" cy="12" r="9.5" />
+        <path d="M12 2.5l2.5 9.5 9.5 2.5-9.5 2.5L12 26.5l-2.5-9.5L0 12l9.5-2.5L12 2.5z" transform="scale(0.6) translate(8 8)" strokeWidth="1.2" opacity="0.85" />
+        <path d="M12 4l1.8 6.2L20 12l-6.2 1.8L12 20l-1.8-6.2L4 12l6.2-1.8L12 4z" strokeWidth="1.1" />
+        <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+      </>
+    ),
+    // 地图 — 折叠古卷地图 (folded map)
+    map: (
+      <>
+        <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z" />
+        <path d="M9 3v15M15 6v15" strokeWidth="1" opacity="0.55" />
+        <path d="M6 9h1.5M6 12h1.5M17 9h1.5M17 12h1.5" strokeWidth="0.9" opacity="0.5" />
+      </>
+    ),
+    // 图表 — 柱状统计 (bar chart)
+    chart: (
+      <>
+        <path d="M3 3v18h18" />
+        <rect x="6" y="13" width="3" height="5" />
+        <rect x="11" y="9" width="3" height="9" />
+        <rect x="16" y="6" width="3" height="12" />
+      </>
+    ),
+    // 上升曲线 — 文明指数增长 (chart trending up)
+    "chart-up": (
+      <>
+        <path d="M3 3v18h18" />
+        <path d="M6 15l4-4 3 3 6-7" strokeWidth="1.8" />
+        <path d="M13 7h4v4" strokeWidth="1.3" opacity="0.7" />
+      </>
+    ),
+    // 人口 — 双人图腾 (population pair)
+    population: (
+      <>
+        <circle cx="8" cy="8" r="2.5" />
+        <circle cx="16" cy="8" r="2.5" strokeWidth="1.2" opacity="0.75" />
+        <path d="M3 20c0-3 2.5-5 5-5s5 2 5 5" />
+        <path d="M11 20c0-3 2.5-5 5-5s5 2 5 5" strokeWidth="1.2" opacity="0.75" />
+      </>
+    ),
+    // 标记 — 锚点定位 (location pin)
+    location: (
+      <>
+        <path d="M12 22s7-7.5 7-13a7 7 0 1 0-14 0c0 5.5 7 13 7 13z" />
+        <circle cx="12" cy="9" r="2.5" />
+      </>
+    ),
+    // 火箭 — 文明跃迁 (rocket launch)
+    rocket: (
+      <>
+        <path d="M12 2c3 2 5 6 5 11l-2 3H9l-2-3c0-5 2-9 5-11z" />
+        <circle cx="12" cy="9" r="1.8" />
+        <path d="M9 16l-3 3 1-4M15 16l3 3-1-4" strokeWidth="1.2" opacity="0.8" />
+        <path d="M10 21l1 2M14 21l-1 2" strokeWidth="1.3" opacity="0.7" />
+      </>
+    ),
+    // 工程塔吊 — 建设中的文明 (construction crane)
+    crane: (
+      <>
+        <path d="M4 21V7l8-4 8 4" />
+        <path d="M4 7h16" />
+        <path d="M12 3v18" strokeWidth="1.2" opacity="0.6" />
+        <path d="M8 21h8" />
+        <path d="M7 11l-2 3h4z" strokeWidth="1.2" opacity="0.8" />
+        <path d="M5 14v3M9 14v3" strokeWidth="1.1" />
+      </>
+    ),
+    // 灵感 — 智慧之灯 (idea bulb)
+    idea: (
+      <>
+        <path d="M9 18h6M10 21h4" />
+        <path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z" />
+        <path d="M9 8c0-1.5 1.5-3 3-3" strokeWidth="1" opacity="0.6" />
+      </>
+    ),
+    // 巨龙 — 未知疆域守护者 (dragon serpent)
+    dragon: (
+      <>
+        <path d="M3 12c3-3 6-3 9 0s6 3 9 0" />
+        <path d="M3 8c3-3 6-3 9 0s6 3 9 0" strokeWidth="1.1" opacity="0.6" />
+        <path d="M3 16c3-3 6-3 9 0s6 3 9 0" strokeWidth="1.1" opacity="0.6" />
+        <circle cx="19" cy="8" r="0.9" fill="currentColor" stroke="none" />
+        <path d="M21 8l1.5-1" strokeWidth="1.2" />
+      </>
+    ),
+    // 古树 — 技艺分枝 (tech tree)
+    tree: (
+      <>
+        <path d="M12 22V12" />
+        <path d="M12 12c-3 0-5-2-5-5 2 0 4 1 5 3 1-2 3-3 5-3 0 3-2 5-5 5z" />
+        <path d="M12 16c-2 0-3.5-1.5-3.5-3.5 1.5 0 2.5 1 3.5 2 1-1 2-2 3.5-2 0 2-1.5 3.5-3.5 3.5z" strokeWidth="1.1" opacity="0.75" />
+      </>
+    ),
+    // 帐篷 — 定居者栖所 (tent)
+    tent: (
+      <>
+        <path d="M3 21l9-16 9 16" />
+        <path d="M3 21h18" />
+        <path d="M12 5v16" strokeWidth="1.1" opacity="0.6" />
+        <path d="M9 21l3-5 3 5" strokeWidth="1.2" opacity="0.8" />
+      </>
+    ),
+    // 麦穗 — 农耕时代 (wheat stalk)
+    wheat: (
+      <>
+        <path d="M12 22V8" />
+        <path d="M12 8c-2-1-3-3-3-5 2 0 3 2 3 4M12 8c2-1 3-3 3-5-2 0-3 2-3 4" strokeWidth="1.1" />
+        <path d="M12 12c-2-1-3-3-3-5 2 0 3 2 3 4M12 12c2-1 3-3 3-5-2 0-3 2-3 4" strokeWidth="1.1" opacity="0.85" />
+        <path d="M12 16c-2-1-3-3-3-5 2 0 3 2 3 4M12 16c2-1 3-3 3-5-2 0-3 2-3 4" strokeWidth="1.1" opacity="0.7" />
+      </>
+    ),
+    // 显屏 — 信息时代 (monitor screen)
+    monitor: (
+      <>
+        <rect x="3" y="4" width="18" height="13" rx="1.5" />
+        <path d="M8 21h8M12 17v4" strokeWidth="1.2" />
+        <path d="M7 8h6M7 11h4" strokeWidth="1" opacity="0.6" />
+      </>
+    ),
+    // 智械 — AI 时代 (robot head)
+    robot: (
+      <>
+        <rect x="5" y="7" width="14" height="11" rx="2" />
+        <path d="M12 3v4" strokeWidth="1.2" />
+        <circle cx="12" cy="3" r="0.8" fill="currentColor" stroke="none" />
+        <circle cx="9.5" cy="12" r="1.2" fill="currentColor" stroke="none" />
+        <circle cx="14.5" cy="12" r="1.2" fill="currentColor" stroke="none" />
+        <path d="M9 16h6" strokeWidth="1.2" opacity="0.7" />
+      </>
+    ),
+    // 道路 — 学习路径 (winding path)
+    path: (
+      <>
+        <path d="M3 21c4 0 4-4 8-4s4 4 8 4" />
+        <path d="M3 14c4 0 4-4 8-4s4 4 8 4" strokeWidth="1.1" opacity="0.7" />
+        <path d="M3 7c4 0 4-4 8-4s4 4 8 4" strokeWidth="1.1" opacity="0.5" />
+      </>
+    ),
+    // 沙漏 — 时代流转 (hourglass)
+    hourglass: (
+      <>
+        <path d="M6 3h12M6 21h12" />
+        <path d="M6 3c0 5 4 6 6 9 2-3 6-4 6-9M6 21c0-5 4-6 6-9 2 3 6 4 6 9" strokeWidth="1.2" />
+        <path d="M12 12v3" strokeWidth="1" opacity="0.6" />
+      </>
+    ),
+    // 探索 — 放大镜 (search lens)
+    search: (
+      <>
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M15.5 15.5L21 21" />
+        <path d="M8 10.5h5" strokeWidth="1.1" opacity="0.6" />
+      </>
+    ),
+    // 商业 — 钱币 (business coins)
+    business: (
+      <>
+        <circle cx="9" cy="9" r="6" />
+        <circle cx="15" cy="15" r="6" strokeWidth="1.2" opacity="0.85" />
+        <path d="M9 6v6M7 9h4" strokeWidth="1.1" opacity="0.6" />
+      </>
+    ),
+    // 语言 — 文字符 (language character)
+    language: (
+      <>
+        <path d="M3 5h18M12 5v15" />
+        <path d="M6 9c1.5 4 3 6 6 8 3-2 4.5-4 6-8" strokeWidth="1.2" />
+      </>
+    ),
+    // 科学 — 原子结构 (atom)
+    science: (
+      <>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+        <ellipse cx="12" cy="12" rx="9" ry="4" />
+        <ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)" strokeWidth="1.2" opacity="0.85" />
+        <ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)" strokeWidth="1.2" opacity="0.85" />
+      </>
+    ),
+    // 健康 — 十字徽 (health cross)
+    health: (
+      <>
+        <path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 6.5-7 11-7 11z" strokeWidth="1.2" opacity="0.4" />
+        <path d="M12 8v8M8 12h8" strokeWidth="2" />
+      </>
+    ),
+    // 金融 — 钱币堆叠 (finance stack)
+    finance: (
+      <>
+        <ellipse cx="12" cy="6" rx="7" ry="2.5" />
+        <path d="M5 6v5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6" strokeWidth="1.2" />
+        <path d="M5 11v5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-5" strokeWidth="1.2" opacity="0.85" />
+      </>
+    ),
+    // 上箭头 — 升级标记
+    "arrow-up": (
+      <>
+        <path d="M12 19V5M5 12l7-7 7 7" />
+      </>
+    ),
+    // 解锁 — 开启状态
+    unlock: (
+      <>
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 7.5-2" />
       </>
     ),
   };

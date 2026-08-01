@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { useLocale } from "@/hooks/useLocale";
 import { settingsService } from "@/services/settings.service";
 import type { UpdateSettingsRequest, UserSettings, TestLlmResponse } from "@/types/settings";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 const PROVIDERS: { value: string; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -132,7 +133,7 @@ function TestResultBanner({ result }: { result: TestLlmResponse | null }) {
     return (
       <div className="rounded-lg border border-green-300/50 bg-green-50/50 dark:bg-green-950/20 dark:border-green-700/40 p-3 space-y-1">
         <p className="text-xs font-bold text-green-700 dark:text-green-400 flex items-center gap-1.5">
-          <span>✓</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M20 6L9 17l-5-5" /></svg>
           {result.message}
           {result.latency_ms != null && (
             <span className="text-[10px] font-mono text-green-600/60 dark:text-green-500/60 ml-1">
@@ -146,20 +147,20 @@ function TestResultBanner({ result }: { result: TestLlmResponse | null }) {
 
   // Error result
   const errorTypeLabels: Record<string, string> = {
-    auth: "🔑 认证错误",
-    not_found: "🔍 未找到",
-    connection: "📡 连接失败",
-    timeout: "⏱️ 超时",
-    rate_limit: "🚦 频率限制",
-    config: "⚙️ 配置错误",
-    unknown: "❓ 未知错误",
+    auth: "认证错误",
+    not_found: "未找到",
+    connection: "连接失败",
+    timeout: "超时",
+    rate_limit: "频率限制",
+    config: "配置错误",
+    unknown: "未知错误",
   };
-  const label = result.error_type ? (errorTypeLabels[result.error_type] || "❓ 错误") : "❓ 错误";
+  const label = result.error_type ? (errorTypeLabels[result.error_type] || "错误") : "错误";
 
   return (
     <div className="rounded-lg border border-red-300/50 bg-red-50/50 dark:bg-red-950/20 dark:border-red-700/40 p-3 space-y-2">
       <p className="text-xs font-bold text-red-700 dark:text-red-400 flex items-center gap-1.5">
-        <span>✗</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M18 6L6 18M6 6l12 12" /></svg>
         {label}
         {result.latency_ms != null && (
           <span className="text-[10px] font-mono text-red-600/60 dark:text-red-500/60 ml-1">
@@ -183,9 +184,12 @@ function TestResultBanner({ result }: { result: TestLlmResponse | null }) {
 
 export function ModelConfigForm() {
   const { t, locale } = useLocale();
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [savingAssessment, setSavingAssessment] = useState(false);
+  const [savingMentor, setSavingMentor] = useState(false);
+  const [assessmentMessage, setAssessmentMessage] = useState<string | null>(null);
+  const [assessmentError, setAssessmentError] = useState<string | null>(null);
+  const [mentorMessage, setMentorMessage] = useState<string | null>(null);
+  const [mentorError, setMentorError] = useState<string | null>(null);
   // Explicit edit flags for API key fields — fixes the issue where clicking
   // "edit" had no effect because formValue was already "" (empty).
   const [isEditingLlmKey, setIsEditingLlmKey] = useState(false);
@@ -229,37 +233,59 @@ export function ModelConfigForm() {
     }
   }, [settings]);
 
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    setMessage(null);
+  const handleSaveAssessment = async () => {
+    setSavingAssessment(true);
+    setAssessmentError(null);
+    setAssessmentMessage(null);
     try {
-      // Build payload — omit empty api_key fields to avoid clearing them
+      // Build payload with only llm_ prefix fields — other fields undefined
+      // so the backend does not modify them.
       const payload: UpdateSettingsRequest = {
         llm_provider: form.llm_provider || undefined,
         llm_base_url: form.llm_base_url || undefined,
         llm_model: form.llm_model || undefined,
-        path_llm_provider: form.path_llm_provider || undefined,
-        path_llm_base_url: form.path_llm_base_url || undefined,
-        path_llm_model: form.path_llm_model || undefined,
       };
       if (form.llm_api_key) {
         payload.llm_api_key = form.llm_api_key;
       }
+      await settingsService.updateSettings(payload);
+      setAssessmentMessage(t("settings.saved"));
+      // Clear the api_key field since it's not returned
+      setForm((prev) => ({ ...prev, llm_api_key: "" }));
+      // Exit edit mode after a successful save
+      setIsEditingLlmKey(false);
+    } catch (err: any) {
+      setAssessmentError(err?.message || t("common.error"));
+    } finally {
+      setSavingAssessment(false);
+    }
+  };
+
+  const handleSaveMentor = async () => {
+    setSavingMentor(true);
+    setMentorError(null);
+    setMentorMessage(null);
+    try {
+      // Build payload with only path_llm_ prefix fields — other fields undefined
+      // so the backend does not modify them.
+      const payload: UpdateSettingsRequest = {
+        path_llm_provider: form.path_llm_provider || undefined,
+        path_llm_base_url: form.path_llm_base_url || undefined,
+        path_llm_model: form.path_llm_model || undefined,
+      };
       if (form.path_llm_api_key) {
         payload.path_llm_api_key = form.path_llm_api_key;
       }
       await settingsService.updateSettings(payload);
-      setMessage(t("settings.saved"));
-      // Clear the api_key fields since they're not returned
-      setForm((prev) => ({ ...prev, llm_api_key: "", path_llm_api_key: "" }));
+      setMentorMessage(t("settings.saved"));
+      // Clear the api_key field since it's not returned
+      setForm((prev) => ({ ...prev, path_llm_api_key: "" }));
       // Exit edit mode after a successful save
-      setIsEditingLlmKey(false);
       setIsEditingPathLlmKey(false);
     } catch (err: any) {
-      setError(err?.message || t("common.error"));
+      setMentorError(err?.message || t("common.error"));
     } finally {
-      setSaving(false);
+      setSavingMentor(false);
     }
   };
 
@@ -312,7 +338,7 @@ export function ModelConfigForm() {
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-1 flex items-center gap-1.5">
-            <span>🛡️</span>
+            <QuestScrollIcon name="shield" size={16} className="inline-block align-text-bottom" />
             {isZh ? "评估模型" : "Assessment Model"}
           </h3>
           <p className="text-xs text-muted-foreground italic">
@@ -379,7 +405,7 @@ export function ModelConfigForm() {
             disabled={testingAssessment}
             className="rounded-lg border border-[#C4A77D]/40 bg-[#C4A77D]/5 px-4 py-2 text-xs font-bold font-civ-serif text-[#C4A77D] hover:bg-[#C4A77D]/15 hover:border-[#C4A77D]/60 transition-all disabled:opacity-50 flex items-center gap-1.5"
           >
-            <span>{testingAssessment ? "⏳" : "🔌"}</span>
+            {testingAssessment ? (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M6 2h12M6 22h12M6 2c0 5 6 6 6 10s-6 5-6 10M18 2c0 5-6 6-6 10s6 5 6 10" /></svg>) : (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5" /></svg>)}
             {testingAssessment
               ? (isZh ? "测试中..." : "Testing...")
               : (isZh ? "测试连接" : "Test Connection")}
@@ -393,6 +419,19 @@ export function ModelConfigForm() {
           )}
           <TestResultBanner result={testAssessmentResult} />
         </div>
+
+        {/* Save button + messages */}
+        <div className="space-y-2">
+          <button
+            onClick={handleSaveAssessment}
+            disabled={savingAssessment}
+            className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
+          >
+            {savingAssessment ? t("settings.saving") : t("settings.saveModelConfig")}
+          </button>
+          {assessmentMessage && <p className="text-xs font-bold text-success mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M20 6L9 17l-5-5" /></svg> {assessmentMessage}</p>}
+          {assessmentError && <p className="text-xs font-bold text-destructive mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M18 6L6 18M6 6l12 12" /></svg> {assessmentError}</p>}
+        </div>
       </div>
 
       {/* ======== Divider ======== */}
@@ -402,7 +441,7 @@ export function ModelConfigForm() {
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-1 flex items-center gap-1.5">
-            <span>🗺️</span>
+            <QuestScrollIcon name="civilization" size={16} className="inline-block align-text-bottom" />
             {isZh ? "Odyssey 导师模型" : "Odyssey Mentor Model"}
           </h3>
           <p className="text-xs text-muted-foreground italic">
@@ -471,7 +510,7 @@ export function ModelConfigForm() {
             disabled={testingMentor}
             className="rounded-lg border border-[#C4A77D]/40 bg-[#C4A77D]/5 px-4 py-2 text-xs font-bold font-civ-serif text-[#C4A77D] hover:bg-[#C4A77D]/15 hover:border-[#C4A77D]/60 transition-all disabled:opacity-50 flex items-center gap-1.5"
           >
-            <span>{testingMentor ? "⏳" : "🔌"}</span>
+            {testingMentor ? (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M6 2h12M6 22h12M6 2c0 5 6 6 6 10s-6 5-6 10M18 2c0 5-6 6-6 10s6 5 6 10" /></svg>) : (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5" /></svg>)}
             {testingMentor
               ? (isZh ? "测试中..." : "Testing...")
               : (isZh ? "测试连接" : "Test Connection")}
@@ -492,18 +531,20 @@ export function ModelConfigForm() {
           )}
           <TestResultBanner result={testMentorResult} />
         </div>
+
+        {/* Save button + messages */}
+        <div className="space-y-2">
+          <button
+            onClick={handleSaveMentor}
+            disabled={savingMentor}
+            className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
+          >
+            {savingMentor ? t("settings.saving") : t("settings.saveModelConfig")}
+          </button>
+          {mentorMessage && <p className="text-xs font-bold text-success mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M20 6L9 17l-5-5" /></svg> {mentorMessage}</p>}
+          {mentorError && <p className="text-xs font-bold text-destructive mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom shrink-0"><path d="M18 6L6 18M6 6l12 12" /></svg> {mentorError}</p>}
+        </div>
       </div>
-
-      {message && <p className="text-xs font-bold text-success mt-2">✓ {message}</p>}
-      {error && <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>}
-
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="rounded-lg bg-[#C4A77D] text-white px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#A38A5E] hover:opacity-100 transition-colors shadow-sm disabled:opacity-50 border border-[#A38A5E]/20"
-      >
-        {saving ? t("settings.saving") : t("settings.saveModelConfig")}
-      </button>
     </div>
   );
 }

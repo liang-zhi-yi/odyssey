@@ -10,6 +10,7 @@ import { PathRoadmap } from "@/app/components/PathRoadmap";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
+import { QuestScrollIcon, type ScrollIconName } from "@/app/components/QuestScrollIcon";
 import {
   PATH_STATUS_LABELS,
   PATH_STATUS_LABELS_ZH,
@@ -19,17 +20,17 @@ import {
 } from "@/types/learningPath";
 
 /** Civilization type → display info */
-const CIV_INFO: Record<string, { zh: string; en: string; icon: string }> = {
-  AI: { zh: "AI文明", en: "AI Civilization", icon: "🤖" },
-  ENGINEERING: { zh: "工程文明", en: "Engineering", icon: "⚙️" },
-  KNOWLEDGE: { zh: "知识文明", en: "Knowledge", icon: "📚" },
-  BUSINESS: { zh: "商业文明", en: "Business", icon: "💼" },
-  DESIGN: { zh: "设计文明", en: "Design", icon: "🎨" },
-  SOCIAL: { zh: "社会文明", en: "Social", icon: "🤝" },
-  SCIENCE: { zh: "科学文明", en: "Science", icon: "🔬" },
-  LANGUAGE: { zh: "语言文明", en: "Language", icon: "🗣️" },
-  HEALTH: { zh: "健康文明", en: "Health", icon: "💪" },
-  FINANCE: { zh: "金融文明", en: "Finance", icon: "💰" },
+const CIV_INFO: Record<string, { zh: string; en: string; icon: ScrollIconName }> = {
+  AI: { zh: "AI文明", en: "AI Civilization", icon: "sparkle" },
+  ENGINEERING: { zh: "工程文明", en: "Engineering", icon: "application" },
+  KNOWLEDGE: { zh: "知识文明", en: "Knowledge", icon: "knowledge" },
+  BUSINESS: { zh: "商业文明", en: "Business", icon: "mission" },
+  DESIGN: { zh: "设计文明", en: "Design", icon: "creation" },
+  SOCIAL: { zh: "社会文明", en: "Social", icon: "shield" },
+  SCIENCE: { zh: "科学文明", en: "Science", icon: "reasoning" },
+  LANGUAGE: { zh: "语言文明", en: "Language", icon: "sparkle" },
+  HEALTH: { zh: "健康文明", en: "Health", icon: "shield" },
+  FINANCE: { zh: "金融文明", en: "Finance", icon: "seal" },
 };
 
 export default function PathDetailPage() {
@@ -228,7 +229,7 @@ export default function PathDetailPage() {
           <div className="flex justify-center">
             <div className="relative">
               <div className="w-20 h-20 rounded-full border-4 border-[#C4A77D]/20 border-t-[#C4A77D] animate-spin" />
-              <span className="absolute inset-0 flex items-center justify-center text-2xl">🧠</span>
+              <span className="absolute inset-0 flex items-center justify-center"><QuestScrollIcon name="sparkle" size={28} /></span>
             </div>
           </div>
           <div>
@@ -243,17 +244,17 @@ export default function PathDetailPage() {
           </div>
           <div className="space-y-2 max-w-sm mx-auto">
             {[
-              { icon: "📊", text: locale === "zh" ? "分析目标领域..." : "Analyzing goal domain..." },
-              { icon: "🗺️", text: locale === "zh" ? "设计文明发展路线..." : "Designing civilization route..." },
-              { icon: "🏗️", text: locale === "zh" ? "规划里程碑与检查点..." : "Planning milestones & checkpoints..." },
-              { icon: "📋", text: locale === "zh" ? "生成学习任务..." : "Generating quests..." },
+              { icon: "reasoning" as const, text: locale === "zh" ? "分析目标领域..." : "Analyzing goal domain..." },
+              { icon: "world-core" as const, text: locale === "zh" ? "设计文明发展路线..." : "Designing civilization route..." },
+              { icon: "building" as const, text: locale === "zh" ? "规划里程碑与检查点..." : "Planning milestones & checkpoints..." },
+              { icon: "checklist" as const, text: locale === "zh" ? "生成学习任务..." : "Generating quests..." },
             ].map((step, i) => (
               <div
                 key={i}
                 className="flex items-center gap-3 rounded-lg bg-secondary/30 px-4 py-2.5 text-sm animate-pulse"
                 style={{ animationDelay: `${i * 0.3}s` }}
               >
-                <span className="text-lg">{step.icon}</span>
+                <QuestScrollIcon name={step.icon} size={18} />
                 <span className="text-muted-foreground">{step.text}</span>
               </div>
             ))}
@@ -277,7 +278,7 @@ export default function PathDetailPage() {
           {locale === "zh" ? "返回路径列表" : "Back to Paths"}
         </button>
         <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-4">
-          <span className="text-4xl">⚠️</span>
+          <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" /></svg>
           <h2 className="text-lg font-semibold">
             {locale === "zh" ? "生成失败" : "Generation Failed"}
           </h2>
@@ -461,7 +462,7 @@ export default function PathDetailPage() {
             {/* Civilization badge */}
             {civInfo && (
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{civInfo.icon}</span>
+                <QuestScrollIcon name={civInfo.icon} size={18} />
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#C4A77D]/15 text-[#8B7355] border border-[#C4A77D]/25">
                   {locale === "en" ? civInfo.en : civInfo.zh}
                 </span>
@@ -492,7 +493,7 @@ export default function PathDetailPage() {
         {currentStage && (
           <div className="rounded-xl border border-[#C4A77D]/20 bg-[#C4A77D]/5 p-4 flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{currentStage.isComplete ? "🎉" : "📍"}</span>
+              <QuestScrollIcon name={currentStage.isComplete ? "star" : "mission"} size={24} />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   {locale === "zh" ? "当前阶段" : "Current Stage"}
@@ -613,7 +614,7 @@ export default function PathDetailPage() {
           {path.targeted_buildings && path.targeted_buildings.length > 0 && (
             <div className="mt-4 rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🏗️</span>
+                <QuestScrollIcon name="building" size={18} />
                 <h3 className="text-sm font-semibold">
                   {locale === "zh" ? "可解锁/升级建筑" : "Unlockable Buildings"}
                 </h3>
@@ -622,7 +623,7 @@ export default function PathDetailPage() {
                 {path.targeted_buildings.map((tb) => (
                   <a key={tb.building_id} href={`/world?building=${tb.building_id}`}
                     className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.97_0.005_92)] px-4 py-3 transition-all hover:shadow-card hover:border-[#C4A77D]/30 group">
-                    <span className="text-2xl group-hover:scale-110 transition-transform">{tb.building_icon || "🏛️"}</span>
+                    <span className="text-2xl group-hover:scale-110 transition-transform inline-flex items-center justify-center">{tb.building_icon || <QuestScrollIcon name="building" size={24} />}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {locale === "en" && tb.building_name_en ? tb.building_name_en : tb.building_name}
@@ -731,7 +732,7 @@ function EnhancedMentorPanel({
       {/* Mentor header */}
       <div className="bg-gradient-to-r from-[#8B9D83]/10 to-[#C4A77D]/10 px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🧠</span>
+          <QuestScrollIcon name="sparkle" size={24} />
           <div>
             <h3 className="text-sm font-semibold text-[oklch(0.35_0.02_80)]">
               {locale === "zh" ? "奥德赛导师" : "Odyssey Mentor"}
@@ -748,11 +749,11 @@ function EnhancedMentorPanel({
         {currentStage && (
           <div className="rounded-xl bg-[#8B9D83]/5 border border-[#8B9D83]/10 p-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              {locale === "zh" ? "📍 当前阶段" : "📍 Current Stage"}
+              <QuestScrollIcon name="mission" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "当前阶段" : "Current Stage"}
             </p>
             <p className="text-sm font-semibold">
               {currentStage.isComplete
-                ? locale === "zh" ? "🎉 全部完成！" : "🎉 All Complete!"
+                ? <><QuestScrollIcon name="star" size={14} className="inline-block align-middle mr-1" />{locale === "zh" ? "全部完成！" : "All Complete!"}</>
                 : locale === "en" && currentStage.title_en
                 ? currentStage.title_en
                 : currentStage.title}
@@ -782,7 +783,7 @@ function EnhancedMentorPanel({
         {/* ── Civilization Index Gain ── */}
         <div className="rounded-xl bg-gradient-to-br from-[#8B9D83]/8 to-[#8B9D83]/3 border border-[#8B9D83]/15 p-3">
           <p className="text-[10px] uppercase tracking-wider text-[#8B9D83] mb-1 font-medium">
-            {locale === "zh" ? "📈 可获得文明指数" : "📈 Civilization Index"}
+            <QuestScrollIcon name="reasoning" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "可获得文明指数" : "Civilization Index"}
           </p>
           <p className="text-xl font-bold text-[#6B8D73]">+{civIndexGain}</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -794,12 +795,12 @@ function EnhancedMentorPanel({
         {buildingTargets.length > 0 && (
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-medium">
-              {locale === "zh" ? "🏗️ 可解锁/升级建筑" : "🏗️ Unlockable Buildings"}
+              <QuestScrollIcon name="building" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "可解锁/升级建筑" : "Unlockable Buildings"}
             </p>
             <div className="space-y-1.5">
               {buildingTargets.map((b: any) => (
                 <div key={b.id} className="flex items-center gap-2 rounded-lg bg-secondary/30 px-3 py-2">
-                  <span className="text-lg">{b.icon || "🏛️"}</span>
+                  <span className="text-lg inline-flex items-center justify-center">{b.icon || <QuestScrollIcon name="building" size={18} />}</span>
                   <span className="text-xs font-medium">
                     {locale === "en" && b.name_en ? b.name_en : b.name}
                   </span>
@@ -811,7 +812,7 @@ function EnhancedMentorPanel({
 
         {/* ── Quest Count ── */}
         <div className="flex items-center gap-3 rounded-lg bg-secondary/20 px-3 py-2.5">
-          <span className="text-lg">📋</span>
+          <QuestScrollIcon name="checklist" size={18} />
           <div>
             <p className="text-xs font-medium">{totalQuests} {locale === "zh" ? "个任务" : "quests"}</p>
             <p className="text-[10px] text-muted-foreground">
@@ -824,7 +825,7 @@ function EnhancedMentorPanel({
         {suggestion?.current_suggestion && (
           <div className="rounded-xl bg-[#8B9D83]/5 border border-[#8B9D83]/10 p-3">
             <p className="text-[10px] text-muted-foreground mb-1">
-              {locale === "zh" ? "💡 导师建议" : "💡 Mentor Advice"}
+              <QuestScrollIcon name="sparkle" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "导师建议" : "Mentor Advice"}
             </p>
             <p className="text-xs leading-relaxed">{suggestion.current_suggestion}</p>
           </div>
@@ -834,7 +835,7 @@ function EnhancedMentorPanel({
         {suggestion?.recommended_quests && suggestion.recommended_quests.length > 0 && (
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-medium">
-              {locale === "zh" ? "🎯 推荐下一步" : "🎯 Recommended Next"}
+              <QuestScrollIcon name="mission" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "推荐下一步" : "Recommended Next"}
             </p>
             <div className="space-y-2">
               {suggestion.recommended_quests.slice(0, 3).map((q) => (
@@ -861,21 +862,21 @@ function EnhancedMentorPanel({
         {/* ── Quick Actions ── */}
         <div className="pt-2 border-t border-border">
           <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider">
-            {locale === "zh" ? "⚡ 快捷操作" : "⚡ Quick Actions"}
+            <QuestScrollIcon name="application" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "快捷操作" : "Quick Actions"}
           </p>
           <div className="flex flex-wrap gap-1.5">
             <a href="/quests"
               className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-[#8B9D83]/30 hover:bg-[#8B9D83]/5 transition-all">
-              📋 {locale === "zh" ? "查看任务" : "View Quests"}
+              <QuestScrollIcon name="checklist" size={12} /> {locale === "zh" ? "查看任务" : "View Quests"}
             </a>
             <a href="/world"
               className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-[#C4A77D]/30 hover:bg-[#C4A77D]/5 transition-all">
-              🌍 {locale === "zh" ? "我的世界" : "My World"}
+              <QuestScrollIcon name="civilization" size={12} /> {locale === "zh" ? "我的世界" : "My World"}
             </a>
             <button
               className="inline-flex items-center gap-1 rounded-lg border border-[#8B9D83]/20 bg-[#8B9D83]/5 px-3 py-1.5 text-xs font-medium text-[#8B9D83] hover:bg-[#8B9D83]/10 transition-all"
             >
-              💬 {locale === "zh" ? "询问导师" : "Ask Mentor"}
+              <QuestScrollIcon name="sparkle" size={12} /> {locale === "zh" ? "询问导师" : "Ask Mentor"}
             </button>
           </div>
         </div>

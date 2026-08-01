@@ -2,6 +2,7 @@
 
 import type { UserCredential } from "@/types/credential";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface CredentialBadgeProps {
   credential: UserCredential;
@@ -15,8 +16,8 @@ export function CredentialBadge({ credential }: CredentialBadgeProps) {
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg">
-        🏅
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+        <QuestScrollIcon name="star" size={20} />
       </div>
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{credential.name}</p>

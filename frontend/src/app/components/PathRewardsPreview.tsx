@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import type { PathRewardsPreview as PathRewardsPreviewType } from "@/types/learningPath";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface PathRewardsPreviewProps {
   rewards: PathRewardsPreviewType | null;
@@ -36,7 +37,7 @@ export function PathRewardsPreview({ rewards, isLoading }: PathRewardsPreviewPro
     return (
       <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-xl">🏆</span>
+          <QuestScrollIcon name="star" size={20} className="text-[#C4A77D]" />
           <h3 className="text-sm font-semibold">
             {locale === "zh" ? "路径奖励预览" : "Path Rewards"}
           </h3>
@@ -55,7 +56,7 @@ export function PathRewardsPreview({ rewards, isLoading }: PathRewardsPreviewPro
       {/* Header */}
       <div className="bg-gradient-to-r from-[#C4A77D]/10 to-[#D4A76A]/10 px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🏆</span>
+          <QuestScrollIcon name="star" size={20} className="text-[#C4A77D]" />
           <div>
             <h3 className="text-sm font-semibold">
               {locale === "zh" ? "路径奖励预览" : "Path Rewards"}
@@ -74,7 +75,10 @@ export function PathRewardsPreview({ rewards, isLoading }: PathRewardsPreviewPro
         {rewards.buildings.length > 0 && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              {locale === "zh" ? "🏗️ 建筑升级" : "🏗️ Building Upgrades"}
+              <span className="inline-flex items-center gap-1">
+                <QuestScrollIcon name="building" size={12} />
+                {locale === "zh" ? "建筑升级" : "Building Upgrades"}
+              </span>
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {rewards.buildings.map((b, idx) => {
@@ -87,8 +91,8 @@ export function PathRewardsPreview({ rewards, isLoading }: PathRewardsPreviewPro
                     href={`/world?building=${name}`}
                     className="flex items-center gap-3 rounded-xl border border-border bg-secondary/20 px-3 py-3 transition-all hover:border-[#C4A77D]/30 hover:bg-[#C4A77D]/5 group"
                   >
-                    <span className="text-2xl transition-transform group-hover:scale-110">
-                      {b.icon || "🏛️"}
+                    <span className="text-2xl transition-transform group-hover:scale-110 inline-flex">
+                      {b.icon || <QuestScrollIcon name="building" size={24} />}
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{name}</p>
@@ -137,7 +141,10 @@ export function PathRewardsPreview({ rewards, isLoading }: PathRewardsPreviewPro
         {rewards.tier_projection && (
           <div className="rounded-xl bg-gradient-to-br from-[#C4A77D]/10 to-[#D4A76A]/5 border border-[#C4A77D]/15 p-4">
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              {locale === "zh" ? "🌍 文明层级进化" : "🌍 Civilization Tier Evolution"}
+              <span className="inline-flex items-center gap-1">
+                <QuestScrollIcon name="civilization" size={12} />
+                {locale === "zh" ? "文明层级进化" : "Civilization Tier Evolution"}
+              </span>
             </p>
             <div className="flex items-center gap-3">
               <div className="text-center">
@@ -176,7 +183,7 @@ export function PathRewardsPreview({ rewards, isLoading }: PathRewardsPreviewPro
         {/* Civilization level projection (fallback if no tier detail) */}
         {rewards.civilization_level_projection != null && !rewards.tier_projection && (
           <div className="rounded-xl bg-gradient-to-br from-[#C4A77D]/10 to-[#D4A76A]/5 border border-[#C4A77D]/15 p-4 flex items-center gap-3">
-            <span className="text-2xl">🏛️</span>
+            <QuestScrollIcon name="building" size={24} />
             <div>
               <p className="text-xs text-muted-foreground">
                 {locale === "zh" ? "预计文明等级" : "Projected Civilization Level"}

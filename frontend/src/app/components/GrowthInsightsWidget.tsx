@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/hooks/useLocale";
 import type { AIInsight } from "@/types/analytics";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface GrowthInsightsWidgetProps {
   insights: AIInsight[];
@@ -79,7 +80,7 @@ export function GrowthInsightsWidget({ insights, isLoading }: GrowthInsightsWidg
                           : "bg-primary/10 text-primary"
                     }`}
                   >
-                    {insight.type === "skill_gap" ? "🎯" : insight.type === "strength_area" ? "⭐" : "💡"}
+                    {insight.type === "skill_gap" ? <QuestScrollIcon name="mission" size={16} /> : insight.type === "strength_area" ? <QuestScrollIcon name="star" size={16} /> : <QuestScrollIcon name="sparkle" size={16} />}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">

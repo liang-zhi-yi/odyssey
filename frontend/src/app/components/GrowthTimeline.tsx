@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import useSWR from "swr";
 import { worldService } from "@/services/world.service";
 import { EVENT_TYPE_LABELS } from "@/types/world";
 import type { WorldEvent, UserMilestone, WorldEventType } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface GrowthTimelineProps {
   /** Pre-fetched events (from world state) */
@@ -19,13 +20,40 @@ interface TimelineEntry {
   id: string;
   type: "event" | "milestone";
   timestamp: string;
-  icon: string;
+  icon: ReactNode;
   title: string;
   title_en: string | null;
   description: string | null;
   description_en: string | null;
   eventType?: string;
   category?: string;
+}
+
+/** Map event type to an inline SVG icon (avoids emoji from EVENT_TYPE_LABELS) */
+function eventTimelineIcon(eventType: string, size = 12): ReactNode {
+  switch (eventType) {
+    case "BUILDING_UPGRADE":
+    case "COMPOUND_UPGRADE":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>;
+    case "COMPOUND_UNLOCK":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>;
+    case "REGION_UNLOCK":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z" /><path d="M9 4v13M15 7v13" strokeWidth="1" opacity="0.5" /></svg>;
+    case "TIER_ADVANCE":
+      return <QuestScrollIcon name="star" size={size} />;
+    case "MILESTONE_REACHED":
+      return <QuestScrollIcon name="mission" size={size} />;
+    case "PATH_MILESTONE_COMPLETED":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg>;
+    case "ERA_ADVANCE":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h12v6a6 6 0 0 1-12 0V2z" /><path d="M6 8H4M18 8h2M6 14H4M18 14h2M9 22h6" strokeWidth="1" opacity="0.6" /></svg>;
+    case "EXPLORATION_UNLOCK":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-5-5" /></svg>;
+    case "RESOURCE_BOOST":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8" /><path d="M21 7v4h-4" /></svg>;
+    default:
+      return <QuestScrollIcon name="seal" size={size} />;
+  }
 }
 
 /**
@@ -65,7 +93,7 @@ export function GrowthTimeline({
         id: ev.id,
         type: "event",
         timestamp: ev.created_at,
-        icon: EVENT_TYPE_LABELS[ev.event_type as WorldEventType]?.icon ?? "📌",
+        icon: eventTimelineIcon(ev.event_type, 12),
         title: ev.title,
         title_en: ev.title_en,
         description: ev.description,
@@ -81,7 +109,7 @@ export function GrowthTimeline({
           id: `ms-${ms.id}`,
           type: "milestone",
           timestamp: ms.unlocked_at,
-          icon: ms.icon ?? "🎯",
+          icon: ms.icon ? <span className="text-[10px]">{ms.icon}</span> : <QuestScrollIcon name="mission" size={12} />,
           title: ms.name,
           title_en: ms.name_en,
           description: ms.description,
@@ -106,7 +134,7 @@ export function GrowthTimeline({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">📜</span>
+          <QuestScrollIcon name="scroll" size={20} />
           <h3 className="text-sm font-semibold text-[oklch(0.35_0.02_80)]">
             {locale === "en" ? "Growth Timeline" : "成长时间线"}
           </h3>
@@ -115,7 +143,7 @@ export function GrowthTimeline({
         {/* Milestone progress */}
         {unlockedCount != null && totalCount != null && totalCount > 0 && (
           <span className="text-[11px] font-medium text-[oklch(0.55_0.02_85)]">
-            🎯 {unlockedCount}/{totalCount}{" "}
+            {unlockedCount}/{totalCount}{" "}
             {locale === "en" ? "milestones" : "里程碑"}
           </span>
         )}

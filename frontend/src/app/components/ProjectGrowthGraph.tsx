@@ -3,6 +3,8 @@
 import { useLocale } from "@/hooks/useLocale";
 import type { Project } from "@/types/project";
 import type { UserBuilding } from "@/types/world";
+import type { ReactNode } from "react";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface ProjectGrowthGraphProps {
   project: Project;
@@ -37,7 +39,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   if (!hasAnyRelation) {
     return (
       <div className="rounded-xl border border-border/60 bg-card/50 p-6 text-center">
-        <span className="text-3xl">🔗</span>
+        <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l6 6M15 12l-6 6" /><path d="M10 5a3 3 0 0 1-3 3l6 6a3 3 0 0 1 3-3l-6-6z" opacity="0.5" /></svg>
         <p className="mt-2 text-sm text-muted-foreground">
           {locale === "zh"
             ? "暂无成长关联数据"
@@ -59,7 +61,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
 
   // Build the chain nodes
   interface ChainNode {
-    icon: string;
+    icon: ReactNode;
     label: string;
     detail: string;
     detailExtra?: string;
@@ -70,7 +72,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
 
   // 1. Current project (always first)
   nodes.push({
-    icon: "📁",
+    icon: (<svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" /></svg>),
     label: locale === "zh" ? "当前项目" : "Current Project",
     detail: project.title,
   });
@@ -78,7 +80,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 2. Quest submission
   if (project.quest_submission) {
     nodes.push({
-      icon: "✅",
+      icon: <QuestScrollIcon name="checklist" size={16} />,
       label: locale === "zh" ? "完成 Quest" : "Completed Quest",
       detail: project.quest_submission.quest_title,
       detailExtra:
@@ -97,7 +99,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 3. Related skill
   if (project.related_skill) {
     nodes.push({
-      icon: "🧠",
+      icon: <QuestScrollIcon name="reasoning" size={16} />,
       label: locale === "zh" ? "关联技能" : "Related Skill",
       detail: project.related_skill.name,
       detailExtra: project.related_skill.category
@@ -109,7 +111,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 4. Related building
   if (project.related_building) {
     nodes.push({
-      icon: project.related_building.icon,
+      icon: <span>{project.related_building.icon}</span>,
       label: locale === "zh" ? "关联建筑" : "Related Building",
       detail: `${project.related_building.name} Lv.${project.related_building.level}`,
     });
@@ -118,7 +120,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 5. Source learning path
   if (project.source_path) {
     nodes.push({
-      icon: "📋",
+      icon: <QuestScrollIcon name="checklist" size={16} />,
       label: locale === "zh" ? "来源学习路径" : "Source Path",
       detail: project.source_path.title,
     });
@@ -127,7 +129,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-card">
       <h3 className="text-sm font-semibold mb-4">
-        {locale === "zh" ? "🌱 成长关系图" : "🌱 Growth Graph"}
+        {locale === "zh" ? "成长关系图" : "Growth Graph"}
       </h3>
 
       <div className="relative">

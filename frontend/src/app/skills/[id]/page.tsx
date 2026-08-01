@@ -13,6 +13,7 @@ import { Sparkline } from "@/app/components/Sparkline";
 import { ProgressTimeline } from "@/app/components/ProgressTimeline";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 import { BackButton } from "@/app/components/BackButton";
 
 export default function SkillDetailPage() {
@@ -135,8 +136,8 @@ export default function SkillDetailPage() {
             href={`/world?building=${linkedBuilding.id}`}
             className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-r from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-4 transition-all hover:shadow-card hover:border-[oklch(0.72_0.12_85_/_0.3)] group"
           >
-            <span className="text-3xl transition-transform group-hover:scale-110">
-              {(linkedBuilding as any).template?.icon ?? "🏛️"}
+            <span className="transition-transform group-hover:scale-110">
+              <QuestScrollIcon name={resolveScrollIconName((linkedBuilding as any).template?.icon || "building")} size={30} />
             </span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-[oklch(0.3_0.02_80)]">

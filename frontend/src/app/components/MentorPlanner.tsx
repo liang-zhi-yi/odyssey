@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
 import { CIVILIZATION_TYPE_LABELS } from "@/types/world";
 import type { World } from "@/types/world";
@@ -14,17 +15,17 @@ interface MentorPlannerProps {
 
 const QUICK_GOALS = [
   {
-    icon: "🤖",
+    icon: "sparkle" as const,
     key: "agent",
     prompt: "我想成为Agent工程师，掌握从Prompt Engineering到多智能体系统的完整技能栈",
   },
   {
-    icon: "🏗️",
+    icon: "building" as const,
     key: "ai_civ",
     prompt: "我想建设AI文明，解锁所有AI相关的建筑和技能",
   },
   {
-    icon: "⚡",
+    icon: "application" as const,
     key: "automation",
     prompt: "我想掌握自动化工作流，从基础脚本到复杂的CI/CD和LLM自动化管道",
   },
@@ -80,8 +81,8 @@ export function MentorPlanner({
       {/* ── Mentor greeting ──────────────────────────────────────── */}
       <div className="flex items-start gap-3">
         {/* Agent avatar */}
-        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#C4A77D]/15 border border-[#C4A77D]/30 flex items-center justify-center text-lg">
-          🧠
+        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#C4A77D]/15 border border-[#C4A77D]/30 flex items-center justify-center">
+          <QuestScrollIcon name="sparkle" size={20} />
         </div>
         <div>
           <p className="text-sm font-semibold">
@@ -107,7 +108,7 @@ export function MentorPlanner({
               disabled={isGenerating}
               className="rounded-xl border border-border/60 bg-secondary/30 hover:bg-secondary/50 hover:border-[#8B9D83]/30 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all p-3 text-left group"
             >
-              <span className="text-lg block mb-1">{qg.icon}</span>
+              <span className="block mb-1"><QuestScrollIcon name={qg.icon} size={18} /></span>
               <span className="text-xs font-medium text-foreground group-hover:text-[#8B9D83] transition-colors">
                 {locale === "zh"
                   ? qg.key === "agent"
@@ -139,8 +140,8 @@ export function MentorPlanner({
       <div>
         <label className="block text-sm font-medium mb-2">
           {locale === "zh"
-            ? "🏷️ 路径名称（简短标题）"
-            : "🏷️ Path Name (short title)"}
+            ? <><QuestScrollIcon name="seal" size={13} className="inline-block align-middle" /> 路径名称（简短标题）</>
+            : <><QuestScrollIcon name="seal" size={13} className="inline-block align-middle" /> Path Name (short title)</>}
         </label>
         <input
           type="text"
@@ -172,8 +173,8 @@ export function MentorPlanner({
       <div>
         <label className="block text-sm font-medium mb-2">
           {locale === "zh"
-            ? "💬 描述你的成长目标"
-            : "💬 Describe your growth goal"}
+            ? <><QuestScrollIcon name="sparkle" size={13} className="inline-block align-middle" /> 描述你的成长目标</>
+            : <><QuestScrollIcon name="sparkle" size={13} className="inline-block align-middle" /> Describe your growth goal</>}
         </label>
         <textarea
           value={goal}
@@ -275,7 +276,7 @@ export function MentorPlanner({
           </>
         ) : (
           <span>
-            🌟{" "}
+            <QuestScrollIcon name="sparkle" size={16} className="inline-block align-middle" />{" "}
             {locale === "zh" ? "规划文明成长路线" : "Plan Civilization Growth"}
           </span>
         )}

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { AgentSparkles } from "@/app/components/AgentSparkles";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 // ═══════════════════════════════════════════════════════════════════════
 // Dark mode detection — watches the .dark class on <html>
@@ -285,6 +286,29 @@ function MetricCard({
 // ═══════════════════════════════════════════════════════════════════════
 // Main Page
 // ═══════════════════════════════════════════════════════════════════════
+
+// Timeline icon helper for civilization evolution timeline
+function TimelineIcon({ index, size }: { index: number; size: number }) {
+  switch (index) {
+    case 0:
+      return <QuestScrollIcon name="sparkle" size={size} />;
+    case 1:
+      return <QuestScrollIcon name="building" size={size} />;
+    case 2:
+      return <QuestScrollIcon name="civilization" size={size} />;
+    case 3:
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2l3 7h-2v6h-2V9H9l3-7z" />
+          <path d="M9 19h6M10 16h4" strokeWidth="1" opacity="0.6" />
+        </svg>
+      );
+    case 4:
+      return <QuestScrollIcon name="sparkle" size={size} />;
+    default:
+      return null;
+  }
+}
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -593,7 +617,7 @@ export default function Home() {
                         />
                       </svg>
                       <span className="relative text-2xl z-10">
-                        {["💡", "🏛️", "🌍", "🚀", "✨"][i]}
+                        <TimelineIcon index={i} size={24} />
                       </span>
                     </div>
 
@@ -641,7 +665,7 @@ export default function Home() {
                   <div key={i} className="relative flex items-start gap-4">
                     <div className="absolute left-5 top-2 -translate-x-1/2 w-3 h-3 rounded-full bg-accent/25 border-2 border-accent/15 z-10" />
                     <div className="flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-accent/[0.05] border border-accent/12">
-                      <span className="text-lg">{["💡", "🏛️", "🌍", "🚀", "✨"][i]}</span>
+                      <span className="text-lg"><TimelineIcon index={i} size={18} /></span>
                     </div>
                     <div>
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

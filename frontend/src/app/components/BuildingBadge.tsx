@@ -4,6 +4,7 @@ import useSWR from "swr";
 import Link from "next/link";
 import { worldService } from "@/services/world.service";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
 interface BuildingBadgeProps {
   skillId: string;
@@ -44,7 +45,7 @@ export function BuildingBadge({ skillId, worldBuildings, className = "" }: Build
       className={`inline-flex items-center gap-1 rounded-md bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground ${className}`}
       title={`${displayName} Lv.${building.level}`}
     >
-      <span className="text-xs leading-none">{building.template.icon || "🏛️"}</span>
+      <QuestScrollIcon name={resolveScrollIconName(building.template.icon || "building")} size={12} />
       <span className="truncate max-w-[6rem]">{displayName}</span>
       <span className="tabular-nums text-foreground/70">Lv.{building.level}</span>
     </Link>

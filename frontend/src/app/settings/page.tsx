@@ -7,6 +7,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { ProfileForm } from "@/app/components/ProfileForm";
 import { PasswordChangeForm } from "@/app/components/PasswordChangeForm";
 import { ModelConfigForm } from "@/app/components/ModelConfigForm";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import { Loading } from "@/app/components/Loading";
 import { learningPathService } from "@/services/learningPath.service";
 import type { UserMemoryEntry } from "@/types/learningPath";
@@ -113,7 +114,7 @@ function MemoryBankPanel() {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
-        <p className="text-4xl animate-pulse">🧠</p>
+        <div className="animate-pulse"><QuestScrollIcon name="reasoning" size={36} /></div>
         <p className="text-xs text-muted-foreground max-w-sm italic">
           {t("memory.noMemoryDesc")}
         </p>
@@ -130,7 +131,7 @@ function MemoryBankPanel() {
         return (
           <div key={type} className="space-y-3">
             <h4 className="text-xs font-bold text-[#C4A77D] uppercase tracking-wider border-b border-border/40 pb-1 flex items-center gap-1.5">
-              <span>📌</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
               {label}
               <span className="font-mono text-[10px] opacity-75">
                 ({groupEntries.length})
@@ -170,7 +171,7 @@ function MemoryBankPanel() {
             disabled={clearing}
             className="text-xs font-bold font-civ-serif text-destructive hover:underline disabled:opacity-50 flex items-center gap-1"
           >
-            <span>🗑️</span> {t("memory.clearMemory")}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" /></svg> {t("memory.clearMemory")}
           </button>
         ) : (
           <div className="flex items-center gap-3 bg-destructive/5 border border-destructive/20 rounded-lg p-3">
@@ -220,7 +221,7 @@ export default function SettingsPage() {
     <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
       <div>
         <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
-          <span>⚙️</span> {t("settings.title")}
+          <QuestScrollIcon name="application" size={20} className="inline-block align-text-bottom" /> {t("settings.title")}
         </h1>
       </div>
 
@@ -228,10 +229,10 @@ export default function SettingsPage() {
         {/* Navigation Sidebar (Ledger Tabs) */}
         <div className="w-full md:col-span-1 mb-6 md:mb-0 flex md:flex-col gap-2 flex-wrap md:flex-nowrap border-b md:border-b-0 md:border-r border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] pb-4 md:pb-0 md:pr-4">
           {([
-            ["profile", "✍️", t("settings.profile")],
-            ["preferences", "🔮", t("settings.modelConfig")],
-            ["memory", "🏛️", t("settings.tabs.memory")],
-          ] as [TabId, string, string][]).map(([id, emoji, label]) => {
+            ["profile", (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>), t("settings.profile")],
+            ["preferences", (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="10" r="7" /><path d="M8 17l-1 4h10l-1-4" /><path d="M9 7c1-1 3-1 4 0" strokeWidth="1" opacity="0.6" /></svg>), t("settings.modelConfig")],
+            ["memory", (<QuestScrollIcon name="building" size={16} />), t("settings.tabs.memory")],
+          ] as [TabId, React.ReactNode, string][]).map(([id, icon, label]) => {
             const isActive = activeTab === id;
             return (
               <button
@@ -243,7 +244,7 @@ export default function SettingsPage() {
                     : "text-muted-foreground hover:text-foreground border-transparent hover:bg-secondary/40"
                 }`}
               >
-                <span className="text-base">{emoji}</span>
+                <span className="flex items-center">{icon}</span>
                 <span>{label}</span>
               </button>
             );
@@ -260,7 +261,7 @@ export default function SettingsPage() {
                   [PROFILE_SEC_01]
                 </div>
                 <h2 className="text-base font-bold font-civ-serif mb-4 text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] border-b border-border/60 pb-2 flex items-center gap-1.5">
-                  <span>✍️</span> {t("settings.profile")}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg> {t("settings.profile")}
                 </h2>
                 <ProfileForm />
               </div>
@@ -280,7 +281,7 @@ export default function SettingsPage() {
                 [ORACLE_SEC_03]
               </div>
               <h2 className="text-base font-bold font-civ-serif mb-4 text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] border-b border-border/60 pb-2 flex items-center gap-1.5">
-                <span>🔮</span> {t("settings.modelConfig")}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="10" r="7" /><path d="M8 17l-1 4h10l-1-4" /><path d="M9 7c1-1 3-1 4 0" strokeWidth="1" opacity="0.6" /></svg> {t("settings.modelConfig")}
               </h2>
               <ModelConfigForm />
             </div>
@@ -293,7 +294,7 @@ export default function SettingsPage() {
                 [MEM_BANK_SEC_04]
               </div>
               <h2 className="text-base font-bold font-civ-serif mb-1 text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-1.5">
-                <span>🏛️</span> {t("memory.title")}
+                <QuestScrollIcon name="building" size={16} className="inline-block align-text-bottom" /> {t("memory.title")}
               </h2>
               <p className="text-xs text-muted-foreground italic mb-4">
                 {t("memory.subtitle")}

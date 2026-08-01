@@ -6,6 +6,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 import { AgentMessageBubble } from "./AgentMessage";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 
 /**
  * Agent Sidebar — collapsible right panel with chat interface.
@@ -193,7 +194,7 @@ export function AgentSidebar() {
               </div>
               <div>
                 <h2 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-1">
-                  <span>🔮</span>
+                  <QuestScrollIcon name="sparkle" size={14} />
                   {t("agent.title")}
                 </h2>
                 <p className="text-[10px] text-muted-foreground italic leading-tight">
@@ -208,7 +209,7 @@ export function AgentSidebar() {
                 title={t("agent.newChat")}
                 aria-label={t("agent.newChat")}
               >
-                📜
+                <QuestScrollIcon name="scroll" size={16} />
               </button>
               <button
                 onClick={() => setIsExpanded((prev) => !prev)}
@@ -216,7 +217,7 @@ export function AgentSidebar() {
                 title={isExpanded ? t("agent.collapse") : t("agent.expand")}
                 aria-label={isExpanded ? t("agent.collapse") : t("agent.expand")}
               >
-                {isExpanded ? "🧭" : "🗺️"}
+                {isExpanded ? <QuestScrollIcon name="mission" size={16} /> : <QuestScrollIcon name="world-core" size={16} />}
               </button>
               <button
                 onClick={close}
@@ -224,7 +225,7 @@ export function AgentSidebar() {
                 title={t("agent.toggleClose")}
                 aria-label={t("agent.toggleClose")}
               >
-                🚪
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
           </div>
@@ -265,7 +266,7 @@ export function AgentSidebar() {
                 </div>
                 <div className="flex flex-col gap-2 w-full max-w-[280px]">
                   {suggestions.map((s, idx) => {
-                    const emojis = ["📊", "🗺️", "🌍"];
+                    const iconNames: ScrollIconName[] = ["reasoning", "world-core", "civilization"];
                     return (
                       <button
                         key={s.key}
@@ -273,7 +274,7 @@ export function AgentSidebar() {
                         disabled={isLoading}
                         className="rounded-lg border border-[oklch(0.8_0.05_85)] bg-gradient-to-br from-[oklch(0.995_0.003_95)] to-[oklch(0.985_0.003_95)] dark:from-[oklch(0.24_0.008_85)] dark:to-[oklch(0.22_0.008_85)] dark:border-[oklch(0.3_0.02_80)] px-4 py-2.5 text-left text-xs font-bold font-civ-serif text-muted-foreground hover:text-foreground hover:border-[#C4A77D] hover:shadow-sm transition-all duration-300 disabled:opacity-50 flex items-center gap-2"
                       >
-                        <span className="text-sm">{emojis[idx] || "📜"}</span>
+                        <QuestScrollIcon name={iconNames[idx] || "scroll"} size={14} />
                         <span className="flex-1">
                           {(() => {
                             const tr = t(s.key);

@@ -49,7 +49,7 @@ export function PasswordChangeForm() {
   return (
     <div className="space-y-4">
       <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] border-b border-border/60 pb-2 flex items-center gap-1.5">
-        <span>🔑</span> {t("settings.changePassword")}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="15" r="4" /><path d="M10.85 12.15L19 4M18 5l2 2M15 8l2 2" /></svg> {t("settings.changePassword")}
       </h3>
       <div>
         <label className={labelClass}>{t("settings.currentPassword")}</label>
@@ -79,8 +79,8 @@ export function PasswordChangeForm() {
         />
       </div>
 
-      {message && <p className="text-xs font-bold text-success mt-2">✓ {message}</p>}
-      {error && <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>}
+      {message && <p className="text-xs font-bold text-success mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M20 6L9 17l-5-5" /></svg> {message}</p>}
+      {error && <p className="text-xs font-bold text-destructive mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M18 6L6 18M6 6l12 12" /></svg> {error}</p>}
 
       <button
         onClick={handleChange}

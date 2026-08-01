@@ -99,7 +99,7 @@ export function Navbar() {
               href="/"
               className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
             >
-              <span className="animate-rhumb-spin inline-block text-base">🧭</span> Odyssey
+              <svg className="animate-rhumb-spin inline-block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></svg> Odyssey
             </Link>
           </div>
 
@@ -122,7 +122,7 @@ export function Navbar() {
             href="/"
             className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
           >
-            <span className="animate-rhumb-spin inline-block text-base">🧭</span> Odyssey
+            <svg className="animate-rhumb-spin inline-block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></svg> Odyssey
           </Link>
         </div>
 

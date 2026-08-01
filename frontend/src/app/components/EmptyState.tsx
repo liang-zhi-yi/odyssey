@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface EmptyStateProps {
   title: string;
@@ -24,8 +25,8 @@ export function EmptyState({
         </svg>
       </div>
 
-      <div className="mb-4 flex items-center justify-center w-14 h-14 rounded-full bg-secondary/80 border border-border/40 text-2xl relative z-10 shadow-sm">
-        🗺️
+      <div className="mb-4 flex items-center justify-center w-14 h-14 rounded-full bg-secondary/80 border border-border/40 relative z-10 shadow-sm">
+        <QuestScrollIcon name="civilization" size={28} />
       </div>
       <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] relative z-10">{title}</h3>
       <p className="mt-2 text-xs text-muted-foreground italic max-w-xs leading-relaxed relative z-10">{description}</p>

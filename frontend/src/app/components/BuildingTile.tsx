@@ -3,6 +3,7 @@
 import type { UserBuilding } from "@/types/world";
 import { LEVEL_LABELS } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
 interface BuildingTileProps {
   building: UserBuilding;
@@ -99,6 +100,7 @@ export function BuildingTile({ building, isSelected, onClick }: BuildingTileProp
 
   const levelTier = getLevelTier(building.level);
   const tierConfig = LEVEL_TIER_CONFIG[levelTier];
+  const iconSize = levelTier === "world" ? 48 : levelTier === "civilization" ? 36 : levelTier === "regional" ? 30 : 24;
   const size = tierConfig.sizeBase + building.level * tierConfig.sizePerLevel;
 
   return (
@@ -157,7 +159,7 @@ export function BuildingTile({ building, isSelected, onClick }: BuildingTileProp
       {isConstructing && (
         <div className="absolute -top-1 -right-1 z-10">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[oklch(0.65_0.05_145)] text-[10px] text-white shadow-md animate-spin" style={{ animationDuration: "3s" }}>
-            🔨
+            <QuestScrollIcon name="application" size={12} />
           </span>
         </div>
       )}
@@ -165,8 +167,10 @@ export function BuildingTile({ building, isSelected, onClick }: BuildingTileProp
       {/* Upgrading indicator */}
       {isUpgrading && (
         <div className="absolute -top-1 -right-1 z-10">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85)] text-[10px] text-white shadow-md animate-bounce">
-            ⬆
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[oklch(0.72_0.12_85)] text-white shadow-md animate-bounce">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 8V2M2 5L5 2L8 5" />
+            </svg>
           </span>
         </div>
       )}
@@ -191,13 +195,13 @@ export function BuildingTile({ building, isSelected, onClick }: BuildingTileProp
       {/* ── Building icon ── */}
       <span
         className={`
-          ${tierConfig.iconScale} transition-transform duration-300
+          transition-transform duration-300
           group-hover:scale-115
           ${isLocked ? "grayscale opacity-40" : "drop-shadow-md"}
         `}
         style={{ filter: !isLocked ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" : undefined }}
       >
-        {tpl?.icon ?? "🏛️"}
+        <QuestScrollIcon name={resolveScrollIconName(tpl?.icon || "building")} size={iconSize} />
       </span>
 
       {/* ── Building name ── */}

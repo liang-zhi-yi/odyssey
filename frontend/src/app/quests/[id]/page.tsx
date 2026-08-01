@@ -74,6 +74,7 @@ export default function QuestDetailPage() {
     userQuest?.status === "ASSESSING" ||
     userQuest?.status === "PASSED";
   const isPassed = userQuest?.status === "PASSED";
+  const isAssessing = userQuest?.status === "ASSESSING";
 
   // ── Fetch submission history ───────────────────────
   const { data: submissionHistory = [] } = useSWR(
@@ -189,7 +190,7 @@ export default function QuestDetailPage() {
       <div className="mx-auto max-w-3xl space-y-6">
         {/* ── 返回任务大厅 ──────────────────────────────── */}
         <button
-          onClick={() => router.push("/quests")}
+          onClick={() => router.back()}
           className="relative z-10 flex items-center gap-1.5 text-sm text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.65_0.035_82)] hover:text-[oklch(0.32_0.025_70)] dark:hover:text-[oklch(0.85_0.04_80)] transition-colors group font-civ-serif"
         >
           <QuestScrollIcon name="arrow-left" size={16} className="group-hover:-translate-x-0.5 transition-transform" strokeWidth={1.4} />
@@ -441,6 +442,32 @@ export default function QuestDetailPage() {
               {t("quests.alreadySubmitted")} <QuestStatusBadge status={userQuest!.status} size="sm" />
             </p>
           </div>
+
+          {/* Abandon (for ASSESSING status — zombie task recovery) */}
+          {isAssessing && (
+            !showAbandonConfirm ? (
+              <div className="flex justify-center pt-5">
+                <button onClick={() => setShowAbandonConfirm(true)}
+                  className="scroll-quiet-action">
+                  {t("quests.abandon")}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-xl border border-[oklch(0.58_0.06_55_/_0.25)] bg-[oklch(0.92_0.02_60_/_0.30)] dark:bg-[oklch(0.22_0.015_60_/_0.40)] p-4 text-center">
+                <p className="font-civ-serif text-sm text-[oklch(0.40_0.03_65)] dark:text-[oklch(0.72_0.035_75)] mb-3">{t("quests.confirmAbandon")}</p>
+                <div className="flex justify-center gap-4">
+                  <button onClick={handleAbandon} disabled={isAbandoning}
+                    className="scroll-quiet-action">
+                    {isAbandoning ? t("settings.saving") : t("common.confirm")}
+                  </button>
+                  <button onClick={() => setShowAbandonConfirm(false)}
+                    className="scroll-quiet-action">
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            )
+          )}
         </section>
       )}
 
@@ -474,6 +501,14 @@ export default function QuestDetailPage() {
                       </span>
                     )}
                     <QuestStatusBadge status={item.status as any} size="sm" />
+                    {item.assessment_id && (
+                      <button
+                        onClick={() => router.push(`/assessment/${item.assessment_id}`)}
+                        className="font-civ-serif text-xs italic tracking-wide text-[oklch(0.50_0.05_75)] dark:text-[oklch(0.62_0.05_80)] hover:text-[oklch(0.35_0.05_70)] dark:hover:text-[oklch(0.78_0.06_82)] underline-offset-2 hover:underline transition-colors"
+                      >
+                        {locale === "zh" ? "查看详情" : "View Details"}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

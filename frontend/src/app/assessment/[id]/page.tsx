@@ -50,6 +50,13 @@ export default function AssessmentPage() {
   // Extract before_scores for comparison (Phase 5+)
   const beforeScores = completedResult?.before_scores ?? null;
 
+  // Extract optional backend phase from PROCESSING status response
+  // (without modifying type definitions — treated as future-extensible extra field)
+  const backendPhase: number | null =
+    data?.status === "PROCESSING"
+      ? ((data as unknown as { phase?: unknown }).phase as number) ?? null
+      : null;
+
   // Extract error from failed result
   const resultError =
     data?.status === "FAILED"
@@ -59,20 +66,20 @@ export default function AssessmentPage() {
   const isCompleted = completedResult != null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-[820px] space-y-8 px-4 py-6 sm:px-6">
       {/* Back navigation */}
       <BackButton label={t("submission.backOneLevel")} />
 
       <div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="font-civ-serif text-2xl font-bold tracking-tight">
           {isCompleted
-            ? t("assessment.completed") || "评估完成"
-            : t("assessment.title")}
+            ? t("assessment.completed") || "AI文明鉴定报告"
+            : t("assessment.title") || "AI文明鉴定"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isCompleted
             ? t("assessment.completedSubtitle") || "你的能力已更新"
-            : t("assessment.processingSubtitle")}
+            : t("assessment.processingSubtitle") || "正在解析你的创造痕迹"}
         </p>
       </div>
 
@@ -82,6 +89,7 @@ export default function AssessmentPage() {
         result={completedResult}
         error={resultError}
         beforeScores={beforeScores}
+        backendPhase={backendPhase}
       />
     </div>
   );

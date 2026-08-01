@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import type { MilestoneNode } from "@/types/learningPath";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
 interface RoadmapNodeProps {
   node: MilestoneNode;
@@ -110,7 +111,7 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
                     className="inline-flex items-center gap-1 rounded bg-secondary/60 px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <span>{node.associated_building?.icon || "🏛️"}</span>
+                    <QuestScrollIcon name={resolveScrollIconName(node.associated_building?.icon || "building")} size={12} />
                     <span className="truncate max-w-[6rem]">{buildingName}</span>
                   </Link>
                 )}

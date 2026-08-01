@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { BuildingTile } from "./BuildingTile";
 import { CompoundBuildingTile } from "./CompoundBuildingTile";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 import type { UserBuilding, UserCompoundBuilding } from "@/types/world";
 
 interface WorldMapProps {
@@ -77,7 +78,7 @@ export function WorldMap({
     return (
       <div className="flex items-center justify-center h-80 rounded-xl border border-dashed border-border bg-muted/20">
         <div className="text-center space-y-2">
-          <span className="text-5xl">🗺️</span>
+          <span className="text-5xl inline-flex justify-center text-[oklch(0.55_0.12_85)]"><QuestScrollIcon name="map" size={48} /></span>
           <p className="text-sm text-muted-foreground">No buildings yet — complete quests to build your world</p>
         </div>
       </div>

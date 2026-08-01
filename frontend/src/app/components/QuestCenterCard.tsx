@@ -8,6 +8,7 @@ import { StarRating, difficultyToLevel } from "./StarRating";
 import { BuildingBadge } from "./BuildingBadge";
 import { RewardBadge } from "./RewardBadge";
 import { QuestStatusBadge } from "./QuestStatusBadge";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 import type { UserQuest } from "@/types/quest";
 
 interface QuestCenterCardProps {
@@ -89,9 +90,7 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
         {/* Building pill — prominent */}
         {building && buildingDisplayName ? (
           <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#C4A77D]/12 border border-[#C4A77D]/20 px-2.5 py-1.5 max-w-[70%]">
-            <span className="text-base leading-none flex-shrink-0">
-              {building.icon || "🏛️"}
-            </span>
+            <QuestScrollIcon name={resolveScrollIconName(building.icon || "building")} size={16} className="flex-shrink-0" />
             <span className="text-[11px] font-semibold text-[#8B7355] truncate">
               {buildingDisplayName}
             </span>
@@ -158,7 +157,7 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
         {/* Civilization contribution */}
         {quest.reward_preview && quest.reward_preview.civilization_contribution > 0 ? (
           <span className="inline-flex items-center gap-1 text-[10px] text-[#8B7355]">
-            <span>🌍</span>
+            <QuestScrollIcon name="civilization" size={12} />
             <span className="font-medium tabular-nums">
               +{quest.reward_preview.civilization_contribution}
             </span>

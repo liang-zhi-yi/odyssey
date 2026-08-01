@@ -15,6 +15,7 @@ import { GrowthRelation } from "@/app/components/GrowthRelation";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import type { Project } from "@/types/project";
 import type { UserQuest } from "@/types/quest";
 import type { World } from "@/types/world";
@@ -139,7 +140,7 @@ export default function ProjectsPage() {
                   {/* Uncharted Island outlines */}
                   <path d="M 65,75 C 65,65 72,60 80,60 C 85,60 90,68 90,75 Z" fill="currentColor" opacity="0.08" />
                   <line x1="78" y1="58" x2="78" y2="75" strokeDasharray="3 3" strokeWidth="0.8" />
-                  <text x="74" y="55" className="text-[6px] font-bold font-civ-serif" fill="currentColor">📍</text>
+                  <circle cx="78" cy="52" r="2.5" fill="none" stroke="currentColor" strokeWidth="0.8" /><circle cx="78" cy="52" r="1" fill="currentColor" /><path d="M78 54.5v3" stroke="currentColor" strokeWidth="0.6" />
 
                   {/* Sailing Ship / Caravel */}
                   <g transform="translate(15, 25)">
@@ -161,7 +162,7 @@ export default function ProjectsPage() {
               </div>
 
               <h3 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] relative z-10">
-                ⚓ {t("projects.noProjects")}
+                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="inline-block"><circle cx="12" cy="5" r="2" /><path d="M12 7v15M5 12h14M8 12c0 4 2 6 4 6s4-2 4-6" /></svg> {t("projects.noProjects")}
               </h3>
               <p className="mt-2 text-sm font-civ-serif text-[oklch(0.5_0.02_85)] leading-relaxed max-w-md relative z-10">
                 {locale === "zh"
@@ -173,7 +174,7 @@ export default function ProjectsPage() {
                 href="/quests"
                 className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[oklch(0.72_0.12_82)] hover:bg-[oklch(0.7_0.12_85)] text-white border border-[oklch(0.72_0.12_82)] px-6 py-2.5 text-sm font-bold font-civ-serif transition-all hover:opacity-90 shadow-md relative z-10 btn-press"
               >
-                🧭 {t("projects.browseQuests")}
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="inline-block"><circle cx="12" cy="12" r="9" /><path d="M12 7l2 5-2 5-2-5 2-5z" fill="currentColor" stroke="none" opacity="0.4" /></svg> {t("projects.browseQuests")}
               </Link>
             </div>
           ) : (
@@ -187,7 +188,7 @@ export default function ProjectsPage() {
               {/* Layer 3: Project card grid */}
               <div>
                 <h3 className="text-sm font-semibold mb-3">
-                  {locale === "zh" ? "📁 全部成果" : "📁 All Achievements"}
+                  {locale === "zh" ? "全部成果" : "All Achievements"}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 animate-stagger">
                   {projects.map((project) => (

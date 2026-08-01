@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import { GrowthChain } from "./GrowthChain";
 import type { GrowthChainNode } from "./GrowthChain";
 import type { GeneratePathResponse, TargetedBuilding } from "@/types/learningPath";
@@ -28,10 +29,10 @@ interface GrowthPreviewProps {
 }
 
 const GENERATION_PHASES = [
-  { icon: "🔍", zh: "分析成长目标", en: "Analyzing growth goal" },
-  { icon: "🧠", zh: "匹配能力技能", en: "Matching skills" },
-  { icon: "🏗️", zh: "规划建筑路径", en: "Planning building path" },
-  { icon: "📋", zh: "生成成长路线", en: "Generating growth route" },
+  { icon: (<svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-5-5" /></svg>), zh: "分析成长目标", en: "Analyzing growth goal" },
+  { icon: <QuestScrollIcon name="reasoning" size={16} />, zh: "匹配能力技能", en: "Matching skills" },
+  { icon: <QuestScrollIcon name="building" size={16} />, zh: "规划建筑路径", en: "Planning building path" },
+  { icon: <QuestScrollIcon name="checklist" size={16} />, zh: "生成成长路线", en: "Generating growth route" },
 ];
 
 /**
@@ -61,14 +62,14 @@ export function GrowthPreview({
     return (
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-6 sticky top-6">
         <h3 className="text-sm font-semibold">
-          {locale === "zh" ? "🧭 文明成长预览" : "🧭 Civilization Growth Preview"}
+          {locale === "zh" ? "文明成长预览" : "Civilization Growth Preview"}
         </h3>
 
         {/* Pulsing center */}
         <div className="flex flex-col items-center gap-4 py-6">
           <div className="relative">
             <div className="h-16 w-16 rounded-full bg-[#8B9D83]/10 border-2 border-[#8B9D83]/30 flex items-center justify-center">
-              <span className="text-2xl animate-pulse">🌟</span>
+              <span className="animate-pulse"><QuestScrollIcon name="sparkle" size={28} /></span>
             </div>
             <div className="absolute inset-0 rounded-full border-2 border-[#8B9D83]/20 animate-ping" />
           </div>
@@ -95,7 +96,7 @@ export function GrowthPreview({
                     : "text-muted-foreground/30"
                 }`}
               >
-                <span className="w-5 text-center">{phase.icon}</span>
+                <span className="w-5 flex items-center justify-center">{phase.icon}</span>
                 <span>{locale === "en" ? phase.en : phase.zh}</span>
                 {isActive && (
                   <span className="ml-auto flex gap-0.5">
@@ -110,7 +111,7 @@ export function GrowthPreview({
                     />
                   </span>
                 )}
-                {isDone && <span className="ml-auto text-[#8B9D83]">✓</span>}
+                {isDone && <svg className="ml-auto text-[#8B9D83]" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
               </div>
             );
           })}
@@ -131,7 +132,7 @@ export function GrowthPreview({
     return (
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-5 sticky top-6">
         <h3 className="text-sm font-semibold text-[#8B9D83]">
-          {locale === "zh" ? "🌱 成长路线已生成" : "🌱 Growth Route Generated"}
+          {locale === "zh" ? "成长路线已生成" : "Growth Route Generated"}
         </h3>
 
         {/* Growth Chain */}
@@ -143,7 +144,7 @@ export function GrowthPreview({
         {targetedBuildings && targetedBuildings.length > 0 && (
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground">
-              {locale === "zh" ? "🏗️ 目标建筑" : "🏗️ Targeted Buildings"}
+              {locale === "zh" ? "目标建筑" : "Targeted Buildings"}
             </h4>
             <div className="space-y-1.5">
               {targetedBuildings.slice(0, 5).map((tb) => (
@@ -178,7 +179,7 @@ export function GrowthPreview({
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-[#C4A77D]/5 border border-[#C4A77D]/10 p-3 text-center">
             <p className="text-lg font-bold text-[#C4A77D]">
-              ⭐
+              <QuestScrollIcon name="star" size={20} />
             </p>
             <p className="text-[10px] text-muted-foreground">
               {locale === "zh" ? "文明指数提升" : "Civ Score Boost"}
@@ -242,7 +243,7 @@ export function GrowthPreview({
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-6 sticky top-6">
       <h3 className="text-sm font-semibold">
-        {locale === "zh" ? "🧭 成长路线预览" : "🧭 Growth Route Preview"}
+        {locale === "zh" ? "成长路线预览" : "Growth Route Preview"}
       </h3>
 
       {/* Simplified compass / direction indicator */}
@@ -284,15 +285,11 @@ export function GrowthPreview({
             stroke="oklch(0.7 0.12 85 / 0.2)"
             strokeWidth={1}
           />
-          <text
-            x={60}
-            y={58}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize={18}
-          >
-            🧭
-          </text>
+          <g transform="translate(60, 58)">
+            <circle cx="0" cy="0" r="8" fill="none" stroke="oklch(0.5 0.08 85)" strokeWidth="1.5" />
+            <path d="M0 -6 L2 0 L0 6 L-2 0 Z" fill="oklch(0.65 0.12 85)" stroke="none" />
+            <circle cx="0" cy="0" r="1.5" fill="oklch(0.5 0.08 85)" />
+          </g>
           <text
             x={60}
             y={78}
@@ -354,7 +351,7 @@ export function GrowthPreview({
           </div>
           {direction.suggested_focus && (
             <p className="text-[10px] text-muted-foreground mt-1.5">
-              💡 {direction.suggested_focus}
+              {direction.suggested_focus}
             </p>
           )}
         </div>

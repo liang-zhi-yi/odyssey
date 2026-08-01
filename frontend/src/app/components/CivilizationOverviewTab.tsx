@@ -7,6 +7,7 @@ import { CivilizationCompass } from "./CivilizationCompass";
 import { GrowthTimeline } from "./GrowthTimeline";
 import { EmptyState } from "./EmptyState";
 import { VintageShieldIcon } from "./VintageShieldIcon";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 import {
   ERA_LABELS,
   CIVILIZATION_TIER_LABELS,
@@ -122,7 +123,7 @@ export function CivilizationOverviewTab({
           {/* Minimal hero — no buildings yet, but civilization has direction */}
           <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-6 shadow-card">
             <div className="text-center max-w-md mx-auto">
-              <span className="text-4xl block mb-3">🚀</span>
+              <span className="text-4xl block mb-3 text-[oklch(0.55_0.12_85)] inline-flex justify-center"><QuestScrollIcon name="rocket" size={40} /></span>
               <h2 className="text-lg font-bold text-[oklch(0.3_0.02_80)]">
                 {locale === "en" ? "Civilization Taking Shape" : "文明正在成形"}
               </h2>
@@ -156,7 +157,7 @@ export function CivilizationOverviewTab({
                 className="rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.98_0.005_90)] p-4 shadow-card transition-all hover:shadow-card-hover hover:border-[oklch(0.72_0.12_85)]/30"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">🛤️</span>
+                  <span className="text-xl text-[oklch(0.55_0.12_85)] inline-flex"><QuestScrollIcon name="path" size={20} /></span>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-semibold text-[oklch(0.3_0.02_80)] truncate">
                       {path.path_title}
@@ -270,7 +271,7 @@ export function CivilizationOverviewTab({
 
           {/* Civilization Index */}
           <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.95_0.005_90)]/50 dark:bg-[oklch(0.25_0.008_85)]/50 border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 relative z-10">
-            <VintageShieldIcon icon="📊" size="sm" tier="bronze" />
+            <VintageShieldIcon icon="chart" size="sm" tier="bronze" />
             <div className="flex-1 min-w-0 leading-tight">
               <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
                 {locale === "en" ? "Civilization Index" : "文明实力总指数"}
@@ -318,7 +319,7 @@ export function CivilizationOverviewTab({
           <div className="vintage-parchment-card p-5 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden space-y-4">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.65_0.05_145_/_0.06)] border border-[oklch(0.65_0.05_145_/_0.2)] px-4 py-3 flex-1">
-                <span className="text-2xl animate-gentle-float">🗺️</span>
+                <span className="text-2xl animate-gentle-float text-[oklch(0.55_0.08_160)] inline-flex"><QuestScrollIcon name="map" size={28} /></span>
                 <div className="leading-tight min-w-0 flex-1">
                   <div className="flex justify-between items-center mb-1">
                     <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
@@ -341,19 +342,19 @@ export function CivilizationOverviewTab({
             {/* Resource chips */}
             <div className="grid grid-cols-3 gap-2.5 pt-2">
               <ResourceChip
-                icon="📚"
+                icon="knowledge"
                 label={locale === "en" ? "Knowledge" : "知识秘卷"}
                 value={fmt(world.knowledge_points)}
                 color="oklch(0.65 0.05 145)"
               />
               <ResourceChip
-                icon="⚡"
+                icon="application"
                 label={locale === "en" ? "Tech" : "科技火花"}
                 value={fmt(world.tech_points)}
                 color="oklch(0.55 0.12 250)"
               />
               <ResourceChip
-                icon="👥"
+                icon="population"
                 label={locale === "en" ? "Population" : "文明人口"}
                 value={fmt(world.population)}
                 color="oklch(0.55 0.08 25)"
@@ -377,7 +378,7 @@ export function CivilizationOverviewTab({
           <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.08)] to-transparent pointer-events-none select-none" />
 
           <div className="relative flex items-start gap-5 z-10">
-            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "🏛️"} size="md" tier="gold" />
+            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "building"} size="md" tier="gold" />
             <div className="flex-1 min-w-0">
               <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
                 {locale === "en" ? "Core Building" : "帝国核心建筑 centerpiece"}
@@ -397,8 +398,8 @@ export function CivilizationOverviewTab({
                   {LEVEL_LABELS[coreBuilding.level]?.[locale === "en" ? "en" : "zh"] ?? `Lv.${coreBuilding.level}`}
                 </span>
                 {coreBuilding.template?.region && (
-                  <span className="text-xs text-[oklch(0.5_0.02_85)] font-medium">
-                    📍 {coreBuilding.template.region}
+                  <span className="text-xs text-[oklch(0.5_0.02_85)] font-medium inline-flex items-center gap-1">
+                    <QuestScrollIcon name="location" size={12} className="inline-block" /> {coreBuilding.template.region}
                   </span>
                 )}
                 {"skill_id" in (coreBuilding.template ?? {}) && (
@@ -423,7 +424,7 @@ export function CivilizationOverviewTab({
       {(direction?.suggested_focus || nextGoal) && (
         <div className="vintage-parchment-card p-6 shadow-sm border border-dashed border-[oklch(0.7_0.12_85_/_0.4)] relative transition-all duration-300 hover:shadow-md">
           <div className="flex items-start gap-4">
-            <VintageShieldIcon icon={direction?.suggested_focus ? "🧭" : nextGoal?.type === "upgrade" ? "🚀" : "🎯"} size="sm" tier="gold" />
+            <VintageShieldIcon icon={direction?.suggested_focus ? "compass" : nextGoal?.type === "upgrade" ? "rocket" : "mission"} size="sm" tier="gold" />
             <div className="flex-1 min-w-0">
               <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
                 {locale === "en" ? "Next Goal" : "下一个战略目标"}
@@ -465,9 +466,9 @@ export function CivilizationOverviewTab({
                         {nextGoal.building.template.required_skills.map((rs) => (
                           <span
                             key={rs.skill_name}
-                            className="text-xs bg-[oklch(0.95_0.005_90)] border border-[oklch(0.88_0.02_90)] rounded-full px-3 py-1 text-[oklch(0.4_0.02_80)] font-medium"
+                            className="text-xs bg-[oklch(0.95_0.005_90)] border border-[oklch(0.88_0.02_90)] rounded-full px-3 py-1 text-[oklch(0.4_0.02_80)] font-medium inline-flex items-center gap-1"
                           >
-                            ⚙️ {rs.skill_name} Lv.{rs.min_level}
+                            <QuestScrollIcon name="application" size={12} className="inline-block" /> {rs.skill_name} Lv.{rs.min_level}
                           </span>
                         ))}
                       </div>
@@ -486,45 +487,45 @@ export function CivilizationOverviewTab({
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <SummaryCard
-            icon="🏗️"
+            icon="crane"
             label={locale === "en" ? "Buildings" : "总建筑数量"}
             value={String(world.stats.active_buildings)}
             sub={`+${world.stats.active_compound_buildings} ${locale === "en" ? "compound" : "复合建筑"}`}
           />
           <SummaryCard
-            icon="🎯"
+            icon="mission"
             label={locale === "en" ? "Milestones" : "里程碑解锁数"}
             value={`${world.stats.milestones_unlocked}/${world.stats.total_milestones}`}
           />
           <SummaryCard
-            icon="📊"
+            icon="chart"
             label={locale === "en" ? "Avg Level" : "领地平均等级"}
             value={world.stats.average_level.toFixed(1)}
           />
           <SummaryCard
-            icon="⭐"
+            icon="star"
             label={locale === "en" ? "Highest" : "最高殿堂"}
             value={world.stats.highest_level_building_name ?? "—"}
             compact
           />
           <SummaryCard
-            icon="🗺️"
+            icon="map"
             label={locale === "en" ? "Regions" : "已征服板块"}
             value={String(world.regions?.filter((r) => r.unlocked).length ?? 0)}
             sub={`/ ${world.regions?.length ?? 0} ${locale === "en" ? "plates" : "大区域"}`}
           />
           <SummaryCard
-            icon="📚"
+            icon="knowledge"
             label={locale === "en" ? "Knowledge" : "总知识储备"}
             value={fmt(world.knowledge_points)}
           />
           <SummaryCard
-            icon="⚡"
+            icon="application"
             label={locale === "en" ? "Tech" : "科技点积累"}
             value={fmt(world.tech_points)}
           />
           <SummaryCard
-            icon="👥"
+            icon="population"
             label={locale === "en" ? "Population" : "总人口总数"}
             value={fmt(world.population)}
           />

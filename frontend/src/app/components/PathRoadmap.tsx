@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/hooks/useLocale";
 import { RoadmapNode } from "./RoadmapNode";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 import type { MilestoneNode } from "@/types/learningPath";
 
 interface PathRoadmapProps {
@@ -20,7 +21,7 @@ export function PathRoadmap({ nodes, pathId }: PathRoadmapProps) {
   if (!nodes || nodes.length === 0) {
     return (
       <div className="rounded-2xl border border-border bg-card p-8 text-center">
-        <span className="text-3xl">🗺️</span>
+        <QuestScrollIcon name="world-core" size={30} />
         <p className="mt-3 text-sm text-muted-foreground">
           {locale === "zh" ? "暂无路线图节点" : "No roadmap nodes yet"}
         </p>
@@ -43,7 +44,7 @@ export function PathRoadmap({ nodes, pathId }: PathRoadmapProps) {
       {/* Roadmap header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🗺️</span>
+          <QuestScrollIcon name="world-core" size={18} />
           <h3 className="text-sm font-semibold">
             {locale === "zh" ? "文明发展路线图" : "Civilization Roadmap"}
           </h3>
@@ -85,7 +86,7 @@ export function PathRoadmap({ nodes, pathId }: PathRoadmapProps) {
       {/* Completion message */}
       {completedCount === totalCount && totalCount > 0 && (
         <div className="mt-4 rounded-2xl border border-[#C4A77D]/30 bg-gradient-to-br from-[#C4A77D]/10 to-[#C4A77D]/5 p-4 text-center animate-fade-in-up">
-          <span className="text-2xl">🎉</span>
+          <QuestScrollIcon name="star" size={24} />
           <p className="mt-2 text-sm font-semibold text-[#8B7355]">
             {locale === "zh" ? "路径完成！" : "Path Complete!"}
           </p>

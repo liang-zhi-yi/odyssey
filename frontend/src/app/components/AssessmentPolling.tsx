@@ -2,6 +2,7 @@
 
 import type { AssessmentCompleted, DimensionScores } from "@/types/assessment";
 import { AssessmentResult } from "./AssessmentResult";
+import { AICore } from "./AICore";
 import { useLocale } from "@/hooks/useLocale";
 
 interface AssessmentPollingProps {
@@ -11,11 +12,22 @@ interface AssessmentPollingProps {
   error?: string | null;
   /** Optional: pre-assessment scores for before/after comparison */
   beforeScores?: DimensionScores | null;
+  /**
+   * Optional: backend-driven current phase (1..5).
+   * · If the backend PROCESSING status in the future exposes `phase: 1..5`,
+   *   pass it here and AICore will prioritize real backend progress
+   *   over the elapsed-time simulation.
+   * · If omitted/null/out-of-range → fallback to elapsed-time simulation (backward compatible).
+   */
+  backendPhase?: number | null;
 }
 
 /**
- * Displays assessment polling status, error, or delegates to
- * AssessmentResult for the completed state (Phase 5 enhancement).
+ * AI 文明鉴定 —— 等待/错误/完成三态容器
+ *
+ * - 等待态：渲染 AI CORE 扫描动画 + 4 阶段分析指示器（替代普通 spinner）
+ * - 错误态：以文明档案样式呈现失败信息
+ * - 完成态：委派给 AssessmentResult 渲染鉴定报告
  */
 export function AssessmentPolling({
   isPolling,
@@ -23,50 +35,55 @@ export function AssessmentPolling({
   result,
   error,
   beforeScores,
+  backendPhase,
 }: AssessmentPollingProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
-  // Error state
+  // 错误态（且尚无结果）
   if (error && !result) {
     return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-        <div className="mb-3 text-3xl">⚠️</div>
-        <p className="text-sm font-medium text-destructive">{t("assessment.failed")}</p>
-        <p className="text-xs text-muted-foreground mt-1">{error}</p>
+      <div
+        className="scroll-fuse scroll-paper rounded-2xl p-8 text-center"
+        role="alert"
+      >
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mb-3 mx-auto"
+        >
+          <path d="M12 3L2 21h20L12 3z" />
+          <path d="M12 10v5" strokeWidth="1.8" />
+          <circle cx="12" cy="18" r="0.5" fill="currentColor" stroke="none" />
+        </svg>
+        <p className="font-civ-serif text-sm font-semibold text-destructive">
+          {locale === "zh" ? "鉴定中断" : "Appraisal Interrupted"}
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          {error}
+        </p>
+        <p className="mt-3 text-xs text-muted-foreground/70">
+          {t("assessment.retryPrompt")}
+        </p>
       </div>
     );
   }
 
-  // Polling state
+  // 等待态 —— AI CORE 扫描
   if (isPolling || (!result && !error)) {
     return (
-      <div className="rounded-xl border border-border bg-background p-8 text-center">
-        <div className="mb-4 flex justify-center">
-          <div className="h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-        <h3 className="text-lg font-semibold">{t("assessment.processing")}</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          {t("assessment.polling")}
-        </p>
-        <div className="mt-4 flex justify-center gap-6 text-xs text-muted-foreground">
-          <span>{t("assessment.elapsed", { seconds: Math.floor(elapsed / 1000) })}</span>
-          <span>{t("assessment.maxWait")}</span>
-        </div>
-        {/* Animated dots */}
-        <div className="mt-3 flex justify-center gap-1">
-          {Array.from({ length: 3 }, (_, i) => (
-            <div
-              key={i}
-              className="h-2 w-2 rounded-full bg-primary animate-bounce"
-              style={{ animationDelay: `${i * 150}ms` }}
-            />
-          ))}
-        </div>
+      <div className="scroll-paper scroll-enter rounded-2xl p-6 sm:p-10">
+        <AICore elapsed={elapsed} backendPhase={backendPhase} />
       </div>
     );
   }
 
-  // Completed state → delegate to AssessmentResult
+  // 完成态 → 委派给鉴定报告
   if (result) {
     return <AssessmentResult result={result} beforeScores={beforeScores} />;
   }

@@ -3,6 +3,7 @@
 import { useLocale } from "@/hooks/useLocale";
 import { ERA_LABELS, CIVILIZATION_TIER_LABELS } from "@/types/world";
 import type { World, CivilizationDirection } from "@/types/world";
+import { QuestScrollIcon, resolveScrollIconName } from "./QuestScrollIcon";
 
 interface CivilizationStatusBannerProps {
   world: World | null;
@@ -48,7 +49,7 @@ export function CivilizationStatusBanner({
     return (
       <div className="rounded-2xl border border-border/60 bg-card/50 p-5">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">🌍</span>
+          <span className="text-2xl inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name="civilization" size={24} /></span>
           <div>
             <p className="text-sm font-medium">
               {locale === "zh" ? "文明尚未初始化" : "Civilization not initialized"}
@@ -95,7 +96,7 @@ export function CivilizationStatusBanner({
       <div className="flex items-center gap-4 lg:gap-8 flex-wrap">
         {/* Current Era */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-2xl flex-shrink-0">{eraInfo.icon}</span>
+          <span className="text-2xl flex-shrink-0 inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name={resolveScrollIconName(eraInfo.icon)} size={24} /></span>
           <div className="min-w-0">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
               {locale === "zh" ? "当前时代" : "Current Era"}
@@ -109,7 +110,7 @@ export function CivilizationStatusBanner({
 
         {/* Civilization Tier + Level */}
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{tierInfo.icon}</span>
+          <span className="text-2xl inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name={resolveScrollIconName(tierInfo.icon)} size={24} /></span>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
               {locale === "zh" ? "文明等级" : "Civ Level"}
@@ -156,7 +157,7 @@ export function CivilizationStatusBanner({
 
         {/* Exploration progress (desktop only) */}
         <div className="hidden md:flex items-center gap-2">
-          <span className="text-lg">🌍</span>
+          <span className="text-lg inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name="civilization" size={18} /></span>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
               {locale === "zh" ? "探索进度" : "Exploration"}
@@ -175,7 +176,7 @@ export function CivilizationStatusBanner({
             {locale === "zh" ? "下一目标" : "Next Target"}:
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#8B9D83]/10 border border-[#8B9D83]/20 px-3 py-1 text-xs">
-            <span>{nextTarget.building_icon}</span>
+            <span className="inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name={resolveScrollIconName(nextTarget.building_icon)} size={14} /></span>
             <span className="font-medium">
               {locale === "en" && nextTarget.building_name_en
                 ? nextTarget.building_name_en
@@ -200,10 +201,11 @@ export function CivilizationStatusBanner({
       {/* No active direction — gentle nudge */}
       {!nextTarget && (
         <div className="flex items-center gap-2 pt-3 border-t border-border/60">
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+            <QuestScrollIcon name="idea" size={12} className="inline-block text-[oklch(0.55_0.12_85)]" />
             {locale === "zh"
-              ? "💡 创建第一条学习路径来设定文明发展方向"
-              : "💡 Create your first learning path to set a civilization direction"}
+              ? "创建第一条学习路径来设定文明发展方向"
+              : "Create your first learning path to set a civilization direction"}
           </span>
         </div>
       )}

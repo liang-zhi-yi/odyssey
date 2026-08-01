@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,6 +13,7 @@ import { questService } from "@/services/quest.service";
 import { badgeService } from "@/services/badge.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import type { UserSkill } from "@/types/skill";
 import type { TimelineEvent } from "@/types/progress";
 import type {
@@ -69,7 +70,7 @@ interface ChronicleEntry {
   date: Date;
   monthKey: string; // "2026-06"
   type: string;
-  icon: string;
+  icon: ReactNode;
   title: string;
   description: string | null;
 }
@@ -78,7 +79,7 @@ interface BuildingLogEntry {
   id: string;
   date: Date;
   type: string;
-  icon: string;
+  icon: ReactNode;
   title: string;
   buildingName: string;
   action: string;
@@ -132,13 +133,42 @@ function extractBuildingName(title: string): string {
 
 // ── Internal Components ──────────────────────────────────────────────
 
+/** Map event type to an inline SVG icon for the chronicle timeline */
+function eventChronicleIcon(eventType: string, size = 14): ReactNode {
+  switch (eventType) {
+    case "BUILDING_UPGRADE":
+    case "COMPOUND_UPGRADE":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>;
+    case "COMPOUND_UNLOCK":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>;
+    case "REGION_UNLOCK":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z" /><path d="M9 4v13M15 7v13" strokeWidth="1" opacity="0.5" /></svg>;
+    case "TIER_ADVANCE":
+      return <QuestScrollIcon name="star" size={size} />;
+    case "MILESTONE_REACHED":
+      return <QuestScrollIcon name="mission" size={size} />;
+    case "PATH_MILESTONE_COMPLETED":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg>;
+    case "ERA_ADVANCE":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h12v6a6 6 0 0 1-12 0V2z" /><path d="M6 8H4M18 8h2M6 14H4M18 14h2M9 22h6" strokeWidth="1" opacity="0.6" /></svg>;
+    case "EXPLORATION_UNLOCK":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-5-5" /></svg>;
+    case "RESOURCE_BOOST":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8" /><path d="M21 7v4h-4" /></svg>;
+    case "skill_growth":
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8" /><path d="M21 7v4h-4" /></svg>;
+    default:
+      return <QuestScrollIcon name="seal" size={size} />;
+  }
+}
+
 /** Compact stat card for the stats bar */
 function StatCard({
   icon,
   value,
   label,
 }: {
-  icon: string;
+  icon: ReactNode;
   value: string | number;
   label: string;
 }) {
@@ -179,7 +209,9 @@ function EraEvolutionBar({
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
       <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-        <span>⏳</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M3 2h10M3 14h10M4 2v3l4 3 4-3V2M4 14v-3l4-3 4 3v3" />
+        </svg>
         <span>{locale === "en" ? "Era Evolution" : "时代演进"}</span>
       </h3>
 
@@ -303,7 +335,7 @@ function ChronicleTimeline({
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <span className="text-4xl mb-4">📜</span>
+        <QuestScrollIcon name="scroll" size={36} className="mb-4" />
         <p className="text-sm font-medium text-foreground mb-1">
           {locale === "en" ? "No historical events yet" : "暂无历史事件"}
         </p>
@@ -316,7 +348,7 @@ function ChronicleTimeline({
           href="/quests"
           className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
         >
-          <span>⚔️</span>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 3.5L21 3l-.5 6.5L9 21l-3-3L18.5 5.5M5 14l-2 5 5-2" /></svg>
           {locale === "en" ? "Start Your Journey" : "开始探索"}
         </Link>
       </div>
@@ -463,7 +495,7 @@ function BuildingDevelopmentLog({
   locale,
 }: {
   entries: BuildingLogEntry[];
-  worldData: World;
+  worldData?: World | null;
   locale: string;
 }) {
   // Group by building name
@@ -482,16 +514,16 @@ function BuildingDevelopmentLog({
   if (buildingNames.length === 0) {
     // Show current buildings from worldData as "initial state"
     const allBuildings = [
-      ...(worldData.buildings ?? []).map((b) => ({
+      ...(worldData?.buildings ?? []).map((b) => ({
         name: b.template?.name ?? "Unknown",
         level: b.level,
-        icon: b.template?.icon ?? "🏛️",
+        icon: b.template?.icon ? <span>{b.template.icon}</span> : <QuestScrollIcon name="building" size={16} />,
         type: "regular" as const,
       })),
-      ...(worldData.compound_buildings ?? []).map((b) => ({
+      ...(worldData?.compound_buildings ?? []).map((b) => ({
         name: b.template?.name ?? "Unknown",
         level: b.level,
-        icon: b.template?.icon ?? "🏛️",
+        icon: b.template?.icon ? <span>{b.template.icon}</span> : <QuestScrollIcon name="building" size={16} />,
         type: "compound" as const,
       })),
     ];
@@ -499,7 +531,7 @@ function BuildingDevelopmentLog({
     if (allBuildings.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <span className="text-3xl mb-3">🏗️</span>
+          <QuestScrollIcon name="building" size={28} className="mb-3" />
           <p className="text-xs text-muted-foreground">
             {locale === "en"
               ? "No buildings yet. Start building your civilization!"
@@ -639,20 +671,6 @@ export default function HistoryPage() {
     { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
-  // ── Loading / Error ───────────────────────────────────────────────
-
-  if (authLoading || !isAuthenticated) {
-    return <Loading text={t("auth.validating")} />;
-  }
-
-  if (worldError && !worldData) {
-    return (
-      <div className="mx-auto max-w-xl px-4 py-12">
-        <ErrorState message={t("common.error")} />
-      </div>
-    );
-  }
-
   // ── Derived: Stats bar ────────────────────────────────────────────
 
   const stats = useMemo(() => {
@@ -699,7 +717,7 @@ export default function HistoryPage() {
         date: new Date(evt.created_at),
         monthKey: evt.created_at.slice(0, 7),
         type: evt.event_type,
-        icon: label?.icon ?? "📌",
+        icon: eventChronicleIcon(evt.event_type, 14),
         title,
         description: desc,
       });
@@ -730,7 +748,7 @@ export default function HistoryPage() {
         date: new Date(evt.date),
         monthKey: evt.date.slice(0, 7),
         type: "skill_growth",
-        icon: evt.delta > 0 ? "📈" : "📉",
+        icon: evt.delta > 0 ? (<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8" /><path d="M21 7v4h-4" /></svg>) : (<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 7l6 6 4-4 8 8" /><path d="M21 17v-4h-4" /></svg>),
         title,
         description: desc,
       });
@@ -775,7 +793,7 @@ export default function HistoryPage() {
         id: evt.id,
         date: new Date(evt.created_at),
         type: evt.event_type,
-        icon: label?.icon ?? "🏗️",
+        icon: eventChronicleIcon(evt.event_type, 14),
         title,
         buildingName,
         action,
@@ -788,6 +806,20 @@ export default function HistoryPage() {
     return entries;
   }, [worldEvents, locale]);
 
+  // ── Loading / Error ───────────────────────────────────────────────
+
+  if (authLoading || !isAuthenticated) {
+    return <Loading text={t("auth.validating")} />;
+  }
+
+  if (worldError && !worldData) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-12">
+        <ErrorState message={t("common.error")} />
+      </div>
+    );
+  }
+
   // ── Combined loading state ─────────────────────────────────────────
 
   const isDataLoading = skillsLoading && userSkills.length === 0;
@@ -799,7 +831,7 @@ export default function HistoryPage() {
       {/* ── Header ──────────────────────────────────────────── */}
       <div>
         <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2">
-          <span>📜</span>
+          <QuestScrollIcon name="scroll" size={20} />
           <span>{locale === "en" ? "Civilization Chronicle" : "文明编年史"}</span>
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -816,27 +848,27 @@ export default function HistoryPage() {
         </h2>
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin">
           <StatCard
-            icon="✅"
+            icon={<QuestScrollIcon name="checklist" size={20} />}
             value={stats.completedQuests}
             label={locale === "en" ? "Quests Done" : "完成Quest"}
           />
           <StatCard
-            icon="🎯"
+            icon={<QuestScrollIcon name="mission" size={20} />}
             value={stats.skillsUnlocked}
             label={locale === "en" ? "Skills Unlocked" : "解锁技能"}
           />
           <StatCard
-            icon="🏗️"
+            icon={<QuestScrollIcon name="building" size={20} />}
             value={stats.buildingsBuilt}
             label={locale === "en" ? "Buildings Built" : "建造建筑"}
           />
           <StatCard
-            icon="📊"
+            icon={<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><rect x="7" y="10" width="3" height="8" rx="0.5" /><rect x="12" y="6" width="3" height="12" rx="0.5" /><rect x="17" y="13" width="3" height="5" rx="0.5" /></svg>}
             value={stats.civIndex.toLocaleString()}
             label={locale === "en" ? "Civ Index" : "文明指数"}
           />
           <StatCard
-            icon="🏅"
+            icon={<QuestScrollIcon name="star" size={20} />}
             value={stats.badgesEarned}
             label={locale === "en" ? "Badges Earned" : "获得徽章"}
           />
@@ -853,7 +885,7 @@ export default function HistoryPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <span>📋</span>
+              <QuestScrollIcon name="checklist" size={18} />
               <span>
                 {locale === "en" ? "Key Historical Events" : "关键历史事件"}
               </span>
@@ -893,7 +925,7 @@ export default function HistoryPage() {
       <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
         <div className="mb-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span>🏗️</span>
+            <QuestScrollIcon name="building" size={18} />
             <span>
               {locale === "en" ? "Building Development" : "建筑发展记录"}
             </span>
@@ -914,7 +946,7 @@ export default function HistoryPage() {
         ) : (
           <BuildingDevelopmentLog
             entries={buildingLog}
-            worldData={worldData!}
+            worldData={worldData}
             locale={locale}
           />
         )}
@@ -926,7 +958,7 @@ export default function HistoryPage() {
           href="/world"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
         >
-          <span>🌍</span>
+          <QuestScrollIcon name="civilization" size={14} />
           {locale === "en" ? "My World" : "我的世界"}
         </Link>
         <span className="text-muted-foreground/30">·</span>
@@ -934,7 +966,7 @@ export default function HistoryPage() {
           href="/skills"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
         >
-          <span>🎯</span>
+          <QuestScrollIcon name="mission" size={14} />
           {locale === "en" ? "Skills" : "技能"}
         </Link>
         <span className="text-muted-foreground/30">·</span>
@@ -942,7 +974,7 @@ export default function HistoryPage() {
           href="/quests"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
         >
-          <span>⚔️</span>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 3.5L21 3l-.5 6.5L9 21l-3-3L18.5 5.5M5 14l-2 5 5-2" /></svg>
           {locale === "en" ? "Quests" : "任务"}
         </Link>
       </div>

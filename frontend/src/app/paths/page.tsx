@@ -8,6 +8,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { learningPathService } from "@/services/learningPath.service";
 import { worldService } from "@/services/world.service";
 import { LearningPathCard } from "@/app/components/LearningPathCard";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import { CivilizationPlanner } from "@/app/components/CivilizationPlanner";
 import { CivilizationStatsBar } from "@/app/components/CivilizationStatsBar";
 import { Loading } from "@/app/components/Loading";
@@ -95,7 +96,7 @@ export default function PathsPage() {
     <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
       <div>
         <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
-          <span>📜</span> {t("paths.title")}
+          <QuestScrollIcon name="scroll" size={24} /> {t("paths.title")}
         </h1>
         <p className="mt-1.5 text-xs italic text-[oklch(0.5_0.02_85)]">
           {t("paths.subtitle")}
@@ -116,7 +117,7 @@ export default function PathsPage() {
                   : "text-muted-foreground hover:text-foreground border-transparent hover:bg-secondary/40"
               }`}
             >
-              {tab.id === "my" ? "🧭 " : "🛠️ "}
+              {tab.id === "my" ? <QuestScrollIcon name="mission" size={14} className="inline-block align-middle" /> : <QuestScrollIcon name="application" size={14} className="inline-block align-middle" />}
               {t(tab.key)}
             </button>
           );

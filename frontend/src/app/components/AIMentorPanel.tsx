@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
 import type { MentorSuggestion } from "@/types/learningPath";
 
@@ -42,7 +43,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
     return (
       <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">🧙</span>
+          <QuestScrollIcon name="sparkle" size={24} />
           <h3 className="text-sm font-semibold">
             {locale === "zh" ? "AI 导师" : "AI Mentor"}
           </h3>
@@ -57,10 +58,10 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
   }
 
   // ── Action Type Icons ─────────────────────────────────────
-  const actionIcons: Record<string, string> = {
-    continue: "▶️",
-    plan: "📋",
-    chat: "💬",
+  const actionIcons: Record<string, ScrollIconName> = {
+    continue: "arrow-right",
+    plan: "checklist",
+    chat: "sparkle",
   };
 
   return (
@@ -68,7 +69,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
       {/* Header */}
       <div className="bg-gradient-to-r from-[#8B9D83]/10 to-[#C4A77D]/10 px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🧙</span>
+          <QuestScrollIcon name="sparkle" size={24} />
           <div>
             <h3 className="text-sm font-semibold">
               {locale === "zh" ? "AI 导师" : "AI Mentor"}
@@ -84,7 +85,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
         {/* Current suggestion */}
         <div className="rounded-xl bg-[#8B9D83]/5 border border-[#8B9D83]/10 p-3">
           <p className="text-xs text-muted-foreground mb-1">
-            {locale === "zh" ? "💡 当前建议" : "💡 Current Suggestion"}
+            <QuestScrollIcon name="sparkle" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "当前建议" : "Current Suggestion"}
           </p>
           <p className="text-sm leading-relaxed">{suggestion.current_suggestion}</p>
         </div>
@@ -93,11 +94,11 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
         {suggestion.estimated_growth && (
           <div className="rounded-xl bg-[#C4A77D]/5 border border-[#C4A77D]/10 p-3">
             <p className="text-xs text-muted-foreground mb-2">
-              {locale === "zh" ? "📈 预计成长" : "📈 Estimated Growth"}
+              <QuestScrollIcon name="reasoning" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "预计成长" : "Estimated Growth"}
             </p>
             <div className="flex items-center gap-3">
               <span className="text-2xl">
-                {suggestion.estimated_growth.building_icon || "🏛️"}
+                {suggestion.estimated_growth.building_icon || <QuestScrollIcon name="building" size={28} />}
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">
@@ -133,7 +134,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
         {suggestion.recommended_quests && suggestion.recommended_quests.length > 0 && (
           <div>
             <p className="text-xs text-muted-foreground mb-2">
-              {locale === "zh" ? "🎯 推荐任务" : "🎯 Recommended Quests"}
+              <QuestScrollIcon name="mission" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "推荐任务" : "Recommended Quests"}
             </p>
             <div className="space-y-2">
               {suggestion.recommended_quests.slice(0, 3).map((q) => (
@@ -175,7 +176,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
         {suggestion.actions && suggestion.actions.length > 0 && (
           <div className="pt-2 border-t border-border">
             <p className="text-xs text-muted-foreground mb-2">
-              {locale === "zh" ? "⚡ 快捷操作" : "⚡ Quick Actions"}
+              <QuestScrollIcon name="application" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "快捷操作" : "Quick Actions"}
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestion.actions.map((action, idx) => (
@@ -184,7 +185,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
                   href={action.url}
                   className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-[#8B9D83]/30 hover:bg-[#8B9D83]/5 transition-all"
                 >
-                  <span>{actionIcons[action.type] || "→"}</span>
+                  <QuestScrollIcon name={actionIcons[action.type] || "arrow-right"} size={12} />
                   <span>{action.label}</span>
                 </Link>
               ))}

@@ -10,6 +10,7 @@ import { RANK_LABELS } from "@/types/skill";
 import { StarRating, difficultyToLevel } from "./StarRating";
 import type { UserBuilding, UserCompoundBuilding, BuildingTemplate, BuildingDetail, CompoundBuildingDetail } from "@/types/world";
 import type { QuestListItem } from "@/types/quest";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface BuildingDetailPanelProps {
   building: UserBuilding | UserCompoundBuilding;
@@ -49,7 +50,7 @@ export function BuildingDetailPanel({ building, onClose }: BuildingDetailPanelPr
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className="text-4xl">{tpl?.icon ?? "🏛️"}</span>
+          <span className="text-4xl">{tpl?.icon ?? <QuestScrollIcon name="building" size={36} />}</span>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-foreground">
@@ -222,7 +223,7 @@ function RegularDetail({
                 href={`/paths/${ap.path_id}`}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-secondary/60"
               >
-                <span className="text-sm">🗺️</span>
+                <QuestScrollIcon name="civilization" size={14} />
                 <span className="flex-1 truncate text-foreground font-medium">
                   {ap.path_title}
                 </span>

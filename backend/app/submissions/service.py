@@ -173,6 +173,7 @@ def get_submission_history(
 
         # Attach assessment data if available
         if assessment:
+            item["assessment_id"] = str(assessment.id)
             item["assessment"] = {
                 "overall_score": assessment.overall_score,
                 "knowledge_score": assessment.knowledge_score,
@@ -183,6 +184,7 @@ def get_submission_history(
                 "improvement_suggestions": assessment.improvement_suggestions,
             }
         else:
+            item["assessment_id"] = None
             item["assessment"] = None
 
         result.append(item)

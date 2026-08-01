@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
 import type { LearningPath } from "@/types/learningPath";
 import { PATH_STATUS_LABELS, PATH_STATUS_LABELS_ZH } from "@/types/learningPath";
@@ -21,10 +22,10 @@ const DIFFICULTY_STYLE: Record<number, string> = {
   5: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
 };
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; icon: string }> = {
-  ACTIVE: { bg: "bg-[#8B9D83]/15 text-[#8B9D83] border-[#8B9D83]/35", text: "text-[#8B9D83]", icon: "🧭" },
-  COMPLETED: { bg: "bg-[#C4A77D]/15 text-[#C4A77D] border-[#C4A77D]/35", text: "text-[#C4A77D]", icon: "📜" },
-  ABANDONED: { bg: "bg-muted/30 text-muted-foreground border-muted/20", text: "text-muted-foreground", icon: "⚓" },
+const STATUS_STYLE: Record<string, { bg: string; text: string; icon: ScrollIconName }> = {
+  ACTIVE: { bg: "bg-[#8B9D83]/15 text-[#8B9D83] border-[#8B9D83]/35", text: "text-[#8B9D83]", icon: "mission" },
+  COMPLETED: { bg: "bg-[#C4A77D]/15 text-[#C4A77D] border-[#C4A77D]/35", text: "text-[#C4A77D]", icon: "scroll" },
+  ABANDONED: { bg: "bg-muted/30 text-muted-foreground border-muted/20", text: "text-muted-foreground", icon: "lock" },
 };
 
 export function LearningPathCard({
@@ -91,7 +92,7 @@ export function LearningPathCard({
         <span
           className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold border flex items-center gap-1 ${status.bg} ${status.text}`}
         >
-          <span>{status.icon}</span>
+          <QuestScrollIcon name={status.icon} size={12} />
           {statusLabel}
         </span>
       </div>
@@ -107,7 +108,7 @@ export function LearningPathCard({
       <div className="flex items-center gap-2 text-xs mb-4 flex-wrap">
         {/* Path type badge */}
         <span className="rounded bg-secondary/80 px-2 py-0.5 border border-border/40 text-muted-foreground font-medium text-[10px]">
-          {path.path_type === "AI_GENERATED" ? "🔮 AI Customized" : "🏛️ Official"}
+          {path.path_type === "AI_GENERATED" ? <><QuestScrollIcon name="sparkle" size={11} className="inline-block align-middle" /> AI Customized</> : <><QuestScrollIcon name="building" size={11} className="inline-block align-middle" /> Official</>}
         </span>
 
         {/* Difficulty dots */}
@@ -119,7 +120,7 @@ export function LearningPathCard({
         {/* Milestone count */}
         {path.milestone_count != null && (
           <span className="rounded bg-secondary/80 px-2 py-0.5 border border-border/40 text-muted-foreground font-medium text-[10px] flex items-center gap-0.5">
-            <span>📍</span> {path.milestone_count} {locale === "zh" ? "里程碑" : "milestones"}
+            <QuestScrollIcon name="mission" size={11} /> {path.milestone_count} {locale === "zh" ? "里程碑" : "milestones"}
           </span>
         )}
       </div>

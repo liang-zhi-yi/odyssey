@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import { VintageShieldIcon } from "./VintageShieldIcon";
+import { QuestScrollIcon, resolveScrollIconName } from "./QuestScrollIcon";
 import { LEVEL_LABELS } from "@/types/world";
 import type {
   World,
@@ -134,7 +135,7 @@ export function RegionMapView({
       <div className="vintage-parchment-card p-4 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden">
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <span className="text-2xl animate-gentle-float">🗺️</span>
+            <span className="text-2xl animate-gentle-float inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name="map" size={24} /></span>
             <div>
               <h2 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
                 {world.name}
@@ -166,7 +167,7 @@ export function RegionMapView({
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.15)] to-transparent pointer-events-none select-none" />
 
           <div className="relative flex items-center gap-5 z-10">
-            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "🏛️"} size="lg" tier="gold" />
+            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "building"} size="lg" tier="gold" />
             <div className="flex-1 min-w-0">
               <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
                 {locale === "en" ? "Civilization Capital" : "文明核心帝国要塞"}
@@ -255,10 +256,10 @@ export function RegionMapView({
                                   : "bg-[oklch(0.97_0.005_92)] border border-[oklch(0.88_0.02_90)] hover:border-[oklch(0.72_0.12_85_/_0.3)] hover:bg-[oklch(0.98_0.005_95)]"
                             }`}
                           >
-                            <VintageShieldIcon 
-                              icon={template?.icon ?? (b.isCompound ? "⭐" : "🏗️")} 
-                              size="sm" 
-                              tier={isLocked ? "sage" : b.isCompound ? "silver" : "bronze"} 
+                            <VintageShieldIcon
+                              icon={template?.icon ?? (b.isCompound ? "star" : "crane")}
+                              size="sm"
+                              tier={isLocked ? "sage" : b.isCompound ? "silver" : "bronze"}
                               className={isLocked ? "grayscale opacity-50" : ""}
                             />
                             <div className="flex-1 min-w-0">
@@ -272,7 +273,9 @@ export function RegionMapView({
                               )}
                             </div>
                             {b.isCompound && !isLocked && (
-                              <span className="text-yellow-500 text-xs shrink-0">⭐</span>
+                              <span className="text-yellow-500 text-xs shrink-0 inline-flex">
+                                <QuestScrollIcon name="star" size={14} />
+                              </span>
                             )}
                             {isSelected && (
                               <span className="text-[oklch(0.65_0.05_145)] text-xs font-bold animate-pulse">→</span>
@@ -297,7 +300,7 @@ export function RegionMapView({
               ) : (
                 /* Fog of war for locked regions - Terra Incognita chart grid */
                 <div className="flex flex-col items-center justify-center py-8 text-center space-y-2 relative overflow-hidden flex-1">
-                  <VintageShieldIcon icon="🐉" size="md" tier="sage" className="grayscale opacity-25 filter blur-[1px] select-none" />
+                  <VintageShieldIcon icon="dragon" size="md" tier="sage" className="grayscale opacity-25 filter blur-[1px] select-none" />
                   <p className="text-xs font-civ-serif font-bold text-[oklch(0.45_0.02_85)] uppercase tracking-wider relative z-10">
                     {locale === "en" ? "Terra Incognita" : "未知疆域 (Terra)"}
                   </p>

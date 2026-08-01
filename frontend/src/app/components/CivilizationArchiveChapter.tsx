@@ -46,7 +46,7 @@ function statusColor(status: string): string {
  * Displays a civilization as a chapter in the player's exploration handbook:
  *   1. 文明印章 + 名称 + 等级 + 探索进度条 (██████░░░░ 12/120)
  *   2. 当前探索 — the active quest with status
- *   3. 已完成探索 — list of passed quests with seal markers
+ *   3. 探索记录 — list of passed/failed/abandoned quests
  *
  * Visual: 游戏冒险手册 / 文明图鉴 / 探索档案
  * No emoji — all SVG icons via QuestScrollIcon + CivilizationBadge.
@@ -60,8 +60,7 @@ export function CivilizationArchiveChapter({
   const [expanded, setExpanded] = useState(defaultExpanded);
   // Pagination state — one page per section
   const [activePage, setActivePage] = useState(0);
-  const [completedPage, setCompletedPage] = useState(0);
-  const [otherPage, setOtherPage] = useState(0);
+  const [explorationPage, setExplorationPage] = useState(0);
 
   const civType = group.civilization_type as CivilizationType;
   const meta = CIVILIZATION_META[civType] || { zh: group.label, en: group.label_en };
@@ -78,12 +77,9 @@ export function CivilizationArchiveChapter({
     ["ACCEPTED", "IN_PROGRESS", "SUBMITTED", "ASSESSING"].includes(q.submission_status ?? "")
   );
 
-  // 已完成探索: passed quests
-  const completedQuests = passed;
-
-  // 其他: failed or abandoned
-  const otherQuests = group.quests.filter((q) =>
-    ["FAILED", "ABANDONED"].includes(q.submission_status ?? "")
+  // 探索记录: passed / failed / abandoned quests
+  const explorationQuests = group.quests.filter((q) =>
+    ["PASSED", "FAILED", "ABANDONED"].includes(q.submission_status ?? "")
   );
 
   if (total === 0) return null;
@@ -185,46 +181,27 @@ export function CivilizationArchiveChapter({
               </div>
             )}
 
-            {/* ── 已完成探索 ───────────────────────────────── */}
-            {completedQuests.length > 0 && (
+            {/* ── 探索记录（已通过/未通过/已放弃） ─────────── */}
+            {explorationQuests.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2.5">
                   <QuestScrollIcon name="seal" size={13} className="text-[oklch(0.45_0.09_145)] dark:text-[oklch(0.68_0.10_145)]" strokeWidth={1.4} />
                   <span className="font-civ-serif text-[11px] font-bold text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.82_0.04_80)] uppercase tracking-[0.14em]">
-                    {isZh ? "已完成探索" : "Completed"} ({completedQuests.length})
+                    {isZh ? "探索记录" : "Exploration Records"} ({explorationQuests.length})
                   </span>
                   <div className="flex-1 h-px bg-[oklch(0.72_0.06_80_/_0.18)] dark:bg-[oklch(0.50_0.04_80_/_0.20)]" />
                 </div>
                 <PaginatedQuestList
-                  items={completedQuests}
-                  page={completedPage}
-                  onPageChange={setCompletedPage}
-                  isZh={isZh}
-                />
-              </div>
-            )}
-
-            {/* ── 其他任务（失败/放弃） ────────────────────── */}
-            {otherQuests.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <QuestScrollIcon name="shield" size={13} className="text-[oklch(0.55_0.04_65)] dark:text-[oklch(0.62_0.04_70)]" strokeWidth={1.4} />
-                  <span className="font-civ-serif text-[11px] font-bold text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.65_0.035_80)] uppercase tracking-[0.14em]">
-                    {isZh ? "其他记录" : "Other Records"} ({otherQuests.length})
-                  </span>
-                  <div className="flex-1 h-px bg-[oklch(0.72_0.06_80_/_0.15)] dark:bg-[oklch(0.45_0.04_80_/_0.18)]" />
-                </div>
-                <PaginatedQuestList
-                  items={otherQuests}
-                  page={otherPage}
-                  onPageChange={setOtherPage}
+                  items={explorationQuests}
+                  page={explorationPage}
+                  onPageChange={setExplorationPage}
                   isZh={isZh}
                 />
               </div>
             )}
 
             {/* ── 空状态：无活跃任务 ───────────────────────── */}
-            {activeQuests.length === 0 && completedQuests.length === 0 && otherQuests.length === 0 && (
+            {activeQuests.length === 0 && explorationQuests.length === 0 && (
               <p className="font-civ-serif text-xs text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.62_0.035_80)] italic text-center py-2">
                 {isZh ? "暂无探索记录" : "No exploration records"}
               </p>

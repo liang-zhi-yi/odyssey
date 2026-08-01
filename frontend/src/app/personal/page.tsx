@@ -17,6 +17,8 @@ import { RadarChart } from "@/app/components/RadarChart";
 import { GrowthTimeline } from "@/app/components/GrowthTimeline";
 import { Loading } from "@/app/components/Loading";
 import { masteryColor } from "@/app/components/GrowthRing";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
+import type { ScrollIconName } from "@/app/components/QuestScrollIcon";
 import {
   ERA_LABELS,
   CIVILIZATION_TIER_LABELS,
@@ -31,18 +33,57 @@ import type { DimensionScores } from "@/types/assessment";
 // ── Civilization domain groups ──────────────────────────────────
 
 const DOMAIN_GROUPS: { key: string; label: string; labelEn: string; icon: string; domains: string[] }[] = [
-  { key: "ai", label: "AI文明", labelEn: "AI", icon: "🤖", domains: ["AI"] },
-  { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "⚙️", domains: ["PROGRAMMING"] },
-  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "📚", domains: ["RESEARCH"] },
-  { key: "business", label: "商业文明", labelEn: "Business", icon: "💼", domains: ["BUSINESS"] },
-  { key: "design", label: "设计文明", labelEn: "Design", icon: "🎨", domains: ["DESIGN"] },
-  { key: "language", label: "语言文明", labelEn: "Language", icon: "🗣️", domains: ["LANGUAGE"] },
-  { key: "science", label: "科学文明", labelEn: "Science", icon: "🔬", domains: ["SCIENCE"] },
-  { key: "health", label: "健康文明", labelEn: "Health", icon: "💪", domains: ["HEALTH"] },
-  { key: "finance", label: "金融文明", labelEn: "Finance", icon: "💰", domains: ["FINANCE"] },
-  { key: "society", label: "社会文明", labelEn: "Society", icon: "🌐", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
+  { key: "ai", label: "AI文明", labelEn: "AI", icon: "robot", domains: ["AI"] },
+  { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "application", domains: ["PROGRAMMING"] },
+  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "knowledge", domains: ["RESEARCH"] },
+  { key: "business", label: "商业文明", labelEn: "Business", icon: "business", domains: ["BUSINESS"] },
+  { key: "design", label: "设计文明", labelEn: "Design", icon: "creation", domains: ["DESIGN"] },
+  { key: "language", label: "语言文明", labelEn: "Language", icon: "language", domains: ["LANGUAGE"] },
+  { key: "science", label: "科学文明", labelEn: "Science", icon: "science", domains: ["SCIENCE"] },
+  { key: "health", label: "健康文明", labelEn: "Health", icon: "health", domains: ["HEALTH"] },
+  { key: "finance", label: "金融文明", labelEn: "Finance", icon: "finance", domains: ["FINANCE"] },
+  { key: "society", label: "社会文明", labelEn: "Society", icon: "civilization", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
 ];
 
+// ── Icon helper for civilization icon name strings ───────────────
+
+function CivIcon({ name, size = 16, className = "" }: { name: string; size?: number; className?: string }) {
+  const scrollIcons = new Set([
+    "knowledge", "reasoning", "application", "creation", "building", "building-emblem",
+    "civilization", "world-core", "quest", "mission", "checklist", "scroll", "shield",
+    "arrow-left", "arrow-right", "star", "star-outline", "lock", "sparkle", "seal",
+  ]);
+  if (scrollIcons.has(name)) {
+    return <QuestScrollIcon name={name as ScrollIconName} size={size} className={className} />;
+  }
+  const customPaths: Record<string, React.ReactNode> = {
+    tent: <path d="M3 21h18M5 21L12 8l7 13M9 21v-5h6v5" />,
+    wheat: <path d="M12 22V8M12 8c0-2-1-4-3-5M12 8c0-2 1-4 3-5M12 12c0-2-1-4-3-5M12 12c0-2 1-4 3-5M12 16c0-2-1-4-3-5M12 16c0-2 1-4 3-5" strokeWidth="1.2" />,
+    monitor: <><rect x="3" y="4" width="18" height="12" rx="1" /><path d="M8 20h8M12 16v4" /></>,
+    robot: <><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 4v4M9 4h6" /><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none" /><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none" /></>,
+    rocket: <path d="M12 2c3 2 5 5 5 9l-2 3h-6l-2-3c0-4 2-7 5-9zM9 17l-2 4M15 17l2 4" />,
+    "arrow-up": <path d="M12 19V5M5 12l7-7 7 7" />,
+    unlock: <><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 7-2.5" /></>,
+    path: <path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4" strokeWidth="1.2" />,
+    hourglass: <path d="M6 2h12M6 22h12M6 2c0 5 6 6 6 10s-6 5-6 10M18 2c0 5-6 6-6 10s6 5 6 10" />,
+    search: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
+    "chart-up": <><path d="M3 3v18h18" /><path d="M7 14l4-4 3 3 5-6" /></>,
+    business: <><rect x="3" y="7" width="18" height="13" rx="1" /><path d="M9 7V4h6v3" /><path d="M3 12h18" strokeWidth="1" opacity="0.6" /></>,
+    language: <path d="M3 5h12M9 5v14M7 19h4M14 9h7M14 9l3.5 8M14 9l-3 6M19 13h-4" strokeWidth="1.2" />,
+    science: <path d="M9 3v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 9V3M9 3h6" />,
+    health: <path d="M12 21s-7-5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6-7 11-7 11z" />,
+    finance: <><circle cx="12" cy="12" r="9" /><path d="M12 7v10M14.5 9c0-1-1-2-2.5-2s-2.5 1-2.5 2 1 1.5 2.5 2 2.5 1 2.5 2-1 2-2.5 2-2.5-1-2.5-2" strokeWidth="1.2" /></>,
+    crown: <path d="M3 18h18M3 18l2-10 5 6 2-8 2 8 5-6 2 10" />,
+    compass: <><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></>,
+  };
+  const content = customPaths[name];
+  if (!content) return <QuestScrollIcon name="sparkle" size={size} className={className} />;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {content}
+    </svg>
+  );
+}
 // ── Page Component ──────────────────────────────────────────────
 
 export default function PersonalPage() {
@@ -181,7 +222,7 @@ export default function PersonalPage() {
     const highest = all.reduce((a, b) => (b.level > a.level ? b : a));
     const tpl = (highest as any).template;
     const name = locale === "en" && tpl?.name_en ? tpl.name_en : tpl?.name ?? "";
-    return { name, level: highest.level, icon: tpl?.icon ?? "🏛️", id: highest.id };
+    return { name, level: highest.level, icon: tpl?.icon ?? "building", id: highest.id };
   }, [worldData, locale]);
 
   const eraLabel = worldData?.era ? ERA_LABELS[worldData.era] : null;
@@ -207,7 +248,7 @@ export default function PersonalPage() {
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Identity Info */}
           <div className="flex-1 flex flex-col sm:flex-row gap-5 items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-4xl overflow-hidden ring-2 ring-[oklch(0.7_0.12_85_/_0.35)] shadow-inner">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden ring-2 ring-[oklch(0.7_0.12_85_/_0.35)] shadow-inner">
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
@@ -216,7 +257,7 @@ export default function PersonalPage() {
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
               ) : (
-                <span>🧑‍🎓</span>
+                <QuestScrollIcon name="knowledge" size={32} />
               )}
             </div>
             <div className="min-w-0">
@@ -224,16 +265,16 @@ export default function PersonalPage() {
                 {displayName}
               </h1>
               <p className={`text-xs font-bold font-civ-serif mt-0.5 uppercase tracking-wide ${user?.title ? "text-accent" : "text-muted-foreground italic normal-case"}`}>
-                🎖️ {displayTitle}
+                <QuestScrollIcon name="star" size={14} className="inline-block align-text-bottom" /> {displayTitle}
               </p>
               {tierLabel && (
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 flex-wrap font-medium">
-                  <span>{tierLabel.icon}</span>
+                  <CivIcon name={tierLabel.icon} size={14} />
                   <span>{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
                   {eraLabel && (
                     <>
                       <span className="opacity-40">·</span>
-                      <span>{eraLabel.icon}</span>
+                      <CivIcon name={eraLabel.icon} size={14} />
                       <span>{locale === "en" ? eraLabel.en : eraLabel.zh}</span>
                     </>
                   )}
@@ -242,7 +283,7 @@ export default function PersonalPage() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground font-medium border-t border-border/40 pt-2.5">
                 {stats && (
                   <span className="flex items-center gap-0.5">
-                    <span>👑</span>
+                    <CivIcon name="crown" size={14} className="inline-block align-text-bottom" />
                     {locale === "en" ? "Index" : "文明指数"}{" "}
                     <strong className="text-accent font-bold font-mono ml-0.5">
                       {(stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()}
@@ -250,14 +291,14 @@ export default function PersonalPage() {
                   </span>
                 )}
                 <span className="flex items-center gap-0.5">
-                  <span>⚔️</span>
+                  <QuestScrollIcon name="shield" size={14} className="inline-block align-text-bottom" />
                   {locale === "en" ? "Skills" : "已掌握"}{" "}
                   <strong className="text-foreground font-bold font-mono ml-0.5">{userSkills.length}</strong>{" "}
                   {locale === "en" ? "abilities" : "项能力"}
                 </span>
                 {stats && (
                   <span className="flex items-center gap-0.5">
-                    <span>🏰</span>
+                    <QuestScrollIcon name="building" size={14} className="inline-block align-text-bottom" />
                     {locale === "en" ? "Buildings" : "已建造"}{" "}
                     <strong className="text-foreground font-bold font-mono ml-0.5">
                       {stats.active_buildings ?? stats.total_buildings ?? 0}
@@ -276,7 +317,7 @@ export default function PersonalPage() {
           {earnedBadges.length > 0 && (
             <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-border/60 pt-4 lg:pt-0 lg:pl-6 flex flex-col">
               <h3 className="text-[10px] font-bold font-civ-serif text-[#C4A77D] uppercase tracking-wider mb-2.5">
-                📜 {locale === "en" ? "Recent Badges" : "最近获得徽章"}
+                <QuestScrollIcon name="scroll" size={14} className="inline-block align-text-bottom" /> {locale === "en" ? "Recent Badges" : "最近获得徽章"}
               </h3>
               <div className="space-y-2 flex-1">
                 {earnedBadges.slice(0, 3).map(({ badge, userBadge }) => (
@@ -318,7 +359,7 @@ export default function PersonalPage() {
               [RADAR_SEC_01]
             </div>
             <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2 flex items-center gap-1.5">
-              <span>📊</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M3 3v18h18" /><rect x="7" y="13" width="3" height="5" /><rect x="12" y="9" width="3" height="9" /><rect x="17" y="5" width="3" height="13" /></svg>
               {locale === "en" ? "Capability Radar" : "综合能力雷达"}
             </h3>
             <div className="flex justify-center my-2">
@@ -340,13 +381,13 @@ export default function PersonalPage() {
               [DOMAINS_SEC_02]
             </div>
             <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2 flex items-center gap-1.5">
-              <span>🌍</span>
+              <QuestScrollIcon name="civilization" size={16} className="inline-block align-text-bottom" />
               {locale === "en" ? "Civilization Domains" : "文明领域概览"}
             </h3>
             <div className="space-y-3">
               {domainOverview.map((d) => (
                 <div key={d.key} className="flex items-center gap-3">
-                  <span className="text-base w-6 text-center shrink-0">{d.icon}</span>
+                  <span className="w-6 flex items-center justify-center shrink-0"><CivIcon name={d.icon} size={16} /></span>
                   <span className="text-xs font-bold font-civ-serif text-foreground w-20 shrink-0 truncate">{d.label}</span>
                   <div className="flex-1 h-2 rounded-full bg-[oklch(0.95_0.005_90)] dark:bg-[oklch(0.25_0.008_85)] border border-border/40 overflow-hidden shadow-inner relative">
                     <div
@@ -368,7 +409,7 @@ export default function PersonalPage() {
               [LOG_SEC_03]
             </div>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/60">
-              <span className="text-lg">🏛️</span>
+              <QuestScrollIcon name="building" size={18} />
               <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
                 {locale === "en" ? "Civilization Archive" : "文明档案"}
               </h3>
@@ -380,23 +421,23 @@ export default function PersonalPage() {
               </p>
             </div>
             <div className="space-y-2.5">
-              <ArchiveRow icon="⏳" label={locale === "en" ? "Current Era" : "当前时代"} value={eraLabel ? (locale === "en" ? eraLabel.en : eraLabel.zh) : "—"} />
-              <ArchiveRow icon="👑" label={locale === "en" ? "Civ Index" : "文明指数"} value={stats ? ((stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()) : "—"} />
-              <ArchiveRow icon="🗺️" label={locale === "en" ? "Exploration Rate" : "探索率"} value={worldData ? `${worldData.exploration_progress}%` : "—"} />
-              <ArchiveRow icon="🏰" label={locale === "en" ? "Buildings" : "建筑"} value={stats ? String(stats.active_buildings ?? stats.total_buildings ?? 0) : "—"} />
-              <ArchiveRow icon="📜" label={locale === "en" ? "Skills Unlocked" : "已解锁技能"} value={String(userSkills.length)} />
-              <ArchiveRow icon="🧭" label={locale === "en" ? "Quests Completed" : "任务完成"} value={String(questCompletionCount)} />
+              <ArchiveRow icon={<CivIcon name="hourglass" size={14} />} label={locale === "en" ? "Current Era" : "当前时代"} value={eraLabel ? (locale === "en" ? eraLabel.en : eraLabel.zh) : "—"} />
+              <ArchiveRow icon={<CivIcon name="crown" size={14} />} label={locale === "en" ? "Civ Index" : "文明指数"} value={stats ? ((stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()) : "—"} />
+              <ArchiveRow icon={<QuestScrollIcon name="civilization" size={14} />} label={locale === "en" ? "Exploration Rate" : "探索率"} value={worldData ? `${worldData.exploration_progress}%` : "—"} />
+              <ArchiveRow icon={<QuestScrollIcon name="building" size={14} />} label={locale === "en" ? "Buildings" : "建筑"} value={stats ? String(stats.active_buildings ?? stats.total_buildings ?? 0) : "—"} />
+              <ArchiveRow icon={<QuestScrollIcon name="scroll" size={14} />} label={locale === "en" ? "Skills Unlocked" : "已解锁技能"} value={String(userSkills.length)} />
+              <ArchiveRow icon={<CivIcon name="compass" size={14} />} label={locale === "en" ? "Quests Completed" : "任务完成"} value={String(questCompletionCount)} />
               {highestBuilding && (
-                <ArchiveRow icon="🏛️" label={locale === "en" ? "Highest Building" : "最高建筑"} value={`${highestBuilding.name} Lv${highestBuilding.level}`} href={`/world?building=${highestBuilding.id}`} />
+                <ArchiveRow icon={<QuestScrollIcon name="building" size={14} />} label={locale === "en" ? "Highest Building" : "最高建筑"} value={`${highestBuilding.name} Lv${highestBuilding.level}`} href={`/world?building=${highestBuilding.id}`} />
               )}
               {civDirection?.active_paths?.[0] && (
-                <ArchiveRow icon="📖" label={locale === "en" ? "Active Path" : "当前学习路径"} value={civDirection.active_paths[0].path_title} href={`/paths/${civDirection.active_paths[0].path_id}`} />
+                <ArchiveRow icon={<QuestScrollIcon name="knowledge" size={14} />} label={locale === "en" ? "Active Path" : "当前学习路径"} value={civDirection.active_paths[0].path_title} href={`/paths/${civDirection.active_paths[0].path_id}`} />
               )}
             </div>
             {tierLabel && worldData?.next_tier_at != null && (
               <div className="mt-5 pt-4 border-t border-border/50">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="text-base">{tierLabel.icon}</span>
+                  <CivIcon name={tierLabel.icon} size={16} />
                   <span className="font-bold font-civ-serif text-foreground">{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
                   <span className="italic">— {locale === "en" ? "Next level in" : "晋升下一阶尚需"} <strong className="text-[#C4A77D] font-bold font-mono ml-0.5">{worldData.next_tier_at}</strong></span>
                 </div>
@@ -411,7 +452,7 @@ export default function PersonalPage() {
         {/* Row 1: Badges + Credentials */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SectionCard
-            icon="🏅"
+            icon={<QuestScrollIcon name="star" size={16} />}
             title={locale === "en" ? "Recent Badges" : "最近获得徽章"}
             emptyText={locale === "en" ? "No badges earned yet" : "尚未获得徽章"}
             isEmpty={earnedBadges.length === 0}
@@ -424,7 +465,7 @@ export default function PersonalPage() {
             <div className="space-y-2">
               {(badgesExpanded ? earnedBadges : earnedBadges.slice(0, 3)).map(({ badge, userBadge }) => (
                 <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-background/50 border border-border/40 px-3 py-2">
-                  <span className="text-lg shrink-0">{badge.icon || "🏅"}</span>
+                  <span className="text-lg shrink-0">{badge.icon || <QuestScrollIcon name="star" size={18} />}</span>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold font-civ-serif text-foreground truncate">
                       {locale === "en" && badge.name_en ? badge.name_en : badge.name}
@@ -447,7 +488,7 @@ export default function PersonalPage() {
           </SectionCard>
 
           <SectionCard
-            icon="🏆"
+            icon={<QuestScrollIcon name="star" size={16} />}
             title={locale === "en" ? "Recent Credentials" : "最近获得证书"}
             emptyText={locale === "en" ? "No credentials earned yet" : "尚未获得证书"}
             isEmpty={userCredentials.length === 0}
@@ -460,8 +501,8 @@ export default function PersonalPage() {
             <div className="space-y-2">
               {(credsExpanded ? userCredentials : userCredentials.slice(0, 3)).map((cred) => (
                 <div key={cred.id} className="flex items-center gap-3 rounded-lg bg-background/50 border border-border/40 px-3 py-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm">
-                    🏅
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <QuestScrollIcon name="star" size={16} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold font-civ-serif text-foreground truncate">{cred.name}</p>
@@ -483,7 +524,7 @@ export default function PersonalPage() {
         {/* Row 2: Core Skills + Buildings */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SectionCard
-            icon="🎯"
+            icon={<QuestScrollIcon name="mission" size={16} />}
             title={locale === "en" ? "Core Skills" : "核心技能"}
             viewAllHref="/skills"
             viewAllLabel={locale === "en" ? "View All" : "查看全部"}
@@ -509,7 +550,7 @@ export default function PersonalPage() {
           </SectionCard>
 
           <SectionCard
-            icon="🏛️"
+            icon={<QuestScrollIcon name="building" size={14} />}
             title={locale === "en" ? "Top Buildings" : "代表建筑"}
             viewAllHref="/world"
             viewAllLabel={locale === "en" ? "View All" : "查看全部"}
@@ -526,7 +567,7 @@ export default function PersonalPage() {
                     href={`/world?building=${building.id}`}
                     className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/50 p-2.5 transition-all hover:shadow-card hover:border-primary/20 group"
                   >
-                    <span className="text-xl transition-transform group-hover:scale-110">{tpl?.icon ?? "🏛️"}</span>
+                    <span className="text-xl transition-transform group-hover:scale-110">{tpl?.icon ?? <QuestScrollIcon name="building" size={20} />}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold font-civ-serif text-foreground truncate">{name}</p>
                       <p className="text-[9px] text-muted-foreground font-mono">Lv.{building.level}</p>
@@ -545,7 +586,7 @@ export default function PersonalPage() {
           [TIMELINE_SEC_04]
         </div>
         <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2">
-          ⏳ {locale === "en" ? "Growth Timeline" : "成长时间轴"}
+          <CivIcon name="hourglass" size={16} className="inline-block align-text-bottom" /> {locale === "en" ? "Growth Timeline" : "成长时间轴"}
         </h3>
         <GrowthTimeline
           events={worldData?.recent_events}
@@ -560,23 +601,23 @@ export default function PersonalPage() {
           [WAYPOINTS_SEC_05]
         </div>
         <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2">
-          🗺️ {locale === "en" ? "Quick Waypoints" : "快捷入口"}
+          <QuestScrollIcon name="civilization" size={16} className="inline-block align-text-bottom" /> {locale === "en" ? "Quick Waypoints" : "快捷入口"}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <QuickLink
-            icon="🧠"
+            icon={<QuestScrollIcon name="reasoning" size={24} />}
             title={locale === "en" ? "Skill Center" : "技能中心"}
             desc={locale === "en" ? `Manage ${userSkills.length} skills` : `管理 ${userSkills.length} 项技能`}
             href="/skills"
           />
           <QuickLink
-            icon="📋"
+            icon={<QuestScrollIcon name="checklist" size={24} />}
             title={locale === "en" ? "Quest Board" : "任务面板"}
             desc={locale === "en" ? `${questCompletionCount} quests completed` : `已完成 ${questCompletionCount} 个任务`}
             href="/quests"
           />
           <QuickLink
-            icon="🌍"
+            icon={<QuestScrollIcon name="civilization" size={24} />}
             title={locale === "en" ? "My World" : "我的世界"}
             desc={
               stats
@@ -595,11 +636,11 @@ export default function PersonalPage() {
 
 // ── Sub-components ─────────────────────────────────────────────
 
-function ArchiveRow({ icon, label, value, href }: { icon: string; label: string; value: string; href?: string }) {
+function ArchiveRow({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: string; href?: string }) {
   const inner = (
     <div className="flex items-center justify-between py-2">
       <span className="text-xs text-muted-foreground flex items-center gap-2">
-        <span className="text-sm w-5 text-center">{icon}</span>
+        <span className="w-5 flex items-center justify-center">{icon}</span>
         <span className="font-medium">{label}</span>
       </span>
       <span className={`text-xs font-bold font-civ-serif truncate max-w-[60%] text-right ${href ? "text-primary hover:underline" : "text-foreground"}`}>
@@ -618,7 +659,7 @@ function SectionCard({
   expandLabel, totalCount = 0, visibleCount = 3,
   isExpanded = false, onToggleExpand,
 }: {
-  icon: string; title: string; viewAllHref?: string; viewAllLabel?: string;
+  icon: React.ReactNode; title: string; viewAllHref?: string; viewAllLabel?: string;
   emptyText: string; isEmpty: boolean; children: React.ReactNode;
   expandLabel?: string; totalCount?: number; visibleCount?: number;
   isExpanded?: boolean; onToggleExpand?: () => void;
@@ -630,7 +671,7 @@ function SectionCard({
       </div>
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/60">
         <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
-          <span>{icon}</span> {title}
+          {icon} {title}
           {totalCount > 0 && (
             <span className="text-[10px] text-muted-foreground font-bold font-mono">
               ({isExpanded ? totalCount : Math.min(visibleCount, totalCount)}/{totalCount})
@@ -659,7 +700,7 @@ function SectionCard({
   );
 }
 
-function QuickLink({ icon, title, desc, href }: { icon: string; title: string; desc: string; href: string }) {
+function QuickLink({ icon, title, desc, href }: { icon: React.ReactNode; title: string; desc: string; href: string }) {
   return (
     <Link
       href={href}
@@ -668,7 +709,7 @@ function QuickLink({ icon, title, desc, href }: { icon: string; title: string; d
       <div className="absolute -bottom-1 -right-1 text-[7px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
         [WAYPOINT_{title.slice(0, 4).toUpperCase()}]
       </div>
-      <span className="text-2xl shrink-0 transition-transform group-hover:scale-110">{icon}</span>
+      <span className="shrink-0 transition-transform group-hover:scale-110">{icon}</span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] group-hover:text-primary transition-colors">{title}</p>
         <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{desc}</p>

@@ -379,8 +379,8 @@ def abandon_quest(
 ) -> dict:
     """Abandon an accepted or failed quest.
 
-    Allowed statuses: ACCEPTED, IN_PROGRESS, FAILED.
-    SUBMITTED or ASSESSING quests cannot be abandoned.
+    Allowed statuses: ACCEPTED, IN_PROGRESS, FAILED, ASSESSING.
+    SUBMITTED quests cannot be abandoned.
 
     Raises:
         NotFoundException: If the quest hasn't been accepted.
@@ -406,11 +406,12 @@ def abandon_quest(
         SubmissionStatus.ACCEPTED,
         SubmissionStatus.IN_PROGRESS,
         SubmissionStatus.FAILED,
+        SubmissionStatus.ASSESSING,
     ):
         raise ConflictException(
             "CANNOT_ABANDON",
             f"Cannot abandon a quest with status '{submission.status.value}'. "
-            "Only ACCEPTED, IN_PROGRESS, or FAILED quests can be abandoned.",
+            "Only ACCEPTED, IN_PROGRESS, FAILED, or ASSESSING quests can be abandoned.",
         )
 
     submission.status = SubmissionStatus.ABANDONED

@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/hooks/useLocale";
 import type { PathStatsSummary } from "@/types/learningPath";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 
 interface CivilizationStatsBarProps {
   stats: PathStatsSummary | null;
@@ -31,28 +32,28 @@ export function CivilizationStatsBar({ stats, isLoading }: CivilizationStatsBarP
 
   const cards = [
     {
-      icon: "🏛️",
+      icon: "building" as ScrollIconName,
       label: locale === "zh" ? "文明等级" : "Civ Level",
       value: `Lv.${stats.civilization_level}`,
-      sub: `${stats.era_icon} ${locale === "zh" ? stats.civilization_name : stats.era}`,
+      sub: `${locale === "zh" ? stats.civilization_name : stats.era}`,
       accent: "from-[#C4A77D]/20 to-[#C4A77D]/5 border-[#C4A77D]/20",
     },
     {
-      icon: "🏗️",
+      icon: "crane" as ScrollIconName,
       label: locale === "zh" ? "已解锁建筑" : "Buildings",
       value: `${stats.unlocked_buildings}`,
       sub: `${locale === "zh" ? "共" : "of"} ${stats.total_buildings}`,
       accent: "from-[#8B9D83]/20 to-[#8B9D83]/5 border-[#8B9D83]/20",
     },
     {
-      icon: "📋",
+      icon: "checklist" as ScrollIconName,
       label: locale === "zh" ? "完成Quest" : "Quests Done",
       value: `${stats.completed_quests}`,
       sub: locale === "zh" ? "次任务完成" : "completed",
       accent: "from-[#D4A76A]/20 to-[#D4A76A]/5 border-[#D4A76A]/20",
     },
     {
-      icon: "⭐",
+      icon: "star" as ScrollIconName,
       label: locale === "zh" ? "总技能值" : "Skill Power",
       value: `${stats.total_skill_value}`,
       sub: locale === "zh" ? "累计能力值" : "total XP",
@@ -68,7 +69,7 @@ export function CivilizationStatsBar({ stats, isLoading }: CivilizationStatsBarP
           className={`rounded-2xl border bg-gradient-to-br ${card.accent} p-4 shadow-card transition-all duration-300`}
         >
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">{card.icon}</span>
+            <span className="text-xl inline-flex text-foreground"><QuestScrollIcon name={card.icon} size={20} /></span>
             <span className="text-xs font-medium text-muted-foreground">{card.label}</span>
           </div>
           <p className="text-2xl font-bold text-foreground tracking-tight">{card.value}</p>

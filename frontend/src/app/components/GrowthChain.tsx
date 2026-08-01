@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
 export interface GrowthChainNode {
   label: string;
@@ -30,8 +31,9 @@ export function GrowthChain({ nodes, className = "" }: GrowthChainProps) {
 
   return (
     <div className={`${className}`}>
-      <h4 className="text-xs font-semibold text-muted-foreground mb-3">
-        {locale === "zh" ? "🛤️ 成长链路" : "🛤️ Growth Chain"}
+      <h4 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1">
+        <QuestScrollIcon name="path" size={14} />
+        {locale === "zh" ? "成长链路" : "Growth Chain"}
       </h4>
 
       <div className="flex items-center flex-wrap gap-0">
@@ -51,7 +53,7 @@ export function GrowthChain({ nodes, className = "" }: GrowthChainProps) {
                   }`}
                 >
                   {isBuilding ? (
-                    <span className="text-base">{node.icon || "🏛️"}</span>
+                    <QuestScrollIcon name={resolveScrollIconName(node.icon || "building")} size={16} />
                   ) : (
                     <span className="text-[10px] font-bold text-[#8B9D83] tabular-nums">
                       {i + 1}

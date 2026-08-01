@@ -1,9 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { type ReactNode } from "react";
+import {
+  QuestScrollIcon,
+  resolveScrollIconName,
+} from "./QuestScrollIcon";
 
 interface VintageShieldIconProps {
-  icon: string;
+  /** Either a ReactNode (JSX icon) or a string (descriptive name / emoji). */
+  icon: ReactNode;
   size?: "sm" | "md" | "lg";
   tier?: "gold" | "silver" | "bronze" | "sage";
   className?: string;
@@ -28,6 +33,18 @@ export function VintageShieldIcon({
     sage: "border-[oklch(0.55_0.08_160_/_0.4)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.55_0.08_160_/_0.06)] shadow-sm text-[oklch(0.4_0.08_160)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.55_0.08_160_/_0.05)]",
   };
 
+  // Render: if icon is a string, resolve to QuestScrollIcon; else render the ReactNode.
+  const renderedIcon =
+    typeof icon === "string" ? (
+      <QuestScrollIcon
+        name={resolveScrollIconName(icon)}
+        size={size === "lg" ? 28 : size === "md" ? 24 : 18}
+        strokeWidth={1.5}
+      />
+    ) : (
+      icon
+    );
+
   return (
     <div
       className={`flex items-center justify-center shrink-0 relative overflow-hidden transition-all duration-300 hover:scale-105 ${sizeClasses[size]} ${tierClasses[tier]} ${className}`}
@@ -48,7 +65,7 @@ export function VintageShieldIcon({
         <line x1="10" y1="40" x2="90" y2="40" strokeWidth="1.5" strokeDasharray="4 4" />
       </svg>
       <span className="relative z-10 animate-gentle-float leading-none flex items-center justify-center select-none">
-        {icon}
+        {renderedIcon}
       </span>
     </div>
   );

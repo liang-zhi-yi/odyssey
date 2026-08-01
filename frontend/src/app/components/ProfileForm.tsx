@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { authService } from "@/services/auth.service";
 import { AvatarUpload } from "./AvatarUpload";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 import { resolveAvatarSrc } from "@/lib/avatar";
 import type { UpdateProfileRequest, SocialLink } from "@/types/user";
 
@@ -119,7 +120,7 @@ export function ProfileForm() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><circle cx="7" cy="7" r="1" fill="currentColor" stroke="none" /></svg> {t("settings.nickname")}</label>
               <input
                 type="text"
                 value={form.nickname ?? ""}
@@ -129,7 +130,7 @@ export function ProfileForm() {
               />
             </div>
             <div>
-              <label className={labelClass}>🛡️ {t("settings.title")}</label>
+              <label className={labelClass}><QuestScrollIcon name="shield" size={14} className="inline-block align-text-bottom" /> {t("settings.title")}</label>
               <input
                 type="text"
                 value={form.title ?? ""}
@@ -141,7 +142,7 @@ export function ProfileForm() {
           </div>
 
           <div>
-            <label className={labelClass}>📜 {t("settings.bio")}</label>
+            <label className={labelClass}><QuestScrollIcon name="scroll" size={14} className="inline-block align-text-bottom" /> {t("settings.bio")}</label>
             <textarea
               value={form.bio ?? ""}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
@@ -153,7 +154,7 @@ export function ProfileForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className={labelClass}>🧭 {t("settings.githubUsername")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></svg> {t("settings.githubUsername")}</label>
               <input
                 type="text"
                 value={form.github_username ?? ""}
@@ -163,7 +164,7 @@ export function ProfileForm() {
               />
             </div>
             <div>
-              <label className={labelClass}>📍 {t("settings.location")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg> {t("settings.location")}</label>
               <input
                 type="text"
                 value={form.location ?? ""}
@@ -173,7 +174,7 @@ export function ProfileForm() {
               />
             </div>
             <div>
-              <label className={labelClass}>🌍 {t("settings.website")}</label>
+              <label className={labelClass}><QuestScrollIcon name="civilization" size={14} className="inline-block align-text-bottom" /> {t("settings.website")}</label>
               <input
                 type="text"
                 value={form.website ?? ""}
@@ -186,7 +187,7 @@ export function ProfileForm() {
 
           {/* Social links editor */}
           <div className="pt-2">
-            <label className={labelClass}>🔗 {t("settings.socialLinks")}</label>
+            <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg> {t("settings.socialLinks")}</label>
             {socialLinks.length > 0 && (
               <div className="space-y-2 mb-3 max-w-xl">
                 {socialLinks.map((link, i) => (
@@ -251,13 +252,13 @@ export function ProfileForm() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-2xl text-muted-foreground">
-                  🧑‍🎓
+                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                  <QuestScrollIcon name="knowledge" size={32} />
                 </div>
               )}
             </div>
             <div>
-              <label className={labelClass}>🖼️ {t("settings.avatar")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg> {t("settings.avatar")}</label>
               <p className="text-xs text-muted-foreground italic">
                 {user.avatar_url ? t("settings.avatarHint") : (locale === "en" ? "No avatar set" : "未设置头像")}
               </p>
@@ -266,13 +267,13 @@ export function ProfileForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>🏷️ {t("settings.nickname")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><circle cx="7" cy="7" r="1" fill="currentColor" stroke="none" /></svg> {t("settings.nickname")}</label>
               <p className={`${displayValueClass} ${!user.nickname ? "text-muted-foreground italic" : ""}`}>
                 {displayNickname}
               </p>
             </div>
             <div>
-              <label className={labelClass}>🛡️ {t("settings.title")}</label>
+              <label className={labelClass}><QuestScrollIcon name="shield" size={14} className="inline-block align-text-bottom" /> {t("settings.title")}</label>
               <p className={`${displayValueClass} ${!user.title ? "text-muted-foreground italic" : ""}`}>
                 {displayTitle}
               </p>
@@ -280,7 +281,7 @@ export function ProfileForm() {
           </div>
 
           <div>
-            <label className={labelClass}>📜 {t("settings.bio")}</label>
+            <label className={labelClass}><QuestScrollIcon name="scroll" size={14} className="inline-block align-text-bottom" /> {t("settings.bio")}</label>
             <p className={`${displayValueClass} leading-relaxed ${!user.bio ? "text-muted-foreground italic" : ""}`}>
               {displayBio}
             </p>
@@ -288,19 +289,19 @@ export function ProfileForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className={labelClass}>🧭 {t("settings.githubUsername")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></svg> {t("settings.githubUsername")}</label>
               <p className={`${displayValueClass} ${!user.github_username ? "text-muted-foreground italic" : ""}`}>
                 {displayGithub}
               </p>
             </div>
             <div>
-              <label className={labelClass}>📍 {t("settings.location")}</label>
+              <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg> {t("settings.location")}</label>
               <p className={`${displayValueClass} ${!user.location ? "text-muted-foreground italic" : ""}`}>
                 {displayLocation}
               </p>
             </div>
             <div>
-              <label className={labelClass}>🌍 {t("settings.website")}</label>
+              <label className={labelClass}><QuestScrollIcon name="civilization" size={14} className="inline-block align-text-bottom" /> {t("settings.website")}</label>
               <p className={`${displayValueClass} ${!user.website ? "text-muted-foreground italic" : ""} truncate`}>
                 {displayWebsite}
               </p>
@@ -309,7 +310,7 @@ export function ProfileForm() {
 
           {/* Social links display */}
           <div className="pt-2">
-            <label className={labelClass}>🔗 {t("settings.socialLinks")}</label>
+            <label className={labelClass}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg> {t("settings.socialLinks")}</label>
             {userSocialLinks.length > 0 ? (
               <div className="space-y-2 max-w-xl">
                 {userSocialLinks.map((link, i) => (
@@ -334,10 +335,10 @@ export function ProfileForm() {
       )}
 
       {message && (
-        <p className="text-xs font-bold text-success mt-2">✓ {message}</p>
+        <p className="text-xs font-bold text-success mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M20 6L9 17l-5-5" /></svg> {message}</p>
       )}
       {error && (
-        <p className="text-xs font-bold text-destructive mt-2">✗ {error}</p>
+        <p className="text-xs font-bold text-destructive mt-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M18 6L6 18M6 6l12 12" /></svg> {error}</p>
       )}
 
       {/* Action buttons — Edit and Save are peer buttons */}
@@ -347,7 +348,7 @@ export function ProfileForm() {
             onClick={() => setIsEditing(true)}
             className="rounded-lg border border-[#C4A77D]/40 bg-[#C4A77D]/5 text-[#8B7355] px-5 py-2.5 text-xs font-bold font-civ-serif hover:bg-[#C4A77D]/15 transition-colors shadow-sm"
           >
-            ✍️ {t("common.edit")}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg> {t("common.edit")}
           </button>
         ) : (
           <>

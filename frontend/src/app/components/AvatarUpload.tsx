@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { useLocale } from "@/hooks/useLocale";
 import { authService } from "@/services/auth.service";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -124,8 +125,8 @@ export function AvatarUpload({ currentAvatarUrl, onAvatarChange }: AvatarUploadP
               }}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-2xl text-muted-foreground">
-              🧑‍🎓
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <QuestScrollIcon name="shield" size={28} />
             </div>
           )}
 

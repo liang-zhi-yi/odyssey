@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/hooks/useLocale";
 import type { SubmissionStatus } from "@/types/quest";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 interface QuestStatusBadgeProps {
   status: SubmissionStatus;
@@ -20,15 +21,33 @@ const STATUS_STYLE: Record<SubmissionStatus, string> = {
   ABANDONED: "bg-muted/30 text-muted-foreground border-muted/20",
 };
 
-/** Status → icon */
-const STATUS_ICON: Record<SubmissionStatus, string> = {
-  ACCEPTED: "📋",
-  IN_PROGRESS: "🔄",
-  SUBMITTED: "📤",
-  ASSESSING: "🔍",
-  PASSED: "✅",
-  FAILED: "❌",
-  ABANDONED: "🚫",
+/** Status → ancient-civilization SVG icon */
+const STATUS_ICON: Record<SubmissionStatus, JSX.Element> = {
+  ACCEPTED: <QuestScrollIcon name="checklist" size={12} />,
+  IN_PROGRESS: <QuestScrollIcon name="application" size={12} />,
+  SUBMITTED: <QuestScrollIcon name="scroll" size={12} />,
+  ASSESSING: (
+    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  ),
+  PASSED: (
+    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+  FAILED: (
+    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  ),
+  ABANDONED: (
+    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M5.6 5.6l12.8 12.8" />
+    </svg>
+  ),
 };
 
 /**
@@ -41,7 +60,7 @@ export function QuestStatusBadge({ status, size = "sm", className = "" }: QuestS
 
   const label = t(`quests.status.${status}` as any);
   const style = STATUS_STYLE[status] || "bg-secondary text-muted-foreground border-border";
-  const icon = STATUS_ICON[status] || "";
+  const icon = STATUS_ICON[status];
 
   const sizeClass = size === "md"
     ? "px-3 py-1 text-xs"
@@ -51,7 +70,7 @@ export function QuestStatusBadge({ status, size = "sm", className = "" }: QuestS
     <span
       className={`inline-flex items-center gap-1 rounded-full border font-medium ${sizeClass} ${style} ${className}`}
     >
-      {size === "md" && <span className="text-xs leading-none">{icon}</span>}
+      {size === "md" && <span className="text-xs leading-none inline-flex items-center">{icon}</span>}
       {label}
     </span>
   );

@@ -8,6 +8,7 @@ import { RANK_LABELS } from "@/types/skill";
 import { CIVILIZATION_GROUPS } from "@/types/world";
 import { masteryColor } from "@/app/components/GrowthRing";
 import { useLocale } from "@/hooks/useLocale";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 
 function MiniShieldIcon({ icon, groupKey }: { icon: string; groupKey: string }) {
   const isGold = groupKey === "engineering" || groupKey === "knowledge";
@@ -139,7 +140,7 @@ export function SkillTreeSidebar({
             [N 35° 41' / E 139° 41']
           </div>
           <h3 className="text-xs font-bold font-civ-serif text-[oklch(0.35_0.12_85)] tracking-wide uppercase mb-3 flex items-center gap-1.5">
-            <span>📜</span> {locale === "en" ? "Civilization" : "文明概览"}
+            <QuestScrollIcon name="scroll" size={14} className="inline-block align-middle" /> {locale === "en" ? "Civilization" : "文明概览"}
           </h3>
 
           <div className="space-y-2">
@@ -353,7 +354,7 @@ export function SkillTreeSidebar({
           href="/world"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-[oklch(0.5_0.02_85)] hover:text-[oklch(0.3_0.02_80)] hover:bg-[oklch(0.95_0.005_90)] dark:hover:bg-[oklch(0.25_0.008_85)] border border-transparent hover:border-[oklch(0.88_0.02_90)] transition-all font-civ-serif"
         >
-          <span className="text-sm">🧭</span>
+          <QuestScrollIcon name="mission" size={14} />
           <span className="flex-1">
             {locale === "en" ? "View My World" : "查看我的世界"}
           </span>

@@ -3,6 +3,7 @@
 import { useLocale } from "@/hooks/useLocale";
 import { CIVILIZATION_TIER_LABELS } from "@/types/world";
 import type { CivilizationTierValue } from "@/types/world";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface AchievementOverviewProps {
   totalProjects: number;
@@ -15,11 +16,11 @@ interface AchievementOverviewProps {
 
 /** Grade → color mapping for the stat cards */
 const STAT_STYLES = [
-  { icon: "📁", key: "totalProjects", bg: "from-[#8B9D83]/10 to-[#8B9D83]/5", border: "border-[#8B9D83]/20" },
-  { icon: "✅", key: "completedQuests", bg: "from-emerald-500/10 to-emerald-500/5", border: "border-emerald-500/20" },
-  { icon: "🏗️", key: "activeBuildings", bg: "from-[#C4A77D]/10 to-[#C4A77D]/5", border: "border-[#C4A77D]/20" },
-  { icon: "🏛️", key: "civilizationLevel", bg: "from-amber-500/10 to-amber-500/5", border: "border-amber-500/20" },
-];
+  { icon: "folder", key: "totalProjects", bg: "from-[#8B9D83]/10 to-[#8B9D83]/5", border: "border-[#8B9D83]/20" },
+  { icon: "checklist", key: "completedQuests", bg: "from-emerald-500/10 to-emerald-500/5", border: "border-emerald-500/20" },
+  { icon: "building", key: "activeBuildings", bg: "from-[#C4A77D]/10 to-[#C4A77D]/5", border: "border-[#C4A77D]/20" },
+  { icon: "building", key: "civilizationLevel", bg: "from-amber-500/10 to-amber-500/5", border: "border-amber-500/20" },
+] as const;
 
 /**
  * First layer — horizontal stat cards showing civilization achievement overview.
@@ -84,7 +85,15 @@ export function AchievementOverview({
         >
           {/* Tiny grid line overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[oklch(0.72_0.12_82_/_0.03)] pointer-events-none" />
-          <span className="text-2xl relative z-10">{stat.icon}</span>
+          <span className="text-2xl relative z-10 flex">
+            {stat.icon === "folder" ? (
+              <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+              </svg>
+            ) : (
+              <QuestScrollIcon name={stat.icon} size={24} />
+            )}
+          </span>
           <p className="mt-2 text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)] tabular-nums relative z-10">
             {String(values[stat.key as keyof typeof values])}
           </p>

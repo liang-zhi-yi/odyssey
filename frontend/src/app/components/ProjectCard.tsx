@@ -6,6 +6,8 @@ import type { Project } from "@/types/project";
 import { useLocale } from "@/hooks/useLocale";
 import { projectService } from "@/services/project.service";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 
 interface ProjectCardProps {
   project: Project;
@@ -20,11 +22,11 @@ const GRADE_STYLE: Record<string, string> = {
   D: "bg-muted/30 text-muted-foreground border-muted/20",
 };
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; icon: string }> = {
-  PASSED: { bg: "bg-success/10", text: "text-success", icon: "✅" },
-  SUBMITTED: { bg: "bg-warning/10", text: "text-warning", icon: "📤" },
-  ASSESSING: { bg: "bg-warning/10", text: "text-warning", icon: "🔍" },
-  FAILED: { bg: "bg-destructive/10", text: "text-destructive", icon: "❌" },
+const STATUS_STYLE: Record<string, { bg: string; text: string; icon: ReactNode }> = {
+  PASSED: { bg: "bg-success/10", text: "text-success", icon: <QuestScrollIcon name="checklist" size={12} /> },
+  SUBMITTED: { bg: "bg-warning/10", text: "text-warning", icon: (<svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 21h14" /></svg>) },
+  ASSESSING: { bg: "bg-warning/10", text: "text-warning", icon: (<svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-5-5" /></svg>) },
+  FAILED: { bg: "bg-destructive/10", text: "text-destructive", icon: (<svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>) },
 };
 
 function timeAgo(dateStr: string | null, locale: string): string {
@@ -174,7 +176,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-center gap-2">
           {statusInfo && (
             <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0 text-[9px] ${statusInfo.bg} ${statusInfo.text}`}>
-              {statusInfo.icon} {status}
+              <span className="flex items-center gap-0.5">{statusInfo.icon} {status}</span>
             </span>
           )}
           {!statusInfo && project.quest_submission && (

@@ -6,6 +6,7 @@ import type { DimensionScores } from "@/types/assessment";
 import { RadarChart } from "./RadarChart";
 import { Loading } from "./Loading";
 import { EmptyState } from "./EmptyState";
+import { QuestScrollIcon } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveAvatarSrc } from "@/lib/avatar";
@@ -36,14 +37,14 @@ export function PassportCard({
     if (!passport) return;
 
     const lines = [
-      `🎓 Odyssey Capability Passport — ${passport.user}`,
+      `Odyssey Capability Passport — ${passport.user}`,
       "",
-      "📊 Skills:",
+      "Skills:",
       ...passport.skills.map(
         (s) => `  • ${s.name} — ${s.rank} (Score: ${s.score})`
       ),
       "",
-      "🏅 Credentials:",
+      "Credentials:",
       ...(passport.credentials.length > 0
         ? passport.credentials.map((c) => `  • ${c.name}`)
         : ["  • None yet"]),
@@ -94,7 +95,7 @@ export function PassportCard({
               }}
             />
           ) : (
-            <span>🧑‍🎓</span>
+            <QuestScrollIcon name="knowledge" size={32} />
           )}
         </div>
         <h3 className="text-lg font-bold">{passport.user}</h3>
@@ -110,7 +111,7 @@ export function PassportCard({
           >
             {copied ? (
               <>
-                <span className="text-success">✓</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M20 6L9 17l-5-5" /></svg>
                 {t("passport.copied")}
               </>
             ) : (
@@ -150,7 +151,7 @@ export function PassportCard({
       {/* Skills section */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <span>📊</span> {t("passport.skills")} ({passport.skills.length})
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><rect x="7" y="13" width="3" height="5" /><rect x="12" y="9" width="3" height="9" /><rect x="17" y="5" width="3" height="13" /></svg> {t("passport.skills")} ({passport.skills.length})
         </h4>
         {passport.skills.length === 0 ? (
           <p className="text-xs text-muted-foreground py-4 text-center">
@@ -188,7 +189,7 @@ export function PassportCard({
       {/* Credentials section */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <span>🏅</span> {t("passport.credentials")} ({passport.credentials.length})
+          <QuestScrollIcon name="star" size={16} /> {t("passport.credentials")} ({passport.credentials.length})
         </h4>
         {passport.credentials.length === 0 ? (
           <p className="text-xs text-muted-foreground py-4 text-center">
@@ -201,7 +202,7 @@ export function PassportCard({
                 key={i}
                 className="inline-flex items-center rounded-full bg-success/10 px-3 py-1.5 text-xs font-medium text-success transition-all hover:bg-success/20"
               >
-                🏅 {cred.name}
+                <QuestScrollIcon name="star" size={12} className="inline-block align-text-bottom" /> {cred.name}
               </span>
             ))}
           </div>
