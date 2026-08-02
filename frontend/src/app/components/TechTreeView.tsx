@@ -3,10 +3,10 @@
 import useSWR from "swr";
 import { useMemo } from "react";
 import { worldService } from "@/services/world.service";
-import { LEVEL_LABELS } from "@/types/world";
+import { getBuildingLevelLabel } from "@/types/world";
 import type { TechTreeNode, TechTreeData } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
-import { VintageShieldIcon } from "./VintageShieldIcon";
+import { BuildingSealIcon, CIV_COLORS, inferSkillId } from "./CivArchiveTheme";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 
 interface TechTreeViewProps {
@@ -144,7 +144,7 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
           label={layerLabel("compound")}
           icon={layerIcon("compound")}
           locale={locale}
-          accentColor="oklch(0.65 0.05 145)"
+          accentColor={CIV_COLORS.gold}
           isEmpty={false}
         />
       )}
@@ -161,7 +161,7 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
           label={layerLabel("basic")}
           icon={layerIcon("basic")}
           locale={locale}
-          accentColor="oklch(0.55 0.08 160)"
+          accentColor={CIV_COLORS.border}
           isEmpty={false}
         />
       )}
@@ -174,13 +174,13 @@ export function TechTreeView({ data: initialData }: TechTreeViewProps) {
 function LayerConnector({ locale }: { locale: string }) {
   return (
     <div className="flex items-center justify-center gap-4 py-2">
-      <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.35)] to-[oklch(0.7_0.12_85_/_0.5)] border-t border-b border-[oklch(0.7_0.12_85_/_0.2)] animate-route-flow" />
+      <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.35)] to-[oklch(0.7_0.12_85_/_0.5)] border-t border-b border-[oklch(0.7_0.12_85_/_0.2)]" />
       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[oklch(0.95_0.005_90)] border border-[oklch(0.7_0.12_85_/_0.3)] shadow-sm text-xs font-bold text-[oklch(0.4_0.03_80)] font-civ-serif">
         <span>{locale === "en" ? "requires" : "必须前提"}</span>
-        <QuestScrollIcon name="arrow-right" size={14} className="animate-gentle-float inline-block" />
+        <QuestScrollIcon name="arrow-right" size={14} className="inline-block" />
         <span>{locale === "en" ? "unlocks" : "方可开拓"}</span>
       </div>
-      <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-[oklch(0.7_0.12_85_/_0.5)] via-[oklch(0.7_0.12_85_/_0.35)] to-transparent border-t border-b border-[oklch(0.7_0.12_85_/_0.2)] animate-route-flow" />
+      <div className="flex-1 max-w-[150px] h-[3px] bg-gradient-to-r from-[oklch(0.7_0.12_85_/_0.5)] via-[oklch(0.7_0.12_85_/_0.35)] to-transparent border-t border-b border-[oklch(0.7_0.12_85_/_0.2)]" />
     </div>
   );
 }
@@ -246,10 +246,7 @@ function TechTreeNodeCard({
 }) {
   const name =
     locale === "en" && node.name_en ? node.name_en : node.name;
-  const levelLabel =
-    locale === "en"
-      ? LEVEL_LABELS[node.level]?.en ?? `Lv.${node.level}`
-      : LEVEL_LABELS[node.level]?.zh ?? `Lv.${node.level}`;
+  const levelLabel = getBuildingLevelLabel(node.level, undefined, locale as "zh" | "en");
   const isLocked = node.status === "LOCKED";
 
   // Prerequisite progress
@@ -263,11 +260,11 @@ function TechTreeNodeCard({
     }
     if (node.level >= 7) {
       // Wonder / Golden double border
-      return "vintage-parchment-card border-2 border-double border-[oklch(0.7_0.12_85)] animate-pedestal-glow shadow-md hover:shadow-lg hover:-translate-y-0.5";
+      return "vintage-parchment-card border-2 border-double border-[oklch(0.7_0.12_85)] shadow-md hover:shadow-lg hover:-translate-y-0.5";
     }
     if (node.node_type === "compound") {
       // Compound / Silver-Sage border
-      return "vintage-parchment-card border-2 border-[oklch(0.55_0.08_160_/_0.7)] shadow-sm hover:shadow-md hover:-translate-y-0.5";
+      return "vintage-parchment-card border-2 shadow-sm hover:shadow-md hover:-translate-y-0.5";
     }
     // Basic / Bronze-Copper border
     return "vintage-parchment-card border border-[oklch(0.65_0.12_45_/_0.4)] shadow-sm hover:shadow-md hover:-translate-y-0.5";
@@ -279,15 +276,17 @@ function TechTreeNodeCard({
         flex flex-col gap-2 p-4 rounded-xl transition-all duration-300 relative overflow-hidden
         ${cardBorderClass()}
       `}
+      style={
+        !isLocked && node.node_type === "compound" && node.level < 7
+          ? { borderColor: CIV_COLORS.gold + "B0" }
+          : undefined
+      }
     >
       {/* Icon + Name */}
       <div className="flex items-center gap-3">
-        <VintageShieldIcon
-          icon={node.icon}
-          size="sm"
-          tier={isLocked ? "sage" : node.level >= 7 ? "gold" : node.node_type === "compound" ? "silver" : "bronze"}
-          className={isLocked ? "grayscale opacity-50" : ""}
-        />
+        <div className={isLocked ? "grayscale opacity-50 civ-archive-seal-hover" : "civ-archive-seal-hover"}>
+          <BuildingSealIcon type={inferSkillId(name, node.id)} size={40} />
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] truncate">
             {name}
@@ -300,7 +299,9 @@ function TechTreeNodeCard({
           </p>
         </div>
         {!isLocked && node.node_type === "compound" && (
-          <QuestScrollIcon name="star" size={14} className="shrink-0 text-yellow-500" />
+          <span style={{ color: CIV_COLORS.gold }} className="shrink-0">
+            <QuestScrollIcon name="star" size={14} />
+          </span>
         )}
       </div>
 
@@ -318,18 +319,20 @@ function TechTreeNodeCard({
               <span
                 className={
                   p.met
-                    ? "text-[oklch(0.55_0.08_160)] font-medium"
+                    ? "font-medium"
                     : "text-[oklch(0.5_0.02_85)]"
                 }
+                style={p.met ? { color: CIV_COLORS.darkRed } : undefined}
               >
                 {p.met ? <svg className="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : "○"} {p.skill_name}
               </span>
               <span
                 className={`font-mono tabular-nums ${
                   p.met
-                    ? "text-[oklch(0.55_0.08_160)] font-bold"
+                    ? "font-bold"
                     : "text-[oklch(0.5_0.02_85)]"
                 }`}
+                style={p.met ? { color: CIV_COLORS.darkRed } : undefined}
               >
                 {p.current_level}/{p.required_level}
               </span>
@@ -342,7 +345,7 @@ function TechTreeNodeCard({
       {totalCount > 0 && (
         <div className="text-[10px] font-bold pt-1.5 border-t border-[oklch(0.88_0.02_90)]">
           {node.all_prereqs_met ? (
-            <span className="text-[oklch(0.55_0.08_160)]">
+            <span style={{ color: CIV_COLORS.darkRed }}>
               <svg className="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>{" "}
               {locale === "en"
                 ? "All prerequisites met"

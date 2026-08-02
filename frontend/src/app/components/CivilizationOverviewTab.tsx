@@ -6,18 +6,24 @@ import { useLocale } from "@/hooks/useLocale";
 import { CivilizationCompass } from "./CivilizationCompass";
 import { GrowthTimeline } from "./GrowthTimeline";
 import { EmptyState } from "./EmptyState";
-import { VintageShieldIcon } from "./VintageShieldIcon";
-import { QuestScrollIcon } from "./QuestScrollIcon";
+import { QuestScrollIcon, resolveScrollIconName } from "./QuestScrollIcon";
+import {
+  CIV_COLORS,
+  CopperDivider,
+  SealRing,
+  BuildingSealIcon,
+  EraStoneIcon,
+  ParchmentBackground,
+  inferSkillId,
+} from "./CivArchiveTheme";
 import {
   ERA_LABELS,
   CIVILIZATION_TIER_LABELS,
-  LEVEL_LABELS,
+  getBuildingLevelLabel,
 } from "@/types/world";
 import type {
   World,
   CivilizationDirection,
-  UserBuilding,
-  UserCompoundBuilding,
 } from "@/types/world";
 
 interface CivilizationOverviewTabProps {
@@ -27,16 +33,19 @@ interface CivilizationOverviewTabProps {
 }
 
 /**
- * Civilization Overview — the default landing view for My World.
+ * Civilization Overview — "文明领地总览" (My Civilization Territory Overview).
  *
- * Sections:
+ * Refactored to the Odyssey Civilization Archive visual system:
+ *   - Parchment cards with gold/dark-red palette
+ *   - Era stone icons + building seal SVGs replace generic shield icons
+ *   - No green/tech-blue; copper dividers and seal decorations
+ *
+ * Sections (data flow preserved):
  * 1. Hero dual-column: era/tier/level stats (left) + exploration/index (right)
- * 2. Core Building — the highest-level building as civilization centerpiece
- * 3. Next Goal — what to build/unlock next
- * 4. Civilization Summary — stats grid
+ * 2. Core Building — civilization centerpiece with seal icon
+ * 3. Next Goal — strategic target
+ * 4. Civilization Summary — stats grid (文明遗迹记录)
  * 5. Growth Timeline
- *
- * Design: warm cream/sage/gold, civilization builder feel.
  */
 export function CivilizationOverviewTab({
   world,
@@ -83,7 +92,6 @@ export function CivilizationOverviewTab({
       (cb) => cb.status === "LOCKED" && cb.template?.required_skills?.length
     );
     if (lockedCompounds.length === 0) {
-      // No locked compounds — suggest upgrading the core building if not max
       if (coreBuilding && coreBuilding.level < (coreBuilding.template?.max_level ?? 10)) {
         return {
           type: "upgrade" as const,
@@ -93,7 +101,6 @@ export function CivilizationOverviewTab({
       }
       return null;
     }
-    // Pick the first locked compound as a goal (user can see prerequisites)
     return {
       type: "unlock" as const,
       building: lockedCompounds[0],
@@ -121,20 +128,40 @@ export function CivilizationOverviewTab({
       return (
         <div className="space-y-6">
           {/* Minimal hero — no buildings yet, but civilization has direction */}
-          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.97_0.008_95)] p-6 shadow-card">
-            <div className="text-center max-w-md mx-auto">
-              <span className="text-4xl block mb-3 text-[oklch(0.55_0.12_85)] inline-flex justify-center"><QuestScrollIcon name="rocket" size={40} /></span>
-              <h2 className="text-lg font-bold text-[oklch(0.3_0.02_80)]">
+          <div
+            className="civ-archive-card p-6 relative overflow-hidden"
+            style={{ borderColor: CIV_COLORS.gold + "80", borderWidth: "2px" }}
+          >
+            <ParchmentBackground opacity={0.4} />
+            <div className="text-center max-w-md mx-auto relative z-10">
+              <span
+                className="block mb-3 inline-flex justify-center"
+                style={{ color: CIV_COLORS.gold }}
+              >
+                <QuestScrollIcon name="rocket" size={40} />
+              </span>
+              <h2
+                className="civ-archive-title text-lg"
+                style={{ color: CIV_COLORS.textPrimary }}
+              >
                 {locale === "en" ? "Civilization Taking Shape" : "文明正在成形"}
               </h2>
-              <p className="mt-2 text-sm text-[oklch(0.5_0.02_85)]">
+              <p
+                className="mt-2 text-sm"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
                 {locale === "en"
                   ? `Your ${direction.active_paths.length} active learning path(s) are charting the course. Complete quests to unlock your first buildings.`
                   : `你正在通过 ${direction.active_paths.length} 条学习路径规划文明方向。完成任务来解锁第一座建筑。`}
               </p>
               <Link
                 href="/paths"
-                className="mt-4 inline-block rounded-xl bg-[oklch(0.72_0.12_85)] px-5 py-2 text-sm font-semibold text-white hover:opacity-90 transition-all"
+                className="mt-4 inline-block rounded-xl px-5 py-2 text-sm font-civ-serif italic font-semibold transition-all civ-archive-seal-hover"
+                style={{
+                  backgroundColor: CIV_COLORS.darkRed,
+                  color: CIV_COLORS.bgContent,
+                  border: `1px solid ${CIV_COLORS.gold}`,
+                }}
               >
                 {locale === "en" ? "Continue Learning →" : "继续学习 →"}
               </Link>
@@ -154,22 +181,39 @@ export function CivilizationOverviewTab({
               <Link
                 key={path.path_id}
                 href={`/paths/${path.path_id}`}
-                className="rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.98_0.005_90)] p-4 shadow-card transition-all hover:shadow-card-hover hover:border-[oklch(0.72_0.12_85)]/30"
+                className="civ-archive-card p-4 transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl text-[oklch(0.55_0.12_85)] inline-flex"><QuestScrollIcon name="path" size={20} /></span>
+                  <span
+                    className="text-xl inline-flex"
+                    style={{ color: CIV_COLORS.gold }}
+                  >
+                    <QuestScrollIcon name="path" size={20} />
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-[oklch(0.3_0.02_80)] truncate">
+                    <h4
+                      className="text-sm font-semibold civ-archive-title truncate"
+                      style={{ color: CIV_COLORS.textPrimary }}
+                    >
                       {path.path_title}
                     </h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 h-1.5 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden">
+                      <div
+                        className="flex-1 h-1.5 rounded-full overflow-hidden"
+                        style={{ backgroundColor: CIV_COLORS.bgContent, border: `1px solid ${CIV_COLORS.border}` }}
+                      >
                         <div
-                          className="h-full rounded-full bg-[oklch(0.65_0.05_145)] transition-all duration-700"
-                          style={{ width: `${path.progress_pct}%` }}
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${path.progress_pct}%`,
+                            background: `linear-gradient(90deg, ${CIV_COLORS.gold}, ${CIV_COLORS.darkRed})`,
+                          }}
                         />
                       </div>
-                      <span className="text-xs font-mono text-[oklch(0.5_0.02_85)] tabular-nums">
+                      <span
+                        className="text-xs font-mono tabular-nums"
+                        style={{ color: CIV_COLORS.textSecondary }}
+                      >
                         {path.progress_pct}%
                       </span>
                     </div>
@@ -181,7 +225,12 @@ export function CivilizationOverviewTab({
                     {path.targeted_buildings.slice(0, 4).map((tb) => (
                       <span
                         key={tb.building_id}
-                        className="text-[10px] bg-[oklch(0.72_0.12_85_/_0.08)] border border-[oklch(0.72_0.12_85_/_0.18)] rounded-full px-2 py-0.5 text-[oklch(0.4_0.03_80)]"
+                        className="text-[10px] rounded-full px-2 py-0.5"
+                        style={{
+                          backgroundColor: CIV_COLORS.gold + "15",
+                          border: `1px solid ${CIV_COLORS.gold}40`,
+                          color: CIV_COLORS.darkRed,
+                        }}
                       >
                         {tb.building_icon}{" "}
                         {locale === "en" && tb.building_name_en
@@ -191,7 +240,7 @@ export function CivilizationOverviewTab({
                       </span>
                     ))}
                     {path.targeted_buildings.length > 4 && (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px]" style={{ color: CIV_COLORS.textSecondary }}>
                         +{path.targeted_buildings.length - 4}
                       </span>
                     )}
@@ -205,7 +254,10 @@ export function CivilizationOverviewTab({
     }
 
     return (
-      <div className="rounded-2xl border border-dashed border-[oklch(0.85_0.02_90)] bg-[oklch(0.98_0.005_90)] p-12">
+      <div
+        className="civ-archive-card p-12"
+        style={{ borderStyle: "dashed", borderColor: CIV_COLORS.border }}
+      >
         <EmptyState
           title={t("world.emptyTitle")}
           description={t("world.emptyDesc")}
@@ -220,49 +272,75 @@ export function CivilizationOverviewTab({
     <div className="space-y-6">
       {/* ═══════ 1. Hero Section — dual column ═══════ */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left: Era + Tier + Level */}
-        <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden space-y-5">
-          {/* Faint compass watermark */}
-          <div className="absolute -bottom-10 -right-10 w-48 h-48 opacity-[0.03] dark:opacity-[0.05] pointer-events-none select-none">
-            <svg viewBox="0 0 100 100" className="animate-rhumb-spin w-full h-full text-[oklch(0.7_0.12_85)]">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
-              <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
-              <line x1="50" y1="0" x2="50" y2="100" stroke="currentColor" strokeWidth="0.75" />
-              <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.75" />
-            </svg>
+        {/* Left: Era + Tier + Level — 文明档案封面 */}
+        <div
+          className="civ-archive-card p-6 relative overflow-hidden space-y-5"
+          style={{ borderColor: CIV_COLORS.gold + "80", borderWidth: "2px" }}
+        >
+          <ParchmentBackground opacity={0.4} />
+
+          {/* Seal watermark */}
+          <div className="absolute -bottom-12 -right-12 w-56 h-56 opacity-[0.05] pointer-events-none select-none">
+            <SealRing size={224} />
           </div>
 
           {/* Civilization name */}
-          <div>
-            <p className="text-[10px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+          <div className="relative z-10">
+            <p
+              className="text-[10px] font-bold uppercase tracking-wider"
+              style={{ color: CIV_COLORS.textSecondary }}
+            >
               {locale === "en" ? "My Civilization" : "我的文明领地"}
             </p>
-            <h2 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
+            <h2
+              className="civ-archive-title text-2xl mt-0.5"
+              style={{ color: CIV_COLORS.textPrimary }}
+            >
               {world.name}
             </h2>
           </div>
 
-          {/* Era + Tier badges */}
+          {/* Era + Tier badges — using stone/seal icons, no rounded frame, no float */}
           <div className="flex items-center gap-3 flex-wrap relative z-10">
-            <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.95_0.005_90)] dark:from-[oklch(0.25_0.008_85)] dark:to-[oklch(0.2_0.006_85)] border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md flex-1 min-w-[140px]">
-              <VintageShieldIcon icon={eraInfo.icon} size="sm" tier="gold" />
+            <div
+              className="flex items-center gap-3 px-3.5 py-2.5 transition-all duration-300 hover:scale-[1.02] flex-1 min-w-[140px]"
+              style={{ backgroundColor: "transparent" }}
+            >
+              <EraStoneIcon era={world.era} size={36} />
               <div className="leading-tight">
-                <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                <p
+                  className="text-[9px] font-bold uppercase tracking-wider"
+                  style={{ color: CIV_COLORS.textSecondary }}
+                >
                   {locale === "en" ? "Era" : "发展时代"}
                 </p>
-                <p className="text-base font-bold font-civ-serif text-[oklch(0.4_0.03_80)]">
+                <p
+                  className="text-base font-bold civ-archive-title"
+                  style={{ color: CIV_COLORS.darkRed }}
+                >
                   {eraName}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.95_0.005_90)] dark:from-[oklch(0.25_0.008_85)] dark:to-[oklch(0.2_0.006_85)] border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md flex-1 min-w-[140px]">
-              <VintageShieldIcon icon={tierInfo.icon} size="sm" tier="silver" />
+            <div
+              className="flex items-center gap-3 px-3.5 py-2.5 transition-all duration-300 hover:scale-[1.02] flex-1 min-w-[140px]"
+              style={{ backgroundColor: "transparent" }}
+            >
+              <span className="inline-flex shrink-0" style={{ color: CIV_COLORS.gold }}>
+                <QuestScrollIcon name={resolveScrollIconName(tierInfo.icon)} size={28} strokeWidth={1.5} />
+              </span>
               <div className="leading-tight">
-                <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                <p
+                  className="text-[9px] font-bold uppercase tracking-wider"
+                  style={{ color: CIV_COLORS.textSecondary }}
+                >
                   {locale === "en" ? "Tier" : "文明等级"}
                 </p>
-                <p className="text-base font-bold font-civ-serif text-[oklch(0.4_0.03_80)]">
+                <p
+                  className="text-base font-bold civ-archive-title"
+                  style={{ color: CIV_COLORS.darkRed }}
+                >
                   {tierName} Lv.{world.civilization_level}
                 </p>
               </div>
@@ -270,13 +348,24 @@ export function CivilizationOverviewTab({
           </div>
 
           {/* Civilization Index */}
-          <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.95_0.005_90)]/50 dark:bg-[oklch(0.25_0.008_85)]/50 border border-[oklch(0.88_0.02_90)] px-3.5 py-2.5 relative z-10">
-            <VintageShieldIcon icon="chart" size="sm" tier="bronze" />
+          <div
+            className="flex items-center gap-3 px-3.5 py-2.5 relative z-10"
+            style={{ backgroundColor: "transparent" }}
+          >
+            <span className="inline-flex shrink-0" style={{ color: CIV_COLORS.gold }}>
+              <QuestScrollIcon name="chart" size={26} strokeWidth={1.5} />
+            </span>
             <div className="flex-1 min-w-0 leading-tight">
-              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+              <p
+                className="text-[9px] font-bold uppercase tracking-wider"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
                 {locale === "en" ? "Civilization Index" : "文明实力总指数"}
               </p>
-              <p className="text-xl font-bold font-mono text-[oklch(0.4_0.03_80)] tabular-nums">
+              <p
+                className="text-xl font-bold font-mono tabular-nums"
+                style={{ color: CIV_COLORS.darkRed }}
+              >
                 {fmt(world.tier_score)}
               </p>
             </div>
@@ -286,27 +375,51 @@ export function CivilizationOverviewTab({
           <div className="space-y-3 relative z-10 pt-2">
             {/* Era progress */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[10px] font-bold text-[oklch(0.5_0.02_85)]">
+              <div
+                className="flex justify-between text-[10px] font-bold"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
                 <span>{locale === "en" ? "Era Horizon" : "时代演进进度"}</span>
                 <span className="font-mono tabular-nums">{eraProgress}%</span>
               </div>
-              <div className="h-2.5 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden p-[1px] border border-[oklch(0.8_0.02_90)]/50">
+              <div
+                className="h-2.5 rounded-full overflow-hidden p-[1px]"
+                style={{
+                  backgroundColor: CIV_COLORS.bgContent,
+                  border: `1px solid ${CIV_COLORS.border}80`,
+                }}
+              >
                 <div
-                  className="h-full rounded-full bg-[oklch(0.72_0.12_85)] animate-route-flow transition-all duration-700"
-                  style={{ width: `${eraProgress}%` }}
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${eraProgress}%`,
+                    background: `linear-gradient(90deg, ${CIV_COLORS.gold}, ${CIV_COLORS.darkRed})`,
+                  }}
                 />
               </div>
             </div>
             {/* Tier progress */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[10px] font-bold text-[oklch(0.5_0.02_85)]">
+              <div
+                className="flex justify-between text-[10px] font-bold"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
                 <span>{locale === "en" ? "Tier Expansion" : "领土扩张进度"}</span>
                 <span className="font-mono tabular-nums">{tierProgress}%</span>
               </div>
-              <div className="h-2.5 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden p-[1px] border border-[oklch(0.8_0.02_90)]/50">
+              <div
+                className="h-2.5 rounded-full overflow-hidden p-[1px]"
+                style={{
+                  backgroundColor: CIV_COLORS.bgContent,
+                  border: `1px solid ${CIV_COLORS.border}80`,
+                }}
+              >
                 <div
-                  className="h-full rounded-full bg-[oklch(0.65_0.05_145)] animate-route-flow transition-all duration-700"
-                  style={{ width: `${tierProgress}%` }}
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${tierProgress}%`,
+                    background: `linear-gradient(90deg, ${CIV_COLORS.gold}, ${CIV_COLORS.darkRed})`,
+                  }}
                 />
               </div>
             </div>
@@ -316,23 +429,47 @@ export function CivilizationOverviewTab({
         {/* Right: Exploration + Compass mini */}
         <div className="space-y-4">
           {/* Exploration + Resources card */}
-          <div className="vintage-parchment-card p-5 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)] relative overflow-hidden space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.65_0.05_145_/_0.06)] border border-[oklch(0.65_0.05_145_/_0.2)] px-4 py-3 flex-1">
-                <span className="text-2xl animate-gentle-float text-[oklch(0.55_0.08_160)] inline-flex"><QuestScrollIcon name="map" size={28} /></span>
+          <div
+            className="civ-archive-card p-5 relative overflow-hidden space-y-4"
+            style={{ borderColor: CIV_COLORS.gold + "80", borderWidth: "2px" }}
+          >
+            <ParchmentBackground opacity={0.4} />
+            <div className="flex items-center gap-3 relative z-10">
+              <div
+                className="flex items-center gap-3 px-4 py-3 flex-1"
+                style={{ backgroundColor: "transparent" }}
+              >
+                <span
+                  className="text-2xl inline-flex"
+                  style={{ color: CIV_COLORS.gold }}
+                >
+                  <QuestScrollIcon name="map" size={28} />
+                </span>
                 <div className="leading-tight min-w-0 flex-1">
                   <div className="flex justify-between items-center mb-1">
-                    <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+                    <p
+                      className="text-[9px] font-bold uppercase tracking-wider"
+                      style={{ color: CIV_COLORS.textSecondary }}
+                    >
                       {locale === "en" ? "Exploration" : "未知疆域探索度"}
                     </p>
-                    <span className="text-xs font-bold text-[oklch(0.4_0.03_80)] font-mono tabular-nums">
+                    <span
+                      className="text-xs font-bold font-mono tabular-nums"
+                      style={{ color: CIV_COLORS.darkRed }}
+                    >
                       {explorationPct}%
                     </span>
                   </div>
-                  <div className="h-2 rounded-full bg-[oklch(0.88_0.02_90)] overflow-hidden p-[1px]">
+                  <div
+                    className="h-2 rounded-full overflow-hidden p-[1px]"
+                    style={{ backgroundColor: CIV_COLORS.bgCard, border: `1px solid ${CIV_COLORS.border}` }}
+                  >
                     <div
-                      className="h-full rounded-full bg-[oklch(0.65_0.05_145)] animate-route-flow transition-all duration-700"
-                      style={{ width: `${explorationPct}%` }}
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${explorationPct}%`,
+                        background: `linear-gradient(90deg, ${CIV_COLORS.gold}, ${CIV_COLORS.darkRed})`,
+                      }}
                     />
                   </div>
                 </div>
@@ -340,29 +477,26 @@ export function CivilizationOverviewTab({
             </div>
 
             {/* Resource chips */}
-            <div className="grid grid-cols-3 gap-2.5 pt-2">
+            <div className="grid grid-cols-3 gap-2.5 pt-2 relative z-10">
               <ResourceChip
                 icon="knowledge"
                 label={locale === "en" ? "Knowledge" : "知识秘卷"}
                 value={fmt(world.knowledge_points)}
-                color="oklch(0.65 0.05 145)"
               />
               <ResourceChip
                 icon="application"
                 label={locale === "en" ? "Tech" : "科技火花"}
                 value={fmt(world.tech_points)}
-                color="oklch(0.55 0.12 250)"
               />
               <ResourceChip
                 icon="population"
                 label={locale === "en" ? "Population" : "文明人口"}
                 value={fmt(world.population)}
-                color="oklch(0.55 0.08 25)"
               />
             </div>
           </div>
 
-          {/* Civilization Compass mini */}
+          {/* Civilization Compass mini — "文明星盘" */}
           <CivilizationCompass
             direction={direction}
             isLoading={directionLoading}
@@ -371,45 +505,76 @@ export function CivilizationOverviewTab({
         </div>
       </div>
 
-      {/* ═══════ 2. Core Building ═══════ */}
+      <CopperDivider />
+
+      {/* ═══════ 2. Core Building — 文明核心建筑 ═══════ */}
       {coreBuilding && (
-        <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.72_0.12_85_/_0.55)] animate-pedestal-glow relative overflow-hidden transition-all duration-300 hover:shadow-lg">
-          {/* Subtle watermark */}
-          <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-radial from-[oklch(0.72_0.12_85_/_0.08)] to-transparent pointer-events-none select-none" />
+        <div
+          className="civ-archive-card p-6 relative overflow-hidden transition-all duration-300"
+          style={{ borderColor: CIV_COLORS.gold, borderWidth: "2px" }}
+        >
+          <ParchmentBackground opacity={0.5} />
+
+          {/* Seal watermark */}
+          <div className="absolute top-0 right-0 w-40 h-40 opacity-[0.05] pointer-events-none select-none">
+            <SealRing size={160} />
+          </div>
 
           <div className="relative flex items-start gap-5 z-10">
-            <VintageShieldIcon icon={coreBuilding.template?.icon ?? "building"} size="md" tier="gold" />
+            {/* Building seal icon — unique per building using inferSkillId */}
+            <div className="shrink-0 civ-archive-seal-hover">
+              <BuildingSealIcon
+                type={inferSkillId(
+                  coreBuilding.template?.name ?? "",
+                  coreBuilding.id
+                )}
+                size={64}
+              />
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
-                {locale === "en" ? "Core Building" : "帝国核心建筑 centerpiece"}
+              <p
+                className="text-[9px] font-bold uppercase tracking-wider"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
+                {locale === "en" ? "Core Building · Centerpiece" : "帝国核心建筑"}
               </p>
-              <h3 className="text-lg font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
+              <h3
+                className="civ-archive-title text-lg mt-0.5"
+                style={{ color: CIV_COLORS.textPrimary }}
+              >
                 {locale === "en" && coreBuilding.template?.name_en
                   ? coreBuilding.template.name_en
                   : coreBuilding.template?.name ?? "—"}
               </h3>
-              <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1.5 leading-relaxed">
+              <p
+                className="text-sm mt-1.5 leading-relaxed"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
                 {locale === "en" && coreBuilding.template?.description_en
                   ? coreBuilding.template.description_en
                   : coreBuilding.template?.description ?? ""}
               </p>
-              <div className="flex items-center gap-4 mt-4">
-                <span className="text-xs font-bold bg-[oklch(0.72_0.12_85_/_0.15)] text-[oklch(0.35_0.03_80)] rounded-full px-3.5 py-1 border border-[oklch(0.72_0.12_85_/_0.25)]">
-                  {LEVEL_LABELS[coreBuilding.level]?.[locale === "en" ? "en" : "zh"] ?? `Lv.${coreBuilding.level}`}
+              <div className="flex items-center gap-4 mt-4 flex-wrap">
+                <span
+                  className="text-xs font-bold rounded-full px-3.5 py-1"
+                  style={{
+                    backgroundColor: CIV_COLORS.gold + "20",
+                    color: CIV_COLORS.darkRed,
+                    border: `1px solid ${CIV_COLORS.gold}60`,
+                  }}
+                >
+                  {getBuildingLevelLabel(coreBuilding.level, coreBuilding.template?.level_names, locale === "en" ? "en" : "zh")}
                 </span>
                 {coreBuilding.template?.region && (
-                  <span className="text-xs text-[oklch(0.5_0.02_85)] font-medium inline-flex items-center gap-1">
-                    <QuestScrollIcon name="location" size={12} className="inline-block" /> {coreBuilding.template.region}
+                  <span
+                    className="text-xs font-medium inline-flex items-center gap-1"
+                    style={{ color: CIV_COLORS.textSecondary }}
+                  >
+                    <QuestScrollIcon name="location" size={12} className="inline-block" />
+                    {coreBuilding.template.region}
                   </span>
                 )}
-                {"skill_id" in (coreBuilding.template ?? {}) && (
-                  <Link
-                    href={`/skills/${(coreBuilding.template as { skill_id: string }).skill_id}`}
-                    className="text-xs text-[oklch(0.65_0.05_145)] hover:underline font-bold"
-                  >
-                    {locale === "en" ? "Forge Skill →" : "开发技能大树 →"}
-                  </Link>
-                )}
+
               </div>
             </div>
           </div>
@@ -417,37 +582,57 @@ export function CivilizationOverviewTab({
       )}
 
       {/* ═══════ 3. Next Goal ═══════ */}
-      {/* Priority: use the backend's personalized suggested_focus (from the
-          user's active learning paths). Fall back to building-based computation
-          only if no direction data is available. This ensures each user sees
-          a goal tailored to their own progress, not a static hardcoded target. */}
       {(direction?.suggested_focus || nextGoal) && (
-        <div className="vintage-parchment-card p-6 shadow-sm border border-dashed border-[oklch(0.7_0.12_85_/_0.4)] relative transition-all duration-300 hover:shadow-md">
+        <div
+          className="civ-archive-card p-6 relative transition-all duration-300"
+          style={{ borderStyle: "dashed", borderColor: CIV_COLORS.gold + "80" }}
+        >
           <div className="flex items-start gap-4">
-            <VintageShieldIcon icon={direction?.suggested_focus ? "compass" : nextGoal?.type === "upgrade" ? "rocket" : "mission"} size="sm" tier="gold" />
+            <span className="inline-flex shrink-0" style={{ color: CIV_COLORS.gold }}>
+              <QuestScrollIcon
+                name={direction?.suggested_focus ? "compass" : nextGoal?.type === "upgrade" ? "rocket" : "mission"}
+                size={26}
+                strokeWidth={1.5}
+              />
+            </span>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider">
+              <p
+                className="text-[9px] font-bold uppercase tracking-wider"
+                style={{ color: CIV_COLORS.textSecondary }}
+              >
                 {locale === "en" ? "Next Goal" : "下一个战略目标"}
               </p>
               {direction?.suggested_focus ? (
                 <>
-                  <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
+                  <h3
+                    className="civ-archive-title text-base mt-0.5"
+                    style={{ color: CIV_COLORS.textPrimary }}
+                  >
                     {direction.suggested_focus}
                   </h3>
                   {direction.summary && (
-                    <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1">
+                    <p
+                      className="text-sm mt-1"
+                      style={{ color: CIV_COLORS.textSecondary }}
+                    >
                       {direction.summary}
                     </p>
                   )}
                 </>
               ) : nextGoal?.type === "upgrade" ? (
                 <>
-                  <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
+                  <h3
+                    className="civ-archive-title text-base mt-0.5"
+                    style={{ color: CIV_COLORS.textPrimary }}
+                  >
                     {locale === "en"
                       ? `Upgrade ${coreBuilding?.template?.name_en ?? coreBuilding?.template?.name ?? ""} to Lv.${nextGoal.targetLevel}`
                       : `将 ${coreBuilding?.template?.name ?? ""} 扩建至 Lv.${nextGoal.targetLevel}`}
                   </h3>
-                  <p className="text-sm text-[oklch(0.5_0.02_85)] mt-1">
+                  <p
+                    className="text-sm mt-1"
+                    style={{ color: CIV_COLORS.textSecondary }}
+                  >
                     {locale === "en"
                       ? "Continue developing this core building to strengthen your civilization"
                       : "继续修建和升级核心地标建筑，以增强整座文明古国的底蕴实力"}
@@ -455,7 +640,10 @@ export function CivilizationOverviewTab({
                 </>
               ) : nextGoal ? (
                 <>
-                  <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mt-0.5">
+                  <h3
+                    className="civ-archive-title text-base mt-0.5"
+                    style={{ color: CIV_COLORS.textPrimary }}
+                  >
                     {locale === "en"
                       ? `Unlock ${nextGoal.building.template?.name_en ?? nextGoal.building.template?.name ?? ""}`
                       : `筹建并解锁新地标：${nextGoal.building.template?.name ?? ""}`}
@@ -466,9 +654,15 @@ export function CivilizationOverviewTab({
                         {nextGoal.building.template.required_skills.map((rs) => (
                           <span
                             key={rs.skill_name}
-                            className="text-xs bg-[oklch(0.95_0.005_90)] border border-[oklch(0.88_0.02_90)] rounded-full px-3 py-1 text-[oklch(0.4_0.02_80)] font-medium inline-flex items-center gap-1"
+                            className="text-xs rounded-full px-3 py-1 font-medium inline-flex items-center gap-1"
+                            style={{
+                              backgroundColor: CIV_COLORS.bgContent,
+                              border: `1px solid ${CIV_COLORS.border}`,
+                              color: CIV_COLORS.darkRed,
+                            }}
                           >
-                            <QuestScrollIcon name="application" size={12} className="inline-block" /> {rs.skill_name} Lv.{rs.min_level}
+                            <QuestScrollIcon name="application" size={12} className="inline-block" />
+                            {rs.skill_name} Lv.{rs.min_level}
                           </span>
                         ))}
                       </div>
@@ -480,10 +674,19 @@ export function CivilizationOverviewTab({
         </div>
       )}
 
-      {/* ═══════ 4. Civilization Summary Stats ═══════ */}
-      <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)]">
-        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] mb-4 border-b border-[oklch(0.88_0.02_90)] pb-2">
-          {locale === "en" ? "Civilization Ledger" : "文明疆域编年分类账"}
+      {/* ═══════ 4. Civilization Summary Stats — 文明遗迹记录 ═══════ */}
+      <div
+        className="civ-archive-card p-6"
+        style={{ borderColor: CIV_COLORS.gold + "80", borderWidth: "2px" }}
+      >
+        <h3
+          className="civ-archive-title text-base mb-4 pb-2"
+          style={{
+            color: CIV_COLORS.textPrimary,
+            borderBottom: `1px solid ${CIV_COLORS.border}`,
+          }}
+        >
+          {locale === "en" ? "Civilization Archive Ledger" : "文明疆域编年账册"}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <SummaryCard
@@ -534,7 +737,10 @@ export function CivilizationOverviewTab({
 
       {/* ═══════ 5. Growth Timeline ═══════ */}
       {world.stats.active_buildings > 0 && world.recent_events?.length > 0 && (
-        <div className="vintage-parchment-card p-6 shadow-md border-2 border-double border-[oklch(0.7_0.12_85_/_0.35)]">
+        <div
+          className="civ-archive-card p-6"
+          style={{ borderColor: CIV_COLORS.gold + "80", borderWidth: "2px" }}
+        >
           <GrowthTimeline
             events={world.recent_events}
             unlockedCount={world.stats.milestones_unlocked}
@@ -546,39 +752,36 @@ export function CivilizationOverviewTab({
   );
 }
 
-// ── Resource Chip ──
+// ── Resource Chip — civilization archive styled ──
 
 function ResourceChip({
   icon,
   label,
   value,
-  color,
 }: {
   icon: string;
   label: string;
   value: string;
-  color: string;
 }) {
-  const getTier = () => {
-    if (color.includes("250")) return "gold";
-    if (color.includes("145")) return "silver";
-    return "bronze";
-  };
-
   return (
     <div
-      className="flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-all duration-300 hover:scale-102 shadow-sm border"
-      style={{
-        background: `linear-gradient(135deg, oklch(0.99 0.003 95), ${color} / 0.03)`,
-        borderColor: `${color} / 0.25`,
-      }}
+      className="flex items-center gap-2.5 px-2.5 py-2.5 transition-all duration-300 hover:scale-[1.03]"
+      style={{ backgroundColor: "transparent" }}
     >
-      <VintageShieldIcon icon={icon} size="sm" tier={getTier()} />
+      <span className="inline-flex shrink-0" style={{ color: CIV_COLORS.gold }}>
+        <QuestScrollIcon name={resolveScrollIconName(icon)} size={22} strokeWidth={1.5} />
+      </span>
       <div className="leading-tight min-w-0">
-        <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider leading-none">
+        <p
+          className="text-[9px] font-bold uppercase tracking-wider leading-none"
+          style={{ color: CIV_COLORS.textSecondary }}
+        >
           {label}
         </p>
-        <p className="text-sm font-bold text-[oklch(0.35_0.02_80)] font-mono tabular-nums leading-tight mt-0.5">
+        <p
+          className="text-sm font-bold font-mono tabular-nums leading-tight mt-0.5"
+          style={{ color: CIV_COLORS.darkRed }}
+        >
           {value}
         </p>
       </div>
@@ -586,7 +789,7 @@ function ResourceChip({
   );
 }
 
-// ── Summary Card ──
+// ── Summary Card — civilization archive styled ──
 
 function SummaryCard({
   icon,
@@ -602,22 +805,34 @@ function SummaryCard({
   compact?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.985_0.003_95)] border border-[oklch(0.88_0.02_90)] px-3.5 py-3 shadow-sm hover:border-[oklch(0.7_0.12_85_/_0.3)] hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
-      <VintageShieldIcon icon={icon} size="sm" tier="sage" />
+    <div
+      className="flex items-center gap-3 px-3.5 py-3 transition-all duration-300 hover:scale-[1.03]"
+      style={{ backgroundColor: "transparent" }}
+    >
+      <span className="inline-flex shrink-0" style={{ color: CIV_COLORS.gold }}>
+        <QuestScrollIcon name={resolveScrollIconName(icon)} size={24} strokeWidth={1.5} />
+      </span>
       <div className="min-w-0">
-        <p className="text-[9px] text-[oklch(0.55_0.02_85)] font-bold uppercase tracking-wider leading-tight">
+        <p
+          className="text-[9px] font-bold uppercase tracking-wider leading-tight"
+          style={{ color: CIV_COLORS.textSecondary }}
+        >
           {label}
         </p>
         <p
-          className={`font-bold text-[oklch(0.35_0.02_80)] font-civ-serif tabular-nums leading-tight mt-0.5 ${
+          className={`font-bold civ-archive-title tabular-nums leading-tight mt-0.5 ${
             compact ? "text-xs truncate" : "text-sm"
           }`}
+          style={{ color: CIV_COLORS.textPrimary }}
           title={compact ? value : undefined}
         >
           {value}
         </p>
         {sub && (
-          <p className="text-[9px] text-[oklch(0.5_0.02_85)] leading-tight mt-0.5 font-mono">
+          <p
+            className="text-[9px] leading-tight mt-0.5 font-mono"
+            style={{ color: CIV_COLORS.textSecondary }}
+          >
             {sub}
           </p>
         )}

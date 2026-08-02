@@ -5,6 +5,7 @@ import { useLocale } from "@/hooks/useLocale";
 import type { CivilizationDirection, TargetedBuilding } from "@/types/world";
 import { CIVILIZATION_TIER_LABELS } from "@/types/world";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { BuildingSealIcon, CIV_COLORS, inferSkillId } from "./CivArchiveTheme";
 
 interface CivilizationCompassProps {
   direction: CivilizationDirection | null;
@@ -13,32 +14,35 @@ interface CivilizationCompassProps {
   size?: "md" | "sm";
 }
 
-/** Region color mapping — matches BuildingTile region themes */
+/** 区域配色 — 文明档案色系，无深绿色 */
 const REGION_COLORS: Record<string, string> = {
-  "核心区": "oklch(0.55 0.08 160)",      // sage
-  "Core Region": "oklch(0.55 0.08 160)",
-  "创意区": "oklch(0.7 0.12 85)",        // gold
-  "Creative Region": "oklch(0.7 0.12 85)",
-  "逻辑区": "oklch(0.55 0.1 150)",       // moss
-  "Logic Region": "oklch(0.55 0.1 150)",
-  "实践区": "oklch(0.65 0.12 45)",       // terracotta
-  "Practice Region": "oklch(0.65 0.12 45)",
-  "综合区": "oklch(0.5 0.15 25)",        // soft red
-  "Synthesis Region": "oklch(0.5 0.15 25)",
+  "核心区": CIV_COLORS.darkRed,
+  "Core Region": CIV_COLORS.darkRed,
+  "创意区": CIV_COLORS.gold,
+  "Creative Region": CIV_COLORS.gold,
+  "逻辑区": CIV_COLORS.border,
+  "Logic Region": CIV_COLORS.border,
+  "实践区": "#B87333",
+  "Practice Region": "#B87333",
+  "综合区": CIV_COLORS.darkRed,
+  "Synthesis Region": CIV_COLORS.darkRed,
 };
 
-const DEFAULT_REGION_COLOR = "oklch(0.55 0.08 160)";
+const DEFAULT_REGION_COLOR = CIV_COLORS.gold;
 
 function regionColor(region: string): string {
   return REGION_COLORS[region] ?? DEFAULT_REGION_COLOR;
 }
 
 /**
- * CivilizationCompass — SVG circular visualization showing how
- * active learning paths are driving world development.
+ * CivilizationCompass — 文明星盘。
  *
- * Center: civilization tier badge
- * Ring: target buildings as compass nodes with level projections
+ * 重新设计：
+ *   - 建筑节点改用独特 BuildingSealIcon（禁止重复图标）
+ *   - 移除所有呼吸/浮动/脉冲动画
+ *   - 移除深绿色，采用文明档案配色
+ *   - 无框透明背景图标 + hover 高亮放大
+ *   - 可交互文字按键改斜体艺术字
  */
 export function CivilizationCompass({
   direction,
@@ -49,9 +53,12 @@ export function CivilizationCompass({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="p-4">
         <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+            style={{ borderColor: CIV_COLORS.gold, borderTopColor: "transparent" }}
+          />
         </div>
       </div>
     );
@@ -63,16 +70,25 @@ export function CivilizationCompass({
     direction.active_paths.every((p) => p.targeted_buildings.length === 0)
   ) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-border/60 bg-muted/10 p-5 text-center">
-        <span className="text-3xl block mb-2 text-[oklch(0.55_0.12_85)] inline-flex justify-center"><QuestScrollIcon name="compass" size={32} /></span>
-        <p className="text-xs text-muted-foreground">
+      <div
+        className="p-5 text-center"
+        style={{ border: `2px dashed ${CIV_COLORS.border}` }}
+      >
+        <span
+          className="block mb-2 inline-flex justify-center civ-archive-seal-hover"
+          style={{ color: CIV_COLORS.gold }}
+        >
+          <QuestScrollIcon name="compass" size={32} />
+        </span>
+        <p className="text-xs" style={{ color: CIV_COLORS.textSecondary }}>
           {locale === "en"
             ? "Create a learning path to set your civilization's direction"
             : "创建学习路径来设定文明方向"}
         </p>
         <Link
           href="/paths"
-          className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+          className="mt-2 inline-block text-xs font-civ-serif italic hover:underline"
+          style={{ color: CIV_COLORS.darkRed }}
         >
           {locale === "en" ? "Go to Learning Paths" : "前往学习路径"}
         </Link>
@@ -105,12 +121,12 @@ export function CivilizationCompass({
   const centerX = viewSize / 2;
   const centerY = viewSize / 2;
   const ringRadius = isSm ? 70 : 110;
-  const nodeRadius = isSm ? 16 : 22;
+  const nodeSize = isSm ? 32 : 44;
 
   // Compute node positions around the ring
   const n = displayBuildings.length;
   const nodes = displayBuildings.map((b, i) => {
-    const angle = (2 * Math.PI * i) / n - Math.PI / 2; // start from top
+    const angle = (2 * Math.PI * i) / n - Math.PI / 2;
     return {
       building: b,
       x: centerX + ringRadius * Math.cos(angle),
@@ -119,152 +135,109 @@ export function CivilizationCompass({
     };
   });
 
-  // Tier display
-  const activeTier = "SETTLER"; // Not available here — skip tier-specific display
-
   return (
-    <div className="vintage-parchment-card p-4 transition-all duration-300 hover:shadow-lg">
-      <div className="flex items-center gap-2 mb-3 border-b border-[oklch(0.88_0.02_90)] pb-2">
-        <span className="text-lg animate-rhumb-spin inline-block text-[oklch(0.55_0.12_85)]"><QuestScrollIcon name="compass" size={18} /></span>
-        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">
+    <div
+      className="p-4 transition-all duration-300 hover:shadow-lg"
+      style={{
+        backgroundColor: CIV_COLORS.bgCard,
+        border: `1.5px solid ${CIV_COLORS.border}`,
+        borderRadius: "6px",
+      }}
+    >
+      <div
+        className="flex items-center gap-2 mb-3 pb-2"
+        style={{ borderBottom: `1px solid ${CIV_COLORS.border}` }}
+      >
+        <span
+          className="text-lg inline-block civ-archive-seal-hover"
+          style={{ color: CIV_COLORS.gold }}
+        >
+          <QuestScrollIcon name="compass" size={18} />
+        </span>
+        <h3
+          className="text-sm font-bold font-civ-serif"
+          style={{ color: CIV_COLORS.textPrimary }}
+        >
           {locale === "en" ? "Civilization Compass" : "文明导航罗盘"}
         </h3>
-        <span className="text-[10px] bg-[oklch(0.72_0.12_85_/_0.12)] border border-[oklch(0.72_0.12_85_/_0.25)] text-[oklch(0.35_0.12_85)] rounded-full px-2 py-0.5 font-bold ml-auto">
+        <span
+          className="text-[10px] rounded-full px-2 py-0.5 font-bold ml-auto"
+          style={{
+            backgroundColor: CIV_COLORS.gold + "20",
+            color: CIV_COLORS.darkRed,
+            border: `1px solid ${CIV_COLORS.gold}60`,
+          }}
+        >
           {direction.active_paths.length}{" "}
           {locale === "en" ? "paths" : "条路径"}
         </span>
       </div>
- 
-      {/* SVG Compass */}
-      <div className="flex justify-center relative py-2">
+
+      {/* SVG Compass — 背景结构 + 连接线 */}
+      <div className="flex justify-center py-2 px-6">
+        <div className="relative mx-auto" style={{ width: viewSize, height: viewSize }}>
         <svg
           viewBox={`0 0 ${viewSize} ${viewSize}`}
           width={viewSize}
           height={viewSize}
           className="overflow-visible"
         >
-          {/* Faint grid lines in background */}
+          {/* 背景圆环 */}
           <circle
             cx={centerX}
             cy={centerY}
             r={ringRadius * 1.3}
             fill="none"
-            stroke="oklch(0.7 0.12 85 / 0.04)"
+            stroke={CIV_COLORS.gold}
             strokeWidth={1}
+            opacity={0.06}
           />
 
-          {/* Wind Rose group - ancient marine chart styling */}
-          <g className="origin-center transition-transform duration-1000 ease-out hover:rotate-12">
-            {/* Degree ticks outer circle */}
-            <circle
-              cx={centerX}
-              cy={centerY}
-              r={ringRadius + 8}
-              fill="none"
-              stroke="oklch(0.7 0.12 85 / 0.2)"
-              strokeWidth={2}
-              strokeDasharray="1 4"
-            />
-            {/* Faint inner guides */}
-            <circle
-              cx={centerX}
-              cy={centerY}
-              r={ringRadius}
-              fill="none"
-              stroke="oklch(0.7 0.12 85 / 0.08)"
-              strokeWidth={1}
-            />
-            <circle
-              cx={centerX}
-              cy={centerY}
-              r={ringRadius * 0.5}
-              fill="none"
-              stroke="oklch(0.7 0.12 85 / 0.08)"
-              strokeWidth={0.5}
-              strokeDasharray="2 2"
-            />
-            {/* Cardinal cross lines */}
-            <line
-              x1={centerX}
-              y1={centerY - ringRadius - 15}
-              x2={centerX}
-              y2={centerY + ringRadius + 15}
-              stroke="oklch(0.7 0.12 85 / 0.15)"
-              strokeWidth={1}
-            />
-            <line
-              x1={centerX - ringRadius - 15}
-              y1={centerY}
-              x2={centerX + ringRadius + 15}
-              y2={centerY}
-              stroke="oklch(0.7 0.12 85 / 0.15)"
-              strokeWidth={1}
-            />
-            {/* Diagonal cross lines */}
-            <line
-              x1={centerX - ringRadius * 0.7}
-              y1={centerY - ringRadius * 0.7}
-              x2={centerX + ringRadius * 0.7}
-              y2={centerY + ringRadius * 0.7}
-              stroke="oklch(0.7 0.12 85 / 0.1)"
-              strokeWidth={0.5}
-              strokeDasharray="2 2"
-            />
-            <line
-              x1={centerX + ringRadius * 0.7}
-              y1={centerY - ringRadius * 0.7}
-              x2={centerX - ringRadius * 0.7}
-              y2={centerY + ringRadius * 0.7}
-              stroke="oklch(0.7 0.12 85 / 0.1)"
-              strokeWidth={0.5}
-              strokeDasharray="2 2"
-            />
-            {/* Wind rose star points (SVG path polygons) */}
-            {/* North point */}
-            <polygon
-              points={`${centerX},${centerY} ${centerX - 5},${centerY} ${centerX},${centerY - ringRadius - 5}`}
-              fill="oklch(0.7 0.12 85 / 0.18)"
-            />
-            <polygon
-              points={`${centerX},${centerY} ${centerX + 5},${centerY} ${centerX},${centerY - ringRadius - 5}`}
-              fill="oklch(0.7 0.12 85 / 0.08)"
-            />
-            {/* South point */}
-            <polygon
-              points={`${centerX},${centerY} ${centerX - 5},${centerY} ${centerX},${centerY + ringRadius + 5}`}
-              fill="oklch(0.7 0.12 85 / 0.08)"
-            />
-            <polygon
-              points={`${centerX},${centerY} ${centerX + 5},${centerY} ${centerX},${centerY + ringRadius + 5}`}
-              fill="oklch(0.7 0.12 85 / 0.18)"
-            />
-            {/* East point */}
-            <polygon
-              points={`${centerX},${centerY} ${centerX},${centerY - 5} ${centerX + ringRadius + 5},${centerY}`}
-              fill="oklch(0.7 0.12 85 / 0.18)"
-            />
-            <polygon
-              points={`${centerX},${centerY} ${centerX},${centerY + 5} ${centerX + ringRadius + 5},${centerY}`}
-              fill="oklch(0.7 0.12 85 / 0.08)"
-            />
-            {/* West point */}
-            <polygon
-              points={`${centerX},${centerY} ${centerX},${centerY - 5} ${centerX - ringRadius - 5},${centerY}`}
-              fill="oklch(0.7 0.12 85 / 0.08)"
-            />
-            <polygon
-              points={`${centerX},${centerY} ${centerX},${centerY + 5} ${centerX - ringRadius - 5},${centerY}`}
-              fill="oklch(0.7 0.12 85 / 0.18)"
-            />
-            
-            {/* Direction labels (N, S, E, W) */}
-            <text x={centerX} y={centerY - ringRadius - 8} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.8)">N</text>
-            <text x={centerX} y={centerY + ringRadius + 14} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.6)">S</text>
-            <text x={centerX + ringRadius + 10} y={centerY + 3} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.6)">E</text>
-            <text x={centerX - ringRadius - 10} y={centerY + 3} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill="oklch(0.7 0.12 85 / 0.6)">W</text>
-          </g>
+          {/* 外圈刻度 */}
+          <circle
+            cx={centerX}
+            cy={centerY}
+            r={ringRadius + 8}
+            fill="none"
+            stroke={CIV_COLORS.gold}
+            strokeWidth={2}
+            strokeDasharray="1 4"
+            opacity={0.25}
+          />
+          {/* 内圈 */}
+          <circle
+            cx={centerX}
+            cy={centerY}
+            r={ringRadius}
+            fill="none"
+            stroke={CIV_COLORS.gold}
+            strokeWidth={1}
+            opacity={0.1}
+          />
+          <circle
+            cx={centerX}
+            cy={centerY}
+            r={ringRadius * 0.5}
+            fill="none"
+            stroke={CIV_COLORS.gold}
+            strokeWidth={0.5}
+            strokeDasharray="2 2"
+            opacity={0.1}
+          />
 
-          {/* Connection lines from center to each node */}
+          {/* 方位线 */}
+          <line x1={centerX} y1={centerY - ringRadius - 15} x2={centerX} y2={centerY + ringRadius + 15} stroke={CIV_COLORS.gold} strokeWidth={1} opacity={0.18} />
+          <line x1={centerX - ringRadius - 15} y1={centerY} x2={centerX + ringRadius + 15} y2={centerY} stroke={CIV_COLORS.gold} strokeWidth={1} opacity={0.18} />
+          <line x1={centerX - ringRadius * 0.7} y1={centerY - ringRadius * 0.7} x2={centerX + ringRadius * 0.7} y2={centerY + ringRadius * 0.7} stroke={CIV_COLORS.gold} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.12} />
+          <line x1={centerX + ringRadius * 0.7} y1={centerY - ringRadius * 0.7} x2={centerX - ringRadius * 0.7} y2={centerY + ringRadius * 0.7} stroke={CIV_COLORS.gold} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.12} />
+
+          {/* 方位字母 */}
+          <text x={centerX} y={centerY - ringRadius - 8} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill={CIV_COLORS.gold} opacity={0.8}>N</text>
+          <text x={centerX} y={centerY + ringRadius + 14} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill={CIV_COLORS.gold} opacity={0.6}>S</text>
+          <text x={centerX + ringRadius + 10} y={centerY + 3} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill={CIV_COLORS.gold} opacity={0.6}>E</text>
+          <text x={centerX - ringRadius - 10} y={centerY + 3} textAnchor="middle" fontSize={isSm ? 8 : 10} fontWeight="bold" fill={CIV_COLORS.gold} opacity={0.6}>W</text>
+
+          {/* 中心到节点的连接线 */}
           {nodes.map((node, i) => {
             const color = regionColor(node.building.region);
             return (
@@ -281,192 +254,130 @@ export function CivilizationCompass({
               />
             );
           })}
-
-          {/* Center badge */}
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={isSm ? 24 : 32}
-            fill="oklch(0.99 0.003 95)"
-            stroke="oklch(0.7 0.12 85 / 0.4)"
-            strokeWidth={1.5}
-            className="shadow-sm animate-glow-pulse"
-          />
-          {/* Center compass glyph — drawn as SVG primitives */}
-          <g
-            transform={`translate(${centerX}, ${centerY - (isSm ? 4 : 6)})`}
-            stroke="oklch(0.45 0.12 85)"
-            strokeWidth={1.4}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="0" cy="0" r={isSm ? 7 : 9} />
-            <path d={`M0 ${isSm ? -9 : -12} L${isSm ? 2 : 2.5} 0 L0 ${isSm ? 4 : 5} L${isSm ? -2 : -2.5} 0 Z`} fill="oklch(0.45 0.12 85)" strokeWidth="0.8" />
-            <path d={`M0 ${isSm ? 9 : 12} L${isSm ? 2 : 2.5} 0 L0 ${isSm ? -4 : -5} L${isSm ? -2 : -2.5} 0 Z`} strokeWidth="1" opacity="0.6" />
-            <circle cx="0" cy="0" r="1" fill="oklch(0.45 0.12 85)" stroke="none" />
-          </g>
-          <text
-            x={centerX}
-            y={centerY + (isSm ? 14 : 20)}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize={isSm ? 8 : 10}
-            fill="oklch(0.5 0.01 90)"
-            fontWeight={600}
-          >
-            {locale === "en" ? "Direction" : "方向"}
-          </text>
-
-          {/* Building nodes */}
-          {nodes.map((node, i) => {
-            const b = node.building;
-            const color = regionColor(b.region);
-            const hasGrowth = b.projected_level > b.current_level;
-            const displayName =
-              locale === "en" && b.building_name_en
-                ? b.building_name_en
-                : b.building_name;
-
-            return (
-              <g key={`node-${i}`} className="group cursor-pointer">
-                {/* Pulsing ring glow for buildings with projected growth */}
-                {hasGrowth && (
-                  <circle
-                    cx={node.x}
-                    cy={node.y}
-                    r={nodeRadius + 6}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth={1}
-                    opacity={0.2}
-                    className="animate-warm-pulse"
-                  />
-                )}
-
-                {/* Node background */}
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={nodeRadius}
-                  fill="oklch(0.99 0.003 95)"
-                  stroke={color}
-                  strokeWidth={1.5}
-                  className="transition-all duration-300"
-                />
-                {/* Dark mode fill */}
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={nodeRadius}
-                  fill="oklch(0.22 0.008 85)"
-                  className="hidden dark:inline"
-                />
-
-                {/* Building glyph — SVG primitive (columned structure) */}
-                <g
-                  transform={`translate(${node.x}, ${node.y - (isSm ? 2 : 3)})`}
-                  stroke={color}
-                  strokeWidth={1.3}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d={`M${isSm ? -5 : -7} ${isSm ? 5 : 7} L${isSm ? 5 : 7} ${isSm ? 5 : 7}`} />
-                  <path d={`M${isSm ? -4 : -5} ${isSm ? 5 : 7} L${isSm ? -4 : -5} ${isSm ? -2 : -3} L0 ${isSm ? -5 : -7} L${isSm ? 4 : 5} ${isSm ? -2 : -3} L${isSm ? 4 : 5} ${isSm ? 5 : 7}`} />
-                  <path d={`M${isSm ? -2 : -2.5} ${isSm ? 2 : 3} L${isSm ? -2 : -2.5} ${isSm ? 5 : 7} M0 ${isSm ? 2 : 3} L0 ${isSm ? 5 : 7} M${isSm ? 2 : 2.5} ${isSm ? 2 : 3} L${isSm ? 2 : 2.5} ${isSm ? 5 : 7}`} strokeWidth="0.9" opacity="0.7" />
-                </g>
-
-                {/* Level badge */}
-                <circle
-                  cx={node.x + nodeRadius * 0.7}
-                  cy={node.y - nodeRadius * 0.7}
-                  r={isSm ? 7 : 9}
-                  fill={color}
-                  opacity={0.9}
-                />
-                <text
-                  x={node.x + nodeRadius * 0.7}
-                  y={node.y - nodeRadius * 0.7}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={isSm ? 7 : 9}
-                  fill="white"
-                  fontWeight={700}
-                >
-                  {b.current_level}
-                </text>
-
-                {/* Projected level arrow (if growth expected) */}
-                {hasGrowth && (
-                  <>
-                    <text
-                      x={node.x + nodeRadius * 1.3}
-                      y={node.y - nodeRadius * 0.7}
-                      textAnchor="start"
-                      dominantBaseline="middle"
-                      fontSize={isSm ? 8 : 10}
-                      fill={color}
-                      fontWeight={700}
-                    >
-                      →{b.projected_level}
-                    </text>
-                  </>
-                )}
-
-                {/* Building name label */}
-                <text
-                  x={node.x}
-                  y={node.y + nodeRadius + (isSm ? 12 : 14)}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={isSm ? 8 : 10}
-                  fill="oklch(0.45 0.01 90)"
-                  fontWeight={500}
-                  className="transition-colors"
-                >
-                  {displayName.length > (isSm ? 8 : 10)
-                    ? displayName.slice(0, isSm ? 7 : 9) + "…"
-                    : displayName}
-                </text>
-
-                {/* Hover tooltip circle (invisible, for hit area) */}
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={nodeRadius + 4}
-                  fill="transparent"
-                />
-                <title>
-                  {displayName} Lv.{b.current_level}
-                  {hasGrowth ? ` → Lv.${b.projected_level}` : ""}
-                  {"\n"}{b.pathTitle}
-                </title>
-              </g>
-            );
-          })}
         </svg>
+
+        {/* 中心徽章 — HTML 绝对定位 */}
+        <div
+          className="absolute flex flex-col items-center justify-center rounded-full civ-archive-seal-hover"
+          style={{
+            left: centerX - (isSm ? 24 : 32),
+            top: centerY - (isSm ? 24 : 32),
+            width: isSm ? 48 : 64,
+            height: isSm ? 48 : 64,
+            backgroundColor: CIV_COLORS.bgContent,
+            border: `1.5px solid ${CIV_COLORS.gold}80`,
+          }}
+        >
+          <svg width={isSm ? 18 : 22} height={isSm ? 18 : 22} viewBox="0 0 24 24" fill="none" stroke={CIV_COLORS.darkRed} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 4 L14 12 L12 15 L10 12 Z" fill={CIV_COLORS.darkRed} strokeWidth="0.8" />
+            <path d="M12 20 L14 12 L12 9 L10 12 Z" strokeWidth="1" opacity="0.5" />
+          </svg>
+          <span
+            className="text-[8px] font-bold uppercase tracking-wider mt-0.5"
+            style={{ color: CIV_COLORS.textSecondary }}
+          >
+            {locale === "en" ? "Core" : "核心"}
+          </span>
+        </div>
+
+        {/* 建筑节点 — HTML 绝对定位，每个用独特 BuildingSealIcon */}
+        {nodes.map((node, i) => {
+          const b = node.building;
+          const color = regionColor(b.region);
+          const hasGrowth = b.projected_level > b.current_level;
+          const displayName =
+            locale === "en" && b.building_name_en
+              ? b.building_name_en
+              : b.building_name;
+          const skillId = inferSkillId(displayName, b.building_id);
+
+          return (
+            <div
+              key={`node-${i}`}
+              className="absolute flex flex-col items-center cursor-pointer group"
+              style={{
+                left: node.x - nodeSize / 2,
+                top: node.y - nodeSize / 2,
+                width: nodeSize,
+                height: nodeSize,
+              }}
+            >
+              {/* 成长指示环 */}
+              {hasGrowth && (
+                <span
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    border: `1.5px solid ${color}`,
+                    opacity: 0.4,
+                    transform: "scale(1.15)",
+                  }}
+                />
+              )}
+              {/* 独特建筑印章图标 — 无框透明背景 */}
+              <div
+                className="relative civ-archive-seal-hover"
+                style={{ filter: hasGrowth ? `drop-shadow(0 0 4px ${color}80)` : "none" }}
+              >
+                <BuildingSealIcon type={skillId} size={nodeSize} />
+              </div>
+              {/* 等级徽章 */}
+              <span
+                className="absolute -top-1 -right-1 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+                style={{
+                  backgroundColor: color,
+                  color: "#FFF",
+                }}
+              >
+                {b.current_level}
+              </span>
+              {/* 建筑名 — 水平居中于节点 */}
+              <span
+                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-[9px] font-medium text-center whitespace-nowrap max-w-[80px] truncate"
+                style={{ color: CIV_COLORS.textPrimary }}
+              >
+                {displayName.length > (isSm ? 6 : 8)
+                  ? displayName.slice(0, isSm ? 5 : 7) + "…"
+                  : displayName}
+              </span>
+              {hasGrowth && (
+                <span
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[9px] font-bold font-mono whitespace-nowrap"
+                  style={{ color: CIV_COLORS.darkRed }}
+                >
+                  →{b.projected_level}
+                </span>
+              )}
+              <title>
+                {displayName} Lv.{b.current_level}
+                {hasGrowth ? ` → Lv.${b.projected_level}` : ""}
+                {"\n"}{b.pathTitle}
+              </title>
+            </div>
+          );
+        })}
+        </div>
       </div>
 
-      {/* Summary text — localized on the frontend (backend summary is EN-only) */}
+      {/* Summary text */}
       {locale === "zh" ? (
         <>
-          <p className="text-xs text-muted-foreground text-center mt-3 leading-relaxed">
+          <p className="text-xs text-center mt-3 leading-relaxed" style={{ color: CIV_COLORS.textSecondary }}>
             你的文明正通过 {direction.active_paths.length} 条路径发展，驱动 {uniqueBuildings.length} 个建筑成长
           </p>
           {direction.active_paths[0]?.targeted_buildings[0] && (
-            <p className="text-[11px] text-primary text-center mt-1 font-medium inline-flex items-center justify-center gap-1">
+            <p className="text-[11px] text-center mt-1 font-medium font-civ-serif italic inline-flex items-center justify-center gap-1 w-full" style={{ color: CIV_COLORS.darkRed }}>
               <QuestScrollIcon name="idea" size={12} className="inline-block" /> 优先推进「{direction.active_paths[0].path_title}」，达成 {direction.active_paths[0].targeted_buildings[0].building_name} Lv.{direction.active_paths[0].targeted_buildings[0].projected_level}
             </p>
           )}
         </>
       ) : (
         <>
-          <p className="text-xs text-muted-foreground text-center mt-3 leading-relaxed">
+          <p className="text-xs text-center mt-3 leading-relaxed" style={{ color: CIV_COLORS.textSecondary }}>
             {direction.summary}
           </p>
           {direction.suggested_focus && (
-            <p className="text-[11px] text-primary text-center mt-1 font-medium inline-flex items-center justify-center gap-1">
+            <p className="text-[11px] text-center mt-1 font-medium font-civ-serif italic inline-flex items-center justify-center gap-1 w-full" style={{ color: CIV_COLORS.darkRed }}>
               <QuestScrollIcon name="idea" size={12} className="inline-block" /> {direction.suggested_focus}
             </p>
           )}
