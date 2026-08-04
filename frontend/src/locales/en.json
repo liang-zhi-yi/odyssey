@@ -248,6 +248,8 @@
     "registerSub": "Start your growth civilization world",
     "tabLogin": "Login",
     "tabRegister": "Register",
+    "accountLabel": "Username / Email",
+    "accountPlaceholder": "Enter username or email",
     "emailPlaceholder": "you@example.com",
     "usernamePlaceholder": "alice",
     "passwordPlaceholder": "••••••••",
@@ -378,6 +380,19 @@
       "PRACTITIONER": "Practitioner",
       "ENGINEER": "Engineer",
       "ARCHITECT": "Architect"
+    },
+    "insights": {
+      "strength": "Strength",
+      "growing": "Growing",
+      "explore": "To Explore"
+    },
+    "archive": {
+      "advantage": "Advantage",
+      "growthTrend": "Growth Trend",
+      "nextExploration": "Next Exploration",
+      "civIndex": "Civilization Index",
+      "latestAssessment": "Latest Assessment",
+      "explorationStatus": "Exploration Status"
     }
   },
   "skills": {
@@ -551,19 +566,6 @@
     "maxWait": "Max wait 180s",
     "justification": "AI Justification",
     "viewJustification": "View justification",
-    "civLevels": {
-      "1": { "title": "Awakener", "subtitle": "First spark of awakening" },
-      "2": { "title": "Apprentice", "subtitle": "On the path of growth" },
-      "3": { "title": "Explorer",   "subtitle": "Venturing into the unknown" },
-      "4": { "title": "Trailblazer","subtitle": "Expanding the frontier" },
-      "5": { "title": "Pioneer",    "subtitle": "A pioneer of new eras" }
-    },
-    "evalTags": {
-      "senior":     "Senior AI Collaborator",
-      "junior":     "Junior AI Collaborator",
-      "apprentice": "AI Collaboration Apprentice",
-      "novice":     "AI Novice"
-    },
     "firstAssessment": {
       "badge": "First Appraisal · Baseline",
       "title": "Civilization Archive Initialized",
@@ -1032,7 +1034,6 @@
     "nextLevel": "Score needed for next level",
     "scoreToNext": "{score} more points to next level",
     "maxLevelReached": "Max level reached",
-    "viewSkill": "View Skill Details",
     "viewBuilding": "View Building",
     "viewInWorld": "View in World Map",
     "emptyTitle": "Your world has not been built yet",

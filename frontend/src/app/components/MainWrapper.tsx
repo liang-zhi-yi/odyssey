@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-const FULLSCREEN_PATHS = ["/", "/auth", "/login", "/register"];
+const FULLSCREEN_PATHS = ["/", "/auth", "/login", "/register", "/intro-video"];
 
 export function MainWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();

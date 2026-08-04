@@ -10,35 +10,49 @@ import { masteryColor } from "@/app/components/GrowthRing";
 import { useLocale } from "@/hooks/useLocale";
 import { QuestScrollIcon } from "./QuestScrollIcon";
 
+/**
+ * 文明分类图标 — 使用对应 SVG 图标（QuestScrollIcon），取消背景，
+ * 仅保留悬浮高光与放大效果。
+ *
+ * 每个文明分类的图标映射到 QuestScrollIcon 中独特的 SVG 纹样：
+ *   ai          → reasoning    (神经网络节点)
+ *   engineering → application   (齿轮/应用)
+ *   knowledge   → knowledge     (书本)
+ *   business    → seal          (印章/天平)
+ *   design      → creation      (创意螺旋)
+ *   media       → creation      (创意纹样)
+ *   science     → reasoning     (原子轨道)
+ *   language    → scroll        (卷轴)
+ *   health      → shield        (盾牌/脉搏)
+ *   finance     → star          (星辰/硬币)
+ *   digital     → civilization  (文明塔)
+ *   society     → civilization  (社会连接)
+ */
 function MiniShieldIcon({ icon, groupKey }: { icon: string; groupKey: string }) {
-  const isGold = groupKey === "engineering" || groupKey === "knowledge";
-  const isSilver = groupKey === "business" || groupKey === "design";
-  
-  const borderClass = isGold
-    ? "border-[oklch(0.7_0.12_85)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.72_0.12_82_/_0.25)] text-[oklch(0.35_0.12_85)]"
-    : isSilver
-      ? "border-[oklch(0.55_0.08_160)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.55_0.08_160_/_0.2)] text-[oklch(0.35_0.08_160)]"
-      : "border-[oklch(0.65_0.12_45_/_0.6)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.65_0.12_45_/_0.15)] text-[oklch(0.45_0.12_45)]";
+  // 文明分类色调（仅用于图标本身的描边色，不渲染背景）
+  const toneByGroup: Record<string, string> = {
+    ai: "text-[oklch(0.45_0.13_270)] dark:text-[oklch(0.7_0.14_270)]",
+    engineering: "text-[oklch(0.45_0.10_55)] dark:text-[oklch(0.7_0.12_55)]",
+    knowledge: "text-[oklch(0.42_0.10_145)] dark:text-[oklch(0.68_0.11_145)]",
+    business: "text-[oklch(0.45_0.11_40)] dark:text-[oklch(0.7_0.12_40)]",
+    design: "text-[oklch(0.45_0.11_320)] dark:text-[oklch(0.7_0.12_320)]",
+    media: "text-[oklch(0.45_0.11_320)] dark:text-[oklch(0.7_0.12_320)]",
+    science: "text-[oklch(0.45_0.11_230)] dark:text-[oklch(0.7_0.12_230)]",
+    language: "text-[oklch(0.42_0.10_90)] dark:text-[oklch(0.68_0.11_90)]",
+    health: "text-[oklch(0.45_0.12_15)] dark:text-[oklch(0.7_0.13_15)]",
+    finance: "text-[oklch(0.45_0.10_140)] dark:text-[oklch(0.7_0.12_140)]",
+    digital: "text-[oklch(0.45_0.10_200)] dark:text-[oklch(0.7_0.11_200)]",
+    society: "text-[oklch(0.45_0.09_200)] dark:text-[oklch(0.7_0.10_200)]",
+  };
+  const tone = toneByGroup[groupKey] ?? "text-[oklch(0.45_0.10_80)] dark:text-[oklch(0.7_0.12_80)]";
 
   return (
-    <div
-      className={`flex items-center justify-center w-6 h-6 rounded-md border shadow-inner text-xs shrink-0 relative overflow-hidden transition-all duration-300 group-hover:scale-105 ${borderClass}`}
+    <span
+      className={`flex items-center justify-center w-6 h-6 shrink-0 transition-all duration-300 group-hover:scale-125 group-hover:drop-shadow-[0_0_6px_oklch(0.7_0.12_80_/_0.45)] ${tone}`}
+      aria-hidden
     >
-      <svg
-        className="absolute inset-0 w-full h-full opacity-10 pointer-events-none select-none"
-        viewBox="0 0 100 100"
-        fill="none"
-        stroke="currentColor"
-      >
-        <path
-          d="M 10,10 L 90,10 L 90,45 C 90,75 50,92 50,92 C 50,92 10,75 10,45 Z"
-          strokeWidth="6"
-        />
-      </svg>
-      <span className="relative z-10 leading-none flex items-center justify-center select-none scale-95">
-        {icon}
-      </span>
-    </div>
+      <QuestScrollIcon name={icon as any} size={18} strokeWidth={1.4} />
+    </span>
   );
 }
 
@@ -251,31 +265,33 @@ export function SkillTreeSidebar({
               return (
                 <div key={group.key}>
                   {/* Domain header */}
-                  <button
-                    onClick={() => onToggleDomain(group.key)}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all duration-200 group ${
-                      hasSelected
-                        ? "bg-[oklch(0.72_0.12_82_/_0.08)] text-[oklch(0.3_0.02_80)]"
-                        : "text-[oklch(0.35_0.02_80)] hover:bg-[oklch(0.95_0.005_90_/_0.5)] dark:hover:bg-[oklch(0.25_0.008_85_/_0.5)]"
-                    }`}
-                  >
-                    <span
-                      className={`text-[10px] transition-transform duration-200 ${
-                        isExpanded ? "rotate-90" : ""
-                      }`}
+                  <div className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all duration-200 group ${
+                    hasSelected
+                      ? "bg-[oklch(0.72_0.12_82_/_0.08)] text-[oklch(0.3_0.02_80)]"
+                      : "text-[oklch(0.35_0.02_80)] hover:bg-[oklch(0.95_0.005_90_/_0.5)] dark:hover:bg-[oklch(0.25_0.008_85_/_0.5)]"
+                  }`}>
+                    <button
+                      onClick={() => onToggleDomain(group.key)}
+                      className="flex items-center gap-2 flex-1 min-w-0"
                     >
-                      <svg className="w-3 h-3 text-[oklch(0.5_0.02_85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                    <MiniShieldIcon icon={group.icon} groupKey={group.key} />
-                    <span className="text-xs font-bold font-civ-serif flex-1 truncate">
-                      {group.label}
-                    </span>
-                    <span className="text-[10px] text-[oklch(0.5_0.02_85)] tabular-nums">
-                      {group.skills.length}
-                    </span>
-                  </button>
+                      <span
+                        className={`text-[10px] transition-transform duration-200 ${
+                          isExpanded ? "rotate-90" : ""
+                        }`}
+                      >
+                        <svg className="w-3 h-3 text-[oklch(0.5_0.02_85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                      <MiniShieldIcon icon={group.icon} groupKey={group.key} />
+                      <span className="text-xs font-bold font-civ-serif flex-1 truncate">
+                        {group.label}
+                      </span>
+                      <span className="text-[10px] text-[oklch(0.5_0.02_85)] tabular-nums">
+                        {group.skills.length}
+                      </span>
+                    </button>
+                  </div>
 
                   {/* Skill items */}
                   {isExpanded && (
@@ -339,6 +355,26 @@ export function SkillTreeSidebar({
                           </button>
                         );
                       })}
+
+                      {/* Civilization radar overview link */}
+                      <Link
+                        href={`/skills/civilization/${group.key}`}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all duration-200 border border-transparent hover:bg-[oklch(0.95_0.005_90_/_0.65)] dark:hover:bg-[oklch(0.25_0.008_85_/_0.65)] mt-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <svg className="w-3 h-3 flex-shrink-0 text-[oklch(0.5_0.08_145)]" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M10 2 L 10 18 M 2 10 L 18 10" opacity="0.4" />
+                          <circle cx="10" cy="10" r="7" />
+                          <circle cx="10" cy="10" r="4" opacity="0.5" />
+                          <circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none" />
+                        </svg>
+                        <span className="text-xs flex-1 truncate font-civ-serif italic text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.65_0.08_145)]">
+                          {locale === "en" ? "Civilization Overview" : "文明综合能力总览"}
+                        </span>
+                        <svg className="w-3 h-3 text-[oklch(0.5_0.02_85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
                     </div>
                   )}
                 </div>

@@ -199,7 +199,7 @@ class WorldResponse(BaseModel):
     next_tier_at: int = 0
     era: str = "WILDERNESS"
     era_name: str = "荒野时代"
-    era_icon: str = "🏕️"
+    era_icon: str = "building"
     era_score: int = 0
     next_era_at: int | None = None
     knowledge_points: int = 0

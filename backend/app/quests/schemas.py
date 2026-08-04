@@ -55,6 +55,18 @@ class AcceptQuestResponse(BaseModel):
     status: str
 
 
+class QuestCreateRequest(BaseModel):
+    """Request body for creating a user-specific (AI-generated) quest."""
+    title: str
+    title_en: str | None = None
+    description: str | None = None
+    description_en: str | None = None
+    skill_id: str
+    difficulty: str = "LEVEL_1"
+    quest_type: str = "APPLICATION"
+    expected_deliverable: str = "PROMPT"
+
+
 class UserQuestResponse(BaseModel):
     quest_id: str
     quest_title: str

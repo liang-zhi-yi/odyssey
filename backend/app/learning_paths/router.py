@@ -1,4 +1,4 @@
-﻿"""Learning Paths routes -- /api/v1/learning-paths/* and /api/v1/memory/*"""
+"""Learning Paths routes -- /api/v1/learning-paths/* and /api/v1/memory/*"""
 import logging
 
 from fastapi import APIRouter, Depends, Query
@@ -78,7 +78,7 @@ def get_path_stats_summary(
         civilization_level=civ_level,
         civilization_name=civ_name,
         era=era_info.get("era", "WILDERNESS"),
-        era_icon=era_info.get("era_icon", "🏕️"),
+        era_icon=era_info.get("era_icon", "building"),
         unlocked_buildings=unlocked,
         total_buildings=total_buildings,
         completed_quests=completed_quests,

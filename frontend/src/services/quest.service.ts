@@ -10,9 +10,28 @@ import type {
   CivilizationQuestsMap,
   UserCivilizationQuestGroup,
   UserCivilizationQuestsMap,
+  QuestDifficulty,
+  QuestType,
+  DeliverableType,
 } from "@/types/quest";
 
+export interface QuestCreatePayload {
+  title: string;
+  title_en?: string | null;
+  description?: string | null;
+  description_en?: string | null;
+  skill_id: string;
+  difficulty?: QuestDifficulty;
+  quest_type?: QuestType;
+  expected_deliverable?: DeliverableType;
+}
+
 export const questService = {
+  /** Create a user-specific (AI-generated) quest in the backend */
+  createQuest(payload: QuestCreatePayload): Promise<QuestDetail> {
+    return api.post<QuestDetail>("/quests", payload);
+  },
+
   /** List quests, optionally filtered by skill or difficulty */
   listQuests(params?: {
     skill_id?: string;

@@ -19,6 +19,7 @@ import { Loading } from "@/app/components/Loading";
 import { masteryColor } from "@/app/components/GrowthRing";
 import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import type { ScrollIconName } from "@/app/components/QuestScrollIcon";
+import { BuildingSealIcon, inferSkillId } from "@/app/components/CivArchiveTheme";
 import {
   ERA_LABELS,
   CIVILIZATION_TIER_LABELS,
@@ -567,7 +568,9 @@ export default function PersonalPage() {
                     href={`/world?building=${building.id}`}
                     className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/50 p-2.5 transition-all hover:shadow-card hover:border-primary/20 group"
                   >
-                    <span className="text-xl transition-transform group-hover:scale-110">{tpl?.icon ?? <QuestScrollIcon name="building" size={20} />}</span>
+                    <span className="flex-shrink-0 transition-transform group-hover:scale-110">
+                      <BuildingSealIcon type={inferSkillId(tpl?.name ?? "", building.id)} size={32} />
+                    </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold font-civ-serif text-foreground truncate">{name}</p>
                       <p className="text-[9px] text-muted-foreground font-mono">Lv.{building.level}</p>

@@ -10,16 +10,18 @@ import type { CSSProperties } from "react";
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── 色彩常量 ────────────────────────────────────────────────── */
+/* Uses CSS variables so dark mode is handled globally.
+   gold/darkRed stay hardcoded — they work in both modes. */
 export const CIV_COLORS = {
-  bgMain: "#F7F0E2",
-  bgContent: "#FFF9ED",
-  bgCard: "#FCF5E7",
-  textPrimary: "#33291F",
-  textSecondary: "#756957",
-  border: "#D8C29A",
+  bgMain: "var(--civ-bg-main)",
+  bgContent: "var(--civ-bg-content)",
+  bgCard: "var(--civ-bg-card)",
+  textPrimary: "var(--civ-text-primary)",
+  textSecondary: "var(--civ-text-secondary)",
+  border: "var(--civ-border)",
   gold: "#B58A45",
   darkRed: "#925E46",
-  parchment: "#F7F0E2",
+  parchment: "var(--civ-bg-main)",
 } as const;
 
 /* ── 根据 building 名称/ID 推断 skill_id — 确保每个建筑独特图标 ── */
@@ -108,7 +110,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 荒野 — 原始石碑 + 帐篷符号
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <path d="M 16 40 L 20 20 L 24 28 L 28 20 L 32 40 Z" stroke={color} strokeWidth="1" fill="none" opacity="0.5" />
           <circle cx="24" cy="16" r="1.5" fill={color} opacity="0.6" />
         </svg>
@@ -117,7 +119,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 农耕 — 石碑 + 麦穗
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <path d="M 24 16 L 24 34" stroke={color} strokeWidth="1.5" />
           <path d="M 24 20 L 20 18 M 24 20 L 28 18" stroke={color} strokeWidth="1" />
           <path d="M 24 25 L 20 23 M 24 25 L 28 23" stroke={color} strokeWidth="1" />
@@ -128,7 +130,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 学院 — 石碑 + 卷轴
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <path d="M 16 20 L 32 20 M 16 20 L 16 30 L 32 30 L 32 20" stroke={color} strokeWidth="1.2" fill="none" />
           <path d="M 18 22 L 30 22 M 18 25 L 30 25 M 18 28 L 28 28" stroke={color} strokeWidth="0.6" opacity="0.6" />
         </svg>
@@ -137,7 +139,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 工业 — 石碑 + 齿轮
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <circle cx="24" cy="24" r="6" stroke={color} strokeWidth="1.2" fill="none" />
           <circle cx="24" cy="24" r="2" fill={color} opacity="0.5" />
           {Array.from({ length: 8 }).map((_, i) => {
@@ -152,7 +154,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 信息 — 石碑 + 电波
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <circle cx="24" cy="24" r="2" fill={color} />
           <path d="M 24 24 Q 18 18 16 24 Q 18 30 24 24" stroke={color} strokeWidth="1" fill="none" opacity="0.6" />
           <path d="M 24 24 Q 14 14 10 24 Q 14 34 24 24" stroke={color} strokeWidth="0.8" fill="none" opacity="0.4" />
@@ -162,7 +164,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // AI — 石碑 + 神经网络
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <circle cx="18" cy="20" r="2" stroke={color} strokeWidth="1" fill="none" />
           <circle cx="30" cy="20" r="2" stroke={color} strokeWidth="1" fill="none" />
           <circle cx="24" cy="28" r="2" stroke={color} strokeWidth="1" fill="none" />
@@ -175,7 +177,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 智能 — 石碑 + 大脑纹样
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <path d="M 24 16 C 20 16 18 19 18 22 C 16 22 16 26 18 27 C 18 30 20 32 24 32 C 28 32 30 30 30 27 C 32 26 32 22 30 22 C 30 19 28 16 24 16 Z" stroke={color} strokeWidth="1.2" fill="none" />
           <path d="M 24 16 L 24 32" stroke={color} strokeWidth="0.6" opacity="0.4" />
         </svg>
@@ -184,7 +186,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 数字文明 — 石碑 + 区块链
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <rect x="16" y="18" width="6" height="6" stroke={color} strokeWidth="1" fill="none" />
           <rect x="26" y="18" width="6" height="6" stroke={color} strokeWidth="1" fill="none" />
           <rect x="21" y="27" width="6" height="6" stroke={color} strokeWidth="1" fill="none" />
@@ -196,7 +198,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
       // 未来 — 石碑 + 星辰
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <path d="M 24 15 L 25.5 21 L 31 22 L 26 25 L 27.5 31 L 24 27.5 L 20.5 31 L 22 25 L 17 22 L 22.5 21 Z" stroke={color} strokeWidth="1" fill="none" />
           <circle cx="24" cy="24" r="1" fill={color} opacity="0.5" />
         </svg>
@@ -204,7 +206,7 @@ export function EraStoneIcon({ era, size = 40, className = "" }: { era: string; 
     default:
       return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={stoneStyle} className={className} aria-hidden>
-          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" fill={CIV_COLORS.bgCard} />
+          <path d="M 8 40 L 12 10 L 36 10 L 40 40 Z" stroke={darkColor} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} />
           <circle cx="24" cy="24" r="6" stroke={color} strokeWidth="1.2" fill="none" />
         </svg>
       );
@@ -219,11 +221,12 @@ export function BuildingSealIcon({ type, size = 56, className = "" }: { type: st
 
   // 每个 skill_id 独特纹样 — 禁止重复设计，每个图标有直观语义
   const pattern = type;
+  const knownPatterns = ["AI", "PROGRAMMING", "RESEARCH", "WRITING", "BUSINESS", "PRODUCT", "DESIGN", "SCIENCE", "LANGUAGE", "HEALTH", "FINANCE", "MANAGEMENT", "MEDIA", "CAREER", "FITNESS", "ENGINEERING", "KNOWLEDGE", "SOCIETY"];
 
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className} aria-hidden>
       {/* 外环 */}
-      <circle cx="32" cy="32" r={r} stroke={color} strokeWidth="1.5" fill={CIV_COLORS.bgCard} opacity="0.9" />
+      <circle cx="32" cy="32" r={r} stroke={color} strokeWidth="1.5" style={{ fill: "var(--civ-bg-card)" }} opacity="0.9" />
       <circle cx="32" cy="32" r={r - 3} stroke={color} strokeWidth="0.5" fill="none" opacity="0.3" />
       {/* 装饰齿纹 */}
       {Array.from({ length: 12 }).map((_, i) => {
@@ -368,7 +371,47 @@ export function BuildingSealIcon({ type, size = 56, className = "" }: { type: st
           <line x1="27" y1="32" x2="37" y2="32" stroke={dark} strokeWidth="1.8" strokeLinecap="round" />
         </>
       )}
-      {pattern === "default" && (
+      {pattern === "ENGINEERING" && (
+        <>
+          {/* 齿轮 — 工程象征 */}
+          <circle cx="32" cy="32" r="6" stroke="#4A6B8A" strokeWidth="1.4" fill="none" />
+          {Array.from({ length: 8 }).map((_, i) => {
+            const a = (i * 45 * Math.PI) / 180;
+            const x1 = 32 + Math.cos(a) * 6;
+            const y1 = 32 + Math.sin(a) * 6;
+            const x2 = 32 + Math.cos(a) * 9;
+            const y2 = 32 + Math.sin(a) * 9;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#4A6B8A" strokeWidth="1.6" strokeLinecap="round" />;
+          })}
+          <circle cx="32" cy="32" r="2" fill={color} />
+        </>
+      )}
+      {pattern === "KNOWLEDGE" && (
+        <>
+          {/* 翻开的书卷 — 知识象征 */}
+          <path d="M 22 24 Q 27 22 32 24 Q 37 22 42 24 L 42 40 Q 37 38 32 40 Q 27 38 22 40 Z" stroke="#2E8B8B" strokeWidth="1.2" fill="none" strokeLinejoin="round" />
+          <line x1="32" y1="24" x2="32" y2="40" stroke="#2E8B8B" strokeWidth="1" />
+          <line x1="25" y1="28" x2="29" y2="27" stroke={color} strokeWidth="0.7" opacity="0.6" />
+          <line x1="35" y1="27" x2="39" y2="28" stroke={color} strokeWidth="0.7" opacity="0.6" />
+          <line x1="25" y1="32" x2="29" y2="31" stroke={color} strokeWidth="0.7" opacity="0.5" />
+          <line x1="35" y1="31" x2="39" y2="32" stroke={color} strokeWidth="0.7" opacity="0.5" />
+        </>
+      )}
+      {pattern === "SOCIETY" && (
+        <>
+          {/* 人际网络 — 社会象征 */}
+          <circle cx="32" cy="24" r="3" stroke="#C08081" strokeWidth="1.2" fill="none" />
+          <circle cx="22" cy="38" r="3" stroke="#C08081" strokeWidth="1.2" fill="none" />
+          <circle cx="42" cy="38" r="3" stroke="#C08081" strokeWidth="1.2" fill="none" />
+          <line x1="32" y1="27" x2="22" y2="35" stroke={color} strokeWidth="1" opacity="0.6" />
+          <line x1="32" y1="27" x2="42" y2="35" stroke={color} strokeWidth="1" opacity="0.6" />
+          <line x1="25" y1="38" x2="39" y2="38" stroke={color} strokeWidth="0.8" opacity="0.4" strokeDasharray="2 2" />
+          <circle cx="32" cy="24" r="1" fill={color} opacity="0.7" />
+          <circle cx="22" cy="38" r="1" fill={color} opacity="0.7" />
+          <circle cx="42" cy="38" r="1" fill={color} opacity="0.7" />
+        </>
+      )}
+      {!knownPatterns.includes(pattern) && (
         <>
           <path d="M 32 22 L 34.5 29 L 42 29 L 36 33.5 L 38.5 40.5 L 32 36 L 25.5 40.5 L 28 33.5 L 22 29 L 29.5 29 Z" stroke={color} strokeWidth="1.1" fill={color} fillOpacity="0.15" strokeLinejoin="round" />
           <circle cx="32" cy="32" r="1.5" fill={dark} />
@@ -390,7 +433,7 @@ export function AbilityEmblem({
 }) {
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = size * 0.32;
+  const maxR = size * 0.28;
   const color = CIV_COLORS.gold;
   const dark = CIV_COLORS.darkRed;
 
@@ -411,7 +454,7 @@ export function AbilityEmblem({
   const polygon = points.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox={`-20 -20 ${size + 40} ${size + 40}`} fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* 外环装饰 */}
       <circle cx={cx} cy={cy} r={maxR + 30} stroke={color} strokeWidth="0.5" opacity="0.15" fill="none" />
       <circle cx={cx} cy={cy} r={maxR + 20} stroke={color} strokeWidth="0.8" opacity="0.2" fill="none" strokeDasharray="3 3" />
@@ -441,13 +484,13 @@ export function AbilityEmblem({
       {/* 能力点 */}
       {points.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r="5" fill={CIV_COLORS.bgCard} stroke={dark} strokeWidth="1.5" />
+          <circle cx={p.x} cy={p.y} r="5" style={{ fill: "var(--civ-bg-card)" }} stroke={dark} strokeWidth="1.5" />
           <circle cx={p.x} cy={p.y} r="2" fill={color} />
         </g>
       ))}
 
       {/* 中心标记 */}
-      <circle cx={cx} cy={cy} r="12" fill={CIV_COLORS.bgCard} stroke={color} strokeWidth="1.5" />
+      <circle cx={cx} cy={cy} r="12" style={{ fill: "var(--civ-bg-card)" }} stroke={color} strokeWidth="1.5" />
       <path
         d={`M ${cx} ${cy - 6} L ${cx + 5} ${cy} L ${cx} ${cy + 6} L ${cx - 5} ${cy} Z`}
         fill={color} opacity="0.6"
@@ -464,7 +507,7 @@ export function AbilityEmblem({
             <text
               x={lx} y={ly}
               textAnchor="middle" dominantBaseline="middle"
-              fill={CIV_COLORS.textPrimary}
+              style={{ fill: "var(--civ-text-primary)" }}
               fontSize="12" fontWeight="bold"
               fontFamily='"Noto Serif SC","Source Han Serif SC","Songti SC",serif'
             >
@@ -537,6 +580,23 @@ export function ArchiveCard({
 export function CivArchiveStyles() {
   return (
     <style dangerouslySetInnerHTML={{ __html: `
+      /* ── CSS Variables for dark mode support ──────────── */
+      :root {
+        --civ-bg-main: #F7F0E2;
+        --civ-bg-content: #FFF9ED;
+        --civ-bg-card: #FCF5E7;
+        --civ-text-primary: #33291F;
+        --civ-text-secondary: #756957;
+        --civ-border: #D8C29A;
+      }
+      .dark {
+        --civ-bg-main: oklch(0.14 0.012 70);
+        --civ-bg-content: oklch(0.17 0.015 70);
+        --civ-bg-card: oklch(0.20 0.012 70);
+        --civ-text-primary: oklch(0.91 0.018 85);
+        --civ-text-secondary: oklch(0.60 0.012 80);
+        --civ-border: oklch(0.26 0.012 75);
+      }
       .civ-archive-page {
         background-color: ${CIV_COLORS.bgMain};
         min-height: calc(100vh - 3.5rem);

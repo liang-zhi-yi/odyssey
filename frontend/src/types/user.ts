@@ -17,6 +17,7 @@ export interface User {
   location: string | null;
   website: string | null;
   social_links: SocialLink[] | null;
+  has_seen_intro_video: boolean;
 }
 
 export interface UpdateProfileRequest {

@@ -423,10 +423,10 @@ def _build_rich_feedback(
     plus the overall_assessment summary, to create a detailed feedback report.
     """
     dim_labels = {
-        "knowledge": "📚 Knowledge（知识）",
-        "reasoning": "🧠 Reasoning（推理）",
-        "application": "🔧 Application（应用）",
-        "creation": "✨ Creation（创造）",
+        "knowledge": "Knowledge（知识）",
+        "reasoning": "Reasoning（推理）",
+        "application": "Application（应用）",
+        "creation": "Creation（创造）",
     }
 
     lines = [f"## {quest_title} — 能力评估报告\n"]
@@ -434,16 +434,16 @@ def _build_rich_feedback(
     # ── Overall summary ──────────────────────────────
     oa = result.get("overall_assessment", {})
     if oa:
-        lines.append("### 📊 综合评估\n")
+        lines.append("### 综合评估\n")
         if oa.get("summary"):
             lines.append(f"{oa['summary']}\n")
         if oa.get("top_strength"):
-            lines.append(f"**🌟 最大亮点**：{oa['top_strength']}\n")
+            lines.append(f"**最大亮点**：{oa['top_strength']}\n")
         if oa.get("top_growth_area"):
-            lines.append(f"**📈 最大成长空间**：{oa['top_growth_area']}\n")
+            lines.append(f"**成长空间**：{oa['top_growth_area']}\n")
 
     # ── Per-dimension details ────────────────────────
-    lines.append("### 📋 各维度详细分析\n")
+    lines.append("### 各维度详细分析\n")
 
     for dim_key, label in dim_labels.items():
         dim_data = result.get(dim_key, {})
@@ -455,7 +455,7 @@ def _build_rich_feedback(
         # Strengths
         strengths = dim_data.get("strengths", [])
         if strengths:
-            lines.append("**✅ 优点**：")
+            lines.append("**优势**：")
             for s in strengths:
                 lines.append(f"- {s}")
             lines.append("")
@@ -463,7 +463,7 @@ def _build_rich_feedback(
         # Weaknesses
         weaknesses = dim_data.get("weaknesses", [])
         if weaknesses:
-            lines.append("**⚠️ 待提升**：")
+            lines.append("**待提升**：")
             for w in weaknesses:
                 lines.append(f"- {w}")
             lines.append("")
@@ -471,18 +471,18 @@ def _build_rich_feedback(
         # Improvement actions
         actions = dim_data.get("improvement_actions", [])
         if actions:
-            lines.append("**🎯 改进建议**：")
+            lines.append("**改进建议**：")
             for a in actions:
                 lines.append(f"- {a}")
             lines.append("")
 
         # Detailed justification
-        lines.append(f"<details>\n<summary>📝 详细评语</summary>\n\n{justification}\n</details>\n")
+        lines.append(f"<details>\n<summary>详细评语</summary>\n\n{justification}\n</details>\n")
 
     # ── Next step ────────────────────────────────────
     if oa.get("next_step_recommendation"):
         lines.append("---\n")
-        lines.append("### 🚀 下一步行动\n")
+        lines.append("### 下一步行动\n")
         lines.append(f"> {oa['next_step_recommendation']}\n")
 
     lines.append(f"\n*评估使用了 {result.get('attempts', '?')} 次 LLM 调用以确保一致性。*")
@@ -499,10 +499,10 @@ def _build_rich_suggestions(result: dict) -> str:
 
     # ── Dimension-specific actions for low scores ────
     dim_labels = {
-        "knowledge": "📚 Knowledge",
-        "reasoning": "🧠 Reasoning",
-        "application": "🔧 Application",
-        "creation": "✨ Creation",
+        "knowledge": "Knowledge",
+        "reasoning": "Reasoning",
+        "application": "Application",
+        "creation": "Creation",
     }
 
     for dim_key, label in dim_labels.items():
@@ -520,7 +520,7 @@ def _build_rich_suggestions(result: dict) -> str:
     # ── Overall recommendation ──────────────────────
     oa = result.get("overall_assessment", {})
     if oa.get("next_step_recommendation"):
-        suggestions.append(f"\n### 🎯 优先行动\n\n{oa['next_step_recommendation']}")
+        suggestions.append(f"\n### 优先行动\n\n{oa['next_step_recommendation']}")
 
     if not suggestions:
         suggestions.append("- 各维度表现良好，继续保持！")

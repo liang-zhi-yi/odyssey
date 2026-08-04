@@ -26,7 +26,7 @@ export function WorldSnapshotWidget({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] dark:border-[oklch(0.3_0.01_80)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full">
+      <div className="rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full">
         <div className="h-5 w-24 rounded-md bg-muted skeleton-shimmer mb-4" />
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
@@ -38,13 +38,13 @@ export function WorldSnapshotWidget({
   }
 
   return (
-    <div className="group relative rounded-2xl border border-[oklch(0.88_0.02_90)] dark:border-[oklch(0.3_0.01_80)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-card h-full overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-[oklch(0.7_0.12_85_/_0.3)]">
+    <div className="group relative rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-card h-full overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-[oklch(0.7_0.12_85_/_0.3)]">
       <div className="flex items-center gap-2 mb-4">
         <svg className="w-4 h-4 text-accent flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" />
           <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" />
         </svg>
-        <h3 className="text-base font-civ-serif font-bold text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] truncate">
+        <h3 className="text-base font-civ-serif font-bold text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] truncate">
           {t("dashboard.sections.civilizationWorld")}
         </h3>
       </div>

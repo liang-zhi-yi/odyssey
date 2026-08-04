@@ -49,6 +49,7 @@ def user_to_response(user: User) -> UserResponse:
         location=user.location,
         website=user.website,
         social_links=user.social_links,
+        has_seen_intro_video=user.has_seen_intro_video,
     )
 
 
@@ -64,6 +65,7 @@ def register(db: Session, req: RegisterRequest) -> tuple[User, str]:
         username=req.username,
         nickname=req.username,
         password_hash=hash_password(req.password),
+        avatar_url="/Odyssey_logo.png",
     )
     db.add(user)
     db.commit()
@@ -74,8 +76,14 @@ def register(db: Session, req: RegisterRequest) -> tuple[User, str]:
 
 
 def login(db: Session, email: str, password: str) -> tuple[User, str]:
-    """Authenticate a user and return (user, jwt_token)."""
+    """Authenticate a user by email or username and return (user, jwt_token).
+
+    The `email` parameter accepts either an email address or a username.
+    """
+    # Try email first, then fall back to username
     user = _user_by_email(db, email)
+    if user is None:
+        user = _user_by_username(db, email)
     if user is None or not verify_password(password, user.password_hash):
         raise UnauthorizedException("Invalid email or password")
 
@@ -271,3 +279,14 @@ def get_user_skills_summary(db: Session, user_id: str) -> list[dict]:
         }
         for s in skills
     ]
+
+
+def mark_intro_video_seen(db: Session, user: User) -> User:
+    """Mark that the user has completed watching the intro video.
+
+    Only called after the video finishes (onEnded) — never on page load.
+    """
+    user.has_seen_intro_video = True
+    db.commit()
+    db.refresh(user)
+    return user

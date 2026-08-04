@@ -60,20 +60,22 @@ export function GrowthPreview({
   // ── State 1: Generating ─────────────────────────────────────────────
   if (isGenerating) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-6 sticky top-6">
-        <h3 className="text-sm font-semibold">
+      <div className="relative rounded-xl scroll-fuse ornamental-border p-6 space-y-6 sticky top-6 overflow-hidden">
+        <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
+        <div className="relative z-10 space-y-6">
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
           {locale === "zh" ? "文明成长预览" : "Civilization Growth Preview"}
         </h3>
 
         {/* Pulsing center */}
         <div className="flex flex-col items-center gap-4 py-6">
           <div className="relative">
-            <div className="h-16 w-16 rounded-full bg-[#8B9D83]/10 border-2 border-[#8B9D83]/30 flex items-center justify-center">
-              <span className="animate-pulse"><QuestScrollIcon name="sparkle" size={28} /></span>
+            <div className="h-16 w-16 rounded-full bg-[oklch(0.55_0.08_145_/_0.10)] border-2 border-[oklch(0.55_0.08_145_/_0.30)] flex items-center justify-center">
+              <span className="animate-pulse text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.72_0.09_145)]"><QuestScrollIcon name="sparkle" size={28} /></span>
             </div>
-            <div className="absolute inset-0 rounded-full border-2 border-[#8B9D83]/20 animate-ping" />
+            <div className="absolute inset-0 rounded-full border-2 border-[oklch(0.55_0.08_145_/_0.20)] animate-ping" />
           </div>
-          <p className="text-sm font-medium text-[#8B9D83]">
+          <p className="text-sm font-medium font-civ-serif italic text-[oklch(0.45_0.06_145)] dark:text-[oklch(0.72_0.08_145)]">
             {locale === "zh"
               ? "奥德赛正在规划你的文明路线..."
               : "Odyssey is planning your civilization route..."}
@@ -88,33 +90,34 @@ export function GrowthPreview({
             return (
               <div
                 key={i}
-                className={`flex items-center gap-3 text-xs transition-all duration-500 ${
+                className={`flex items-center gap-3 text-xs transition-all duration-500 font-civ-serif ${
                   isActive
-                    ? "text-[#8B9D83] font-medium"
+                    ? "text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.75_0.09_145)] font-bold"
                     : isDone
-                    ? "text-muted-foreground/50"
-                    : "text-muted-foreground/30"
+                    ? "text-[oklch(0.50_0.03_75_/_0.5)] dark:text-[oklch(0.62_0.04_80_/_0.5)]"
+                    : "text-[oklch(0.50_0.03_75_/_0.3)] dark:text-[oklch(0.62_0.04_80_/_0.3)]"
                 }`}
               >
                 <span className="w-5 flex items-center justify-center">{phase.icon}</span>
                 <span>{locale === "en" ? phase.en : phase.zh}</span>
                 {isActive && (
                   <span className="ml-auto flex gap-0.5">
-                    <span className="h-1 w-1 rounded-full bg-[#8B9D83] animate-bounce" />
+                    <span className="h-1 w-1 rounded-full bg-[oklch(0.55_0.08_145)] animate-bounce" />
                     <span
-                      className="h-1 w-1 rounded-full bg-[#8B9D83] animate-bounce"
+                      className="h-1 w-1 rounded-full bg-[oklch(0.55_0.08_145)] animate-bounce"
                       style={{ animationDelay: "150ms" }}
                     />
                     <span
-                      className="h-1 w-1 rounded-full bg-[#8B9D83] animate-bounce"
+                      className="h-1 w-1 rounded-full bg-[oklch(0.55_0.08_145)] animate-bounce"
                       style={{ animationDelay: "300ms" }}
                     />
                   </span>
                 )}
-                {isDone && <svg className="ml-auto text-[#8B9D83]" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+                {isDone && <svg className="ml-auto text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.72_0.09_145)]" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
               </div>
             );
           })}
+        </div>
         </div>
       </div>
     );
@@ -130,8 +133,10 @@ export function GrowthPreview({
     );
 
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-5 sticky top-6">
-        <h3 className="text-sm font-semibold text-[#8B9D83]">
+      <div className="relative rounded-xl scroll-fuse ornamental-border p-6 space-y-5 sticky top-6 overflow-hidden">
+        <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
+        <div className="relative z-10 space-y-5">
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.75_0.09_145)] tracking-wide">
           {locale === "zh" ? "成长路线已生成" : "Growth Route Generated"}
         </h3>
 
@@ -143,30 +148,30 @@ export function GrowthPreview({
         {/* Targeted Buildings */}
         {targetedBuildings && targetedBuildings.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground">
+            <h4 className="text-xs font-bold font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_82)] uppercase tracking-wider">
               {locale === "zh" ? "目标建筑" : "Targeted Buildings"}
             </h4>
             <div className="space-y-1.5">
               {targetedBuildings.slice(0, 5).map((tb) => (
                 <div
                   key={tb.building_id}
-                  className="flex items-center gap-2 rounded-lg bg-secondary/30 px-3 py-2"
+                  className="flex items-center gap-2 rounded-lg bg-[oklch(0.55_0.08_145_/_0.06)] dark:bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.15)] px-3 py-2"
                 >
                   <span className="text-lg">{tb.building_icon}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">
+                    <p className="text-xs font-medium font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] truncate">
                       {locale === "en" && tb.building_name_en
                         ? tb.building_name_en
                         : tb.building_name}
                     </p>
                     {tb.remaining_milestones > 0 && (
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)]">
                         {tb.remaining_milestones}{" "}
                         {locale === "zh" ? "个里程碑" : "milestones"}
                       </p>
                     )}
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] tabular-nums">
                     Lv.{tb.max_level > 0 ? `1→${tb.max_level}` : "1"}
                   </span>
                 </div>
@@ -177,35 +182,35 @@ export function GrowthPreview({
 
         {/* Reward Estimates */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-[#C4A77D]/5 border border-[#C4A77D]/10 p-3 text-center">
-            <p className="text-lg font-bold text-[#C4A77D]">
+          <div className="rounded-lg bg-[oklch(0.65_0.10_80_/_0.06)] border border-[oklch(0.65_0.10_80_/_0.15)] p-3 text-center">
+            <p className="text-lg font-bold text-[oklch(0.55_0.10_80)] dark:text-[oklch(0.78_0.10_80)] flex justify-center">
               <QuestScrollIcon name="star" size={20} />
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-1">
               {locale === "zh" ? "文明指数提升" : "Civ Score Boost"}
             </p>
           </div>
-          <div className="rounded-lg bg-[#8B9D83]/5 border border-[#8B9D83]/10 p-3 text-center">
-            <p className="text-lg font-bold text-[#8B9D83]">
+          <div className="rounded-lg bg-[oklch(0.55_0.08_145_/_0.06)] border border-[oklch(0.55_0.08_145_/_0.15)] p-3 text-center">
+            <p className="text-lg font-bold font-civ-serif text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.72_0.09_145)]">
               {generationResult.estimated_weeks}w
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-1">
               {locale === "zh" ? "预计周期" : "Est. Duration"}
             </p>
           </div>
-          <div className="rounded-lg bg-secondary/50 p-3 text-center">
-            <p className="text-lg font-bold">
+          <div className="rounded-lg bg-[oklch(0.72_0.05_80_/_0.10)] dark:bg-[oklch(0.45_0.04_80_/_0.15)] p-3 text-center">
+            <p className="text-lg font-bold font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
               {targetedBuildings?.length ?? generationResult.milestone_count}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-1">
               {locale === "zh" ? "涉及技能" : "Skills"}
             </p>
           </div>
-          <div className="rounded-lg bg-secondary/50 p-3 text-center">
-            <p className="text-lg font-bold">
+          <div className="rounded-lg bg-[oklch(0.72_0.05_80_/_0.10)] dark:bg-[oklch(0.45_0.04_80_/_0.15)] p-3 text-center">
+            <p className="text-lg font-bold font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
               {generationResult.quests_generated ?? "-"}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-1">
               {locale === "zh" ? "生成Quest" : "Quests"}
             </p>
           </div>
@@ -213,7 +218,7 @@ export function GrowthPreview({
 
         {/* Path summary */}
         {generationResult.path_summary && (
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-xs font-civ-serif italic text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_82)] leading-relaxed">
             {generationResult.path_summary}
           </p>
         )}
@@ -223,17 +228,18 @@ export function GrowthPreview({
           <button
             type="button"
             onClick={() => router.push(`/paths/${createdPathId}`)}
-            className="flex-1 rounded-xl bg-[#8B9D83] hover:bg-[#7A8C72] px-4 py-2.5 text-sm font-semibold text-white transition-colors"
+            className="flex-1 scroll-seal-btn px-4 py-2.5 text-sm"
           >
             {locale === "zh" ? "查看完整路线" : "View Full Route"}
           </button>
           <button
             type="button"
             onClick={onReset}
-            className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+            className="rounded-xl border border-[oklch(0.72_0.06_80_/_0.25)] px-4 py-2.5 text-sm font-medium font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_82)] hover:bg-[oklch(0.92_0.02_80_/_0.40)] dark:hover:bg-[oklch(0.22_0.012_78_/_0.35)] transition-colors"
           >
             {locale === "zh" ? "重新规划" : "Replan"}
           </button>
+        </div>
         </div>
       </div>
     );
@@ -241,8 +247,10 @@ export function GrowthPreview({
 
   // ── State 3: Empty (default) ────────────────────────────────────────
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-6 sticky top-6">
-      <h3 className="text-sm font-semibold">
+    <div className="relative rounded-xl scroll-fuse ornamental-border p-6 space-y-6 sticky top-6 overflow-hidden">
+      <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
+      <div className="relative z-10 space-y-6">
+      <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
         {locale === "zh" ? "成长路线预览" : "Growth Route Preview"}
       </h3>
 
@@ -261,7 +269,7 @@ export function GrowthPreview({
             cy={60}
             r={50}
             fill="none"
-            stroke="oklch(0.85 0.02 100)"
+            stroke="oklch(0.65 0.06 80)"
             strokeWidth={1.5}
             strokeDasharray="4 4"
             opacity={0.5}
@@ -272,7 +280,7 @@ export function GrowthPreview({
             cy={60}
             r={30}
             fill="none"
-            stroke="oklch(0.85 0.02 100)"
+            stroke="oklch(0.65 0.06 80)"
             strokeWidth={0.75}
             opacity={0.35}
           />
@@ -320,12 +328,12 @@ export function GrowthPreview({
         </svg>
 
         <div className="text-center space-y-2">
-          <p className="text-sm font-medium text-foreground">
+          <p className="text-sm font-medium font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
             {locale === "zh"
               ? "描述你的成长目标"
               : "Describe your growth goal"}
           </p>
-          <p className="text-xs text-muted-foreground max-w-[240px]">
+          <p className="text-xs font-civ-serif italic text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] max-w-[240px]">
             {locale === "zh"
               ? "奥德赛将为你规划文明成长路线，展示预计解锁的建筑、涉及技能和文明指数变化"
               : "Odyssey will plan your civilization growth route, showing projected buildings, skills, and civ score changes"}
@@ -335,27 +343,28 @@ export function GrowthPreview({
 
       {/* If there's an existing direction, show mini direction info */}
       {direction && direction.active_paths.length > 0 && (
-        <div className="rounded-lg bg-secondary/30 p-3">
-          <p className="text-[10px] text-muted-foreground mb-1">
+        <div className="rounded-lg bg-[oklch(0.55_0.08_145_/_0.06)] dark:bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.15)] p-3">
+          <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mb-1 uppercase tracking-wider">
             {locale === "zh" ? "当前方向" : "Current Direction"}
           </p>
           <div className="flex items-center gap-1.5 flex-wrap">
             {direction.active_paths.slice(0, 2).map((p) => (
               <span
                 key={p.path_id}
-                className="rounded-full bg-[#8B9D83]/10 border border-[#8B9D83]/15 px-2 py-0.5 text-[10px] font-medium text-[#8B9D83]"
+                className="rounded-full bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.15)] px-2 py-0.5 text-[10px] font-medium font-civ-serif text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.72_0.09_145)]"
               >
                 {p.path_title}
               </span>
             ))}
           </div>
           {direction.suggested_focus && (
-            <p className="text-[10px] text-muted-foreground mt-1.5">
+            <p className="text-[10px] font-civ-serif italic text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-1.5">
               {direction.suggested_focus}
             </p>
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

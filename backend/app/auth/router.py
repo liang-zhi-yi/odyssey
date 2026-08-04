@@ -97,3 +97,16 @@ def get_public_profile(username: str, db: Session = Depends(get_db)):
     No authentication required — safe for public viewing.
     """
     return service.get_public_profile(db, username)
+
+
+@router.post("/me/intro-video", response_model=UserResponse)
+def mark_intro_video_seen(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Mark the current user as having watched the intro video.
+
+    Called only after the video finishes playing (onEnded event).
+    """
+    updated_user = service.mark_intro_video_seen(db, current_user)
+    return service.user_to_response(updated_user)

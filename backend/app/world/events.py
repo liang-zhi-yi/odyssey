@@ -199,11 +199,11 @@ def event_era_advance(
     from_era_en: str,
     to_era_zh: str,
     to_era_en: str,
-    to_era_icon: str = "⭐",
+    to_era_icon: str = "building",
 ) -> WorldEvent:
     """Log a civilization era advance event."""
-    title = f"时代进阶：{from_era_zh} → {to_era_zh} {to_era_icon}！"
-    title_en = f"Era Advance: {from_era_en} → {to_era_en} {to_era_icon}!"
+    title = f"时代进阶：{from_era_zh} → {to_era_zh}！"
+    title_en = f"Era Advance: {from_era_en} → {to_era_en}!"
     desc = f"你的文明从{from_era_zh}正式进入{to_era_zh}，新的文明类型和建筑已解锁"
     desc_en = f"Your civilization has advanced from {from_era_en} to {to_era_en}. New civilization types and buildings are now available."
     return create_world_event(

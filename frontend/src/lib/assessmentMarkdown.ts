@@ -52,17 +52,17 @@ const SECTION_KEYWORDS: Array<{
   {
     type: "advantages",
     patterns:
-      /(优势|优点|长处|亮点|做得好|强项|出色|talents?|strengths?|advantages?|pros\b|good\s*points?)/i,
+      /(优势|优点|长处|亮点|做得好|强项|出色|最大亮点|talents?|strengths?|advantages?|pros\b|good\s*points?)/i,
   },
   {
     type: "improvements",
     patterns:
-      /(需要提升|提升空间|改进|不足|弱点|缺点|欠缺|待加强|weakness(es)?|improvements?|cons\b|areas\s*for\s*improvement|shortcomings?|growth\s*areas?)/i,
+      /(需要提升|提升空间|改进|不足|弱点|缺点|欠缺|待加强|待提升|成长空间|挑战|weakness(es)?|improvements?|cons\b|areas\s*for\s*improvement|shortcomings?|growth\s*areas?|challenges?)/i,
   },
   {
     type: "suggestions",
     patterns:
-      /(下一阶段|下一步|后续|建议|发展方向|学习路径|探索方向|next\s*steps?|suggestions?|recommendations?|advice|future\s*direction|recommend)/i,
+      /(下一阶段|下一步|后续|建议|改进建议|发展方向|学习路径|探索方向|优先行动|next\s*steps?|suggestions?|recommendations?|advice|future\s*direction|recommend|priority\s*action)/i,
   },
 ];
 
@@ -445,6 +445,13 @@ function extractItems(block: string): string[] {
   return items.filter((s) => s.length > 0);
 }
 
+/** Match bold text markers like `**优势**` or `**待提升**：` as section markers. */
+function matchBoldSection(line: string): string | null {
+  const m = line.match(/^\s*\*\*([^*]{2,20})\*\*\s*[:：]?\s*$/);
+  if (!m) return null;
+  return stripInlineMarkdown(m[1]);
+}
+
 function segmentByText(text: string): {
   advantages: string[];
   improvements: string[];
@@ -473,6 +480,22 @@ function segmentByText(text: string): {
       }
       current.buffer.push(heading.text);
       continue;
+    }
+    // Also check for bold text section markers (e.g., **优势**, **待提升**)
+    const boldSection = matchBoldSection(line);
+    if (boldSection) {
+      const matched = SECTION_KEYWORDS.find((s) =>
+        s.patterns.test(boldSection)
+      );
+      if (matched) {
+        let target = sections.find((s) => s.type === matched.type);
+        if (!target) {
+          target = { type: matched.type, buffer: [] };
+          sections.push(target);
+        }
+        current = target;
+        continue;
+      }
     }
     current.buffer.push(line);
   }
@@ -556,14 +579,25 @@ export function parseFeedback(
     }
   }
 
-  // 最终兜底：三组全空但 feedback 有内容 → 整体作为优势摘要
+  // 最终兜底：三组全空但 feedback 有内容 → 不再强制全部归入优势，
+  // 保留内容在 fullText/safeHtml 供 AI 详细记录展示，
+  // 三张卡片显示各自的"暂无数据"提示，避免内容与标题不匹配。
+  // 仅当 feedback 能提取出明确的列表项时，按语义分布到各分组。
   if (
     segmented.advantages.length === 0 &&
     segmented.improvements.length === 0 &&
     segmented.suggestions.length === 0 &&
     cleanedFeedback
   ) {
-    segmented.advantages = extractItems(cleanedFeedback);
+    const items = extractItems(cleanedFeedback);
+    // 如果提取出的条目超过 3 条，尝试均分到三个分组
+    if (items.length > 3) {
+      const third = Math.ceil(items.length / 3);
+      segmented.advantages = items.slice(0, third);
+      segmented.improvements = items.slice(third, third * 2);
+      segmented.suggestions = items.slice(third * 2);
+    }
+    // 条目 ≤ 3 时不强行分组，保持卡片为空，由 fullText 承载完整内容
   }
 
   // 展示用纯文本（去 Markdown 标记）

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.quests.models import Quest
 from app.submissions.models import QuestSubmission
-from app.core.enums import SubmissionStatus, QuestDifficulty, QuestType
+from app.core.enums import SubmissionStatus, QuestDifficulty, QuestType, DeliverableType
 from app.core.exceptions import ConflictException, NotFoundException
 
 
@@ -418,3 +418,59 @@ def abandon_quest(
     db.commit()
 
     return {"status": "ABANDONED", "quest_id": quest_id}
+
+
+def create_user_quest(
+    db: Session,
+    user_id: str,
+    *,
+    title: str,
+    title_en: str | None = None,
+    description: str | None = None,
+    description_en: str | None = None,
+    skill_id: str,
+    difficulty: str = "LEVEL_1",
+    quest_type: str = "APPLICATION",
+    expected_deliverable: str = "PROMPT",
+) -> Quest:
+    """Create a user-specific (AI-generated) quest in the database.
+
+    The quest's ``user_id`` is set to the current user, distinguishing it
+    from global preset quests (where ``user_id`` is NULL).
+    """
+    # Normalize enum values
+    diff_map = {
+        "LEVEL_1": QuestDifficulty.LEVEL_1,
+        "LEVEL_2": QuestDifficulty.LEVEL_2,
+        "LEVEL_3": QuestDifficulty.LEVEL_3,
+        "LEVEL_4": QuestDifficulty.LEVEL_4,
+    }
+    type_map = {
+        "KNOWLEDGE": QuestType.KNOWLEDGE,
+        "APPLICATION": QuestType.APPLICATION,
+        "PROJECT": QuestType.PROJECT,
+        "MASTERY": QuestType.MASTERY,
+    }
+    deliv_map = {
+        "PROMPT": DeliverableType.PROMPT,
+        "ARCHITECTURE": DeliverableType.ARCHITECTURE,
+        "WORKFLOW": DeliverableType.WORKFLOW,
+        "CODE": DeliverableType.CODE,
+        "REPORT": DeliverableType.REPORT,
+    }
+
+    quest = Quest(
+        title=title,
+        title_en=title_en,
+        description=description,
+        description_en=description_en,
+        skill_id=UUID(skill_id),
+        user_id=UUID(user_id),
+        difficulty=diff_map.get(difficulty, QuestDifficulty.LEVEL_1),
+        quest_type=type_map.get(quest_type, QuestType.APPLICATION),
+        expected_deliverable=deliv_map.get(expected_deliverable, DeliverableType.PROMPT),
+    )
+    db.add(quest)
+    db.commit()
+    db.refresh(quest)
+    return quest

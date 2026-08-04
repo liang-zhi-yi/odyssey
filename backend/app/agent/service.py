@@ -1365,6 +1365,7 @@ def generate_response(
     message: str,
     conversation_id: str | None = None,
     locale: str = "zh",
+    skip_history: bool = False,
 ) -> ChatResponse:
     """Generate a Civilization Mentor response to a user message.
 
@@ -1430,7 +1431,8 @@ def generate_response(
         )
 
     # ── Save user message ──
-    _save_message(db, user_id_str, conv_uuid, "user", message, "text")
+    if not skip_history:
+        _save_message(db, user_id_str, conv_uuid, "user", message, "text")
 
     # ── LLM config ──
     llm_kwargs = _get_agent_llm_kwargs(db, user_id_str)
@@ -1452,10 +1454,11 @@ def generate_response(
     display_text = agent_text.split(CARDS_SEPARATOR)[0].strip() if CARDS_SEPARATOR in agent_text else agent_text
 
     # ── Save agent message ──
-    _save_message(
-        db, user_id_str, conv_uuid, "agent", display_text, "text",
-        metadata_={"intent": intent, "cards": [c.model_dump() for c in cards] if cards else None},
-    )
+    if not skip_history:
+        _save_message(
+            db, user_id_str, conv_uuid, "agent", display_text, "text",
+            metadata_={"intent": intent, "cards": [c.model_dump() for c in cards] if cards else None},
+        )
 
     # ── Record interaction ──
     record_interaction(
@@ -1476,6 +1479,7 @@ def generate_response_stream(
     message: str,
     conversation_id: str | None = None,
     locale: str = "zh",
+    skip_history: bool = False,
 ):
     """SSE streaming variant of generate_response.
 
@@ -1538,7 +1542,8 @@ def generate_response_stream(
         )
 
     # ── Save user message ──
-    _save_message(db, user_id_str, conv_uuid, "user", message, "text")
+    if not skip_history:
+        _save_message(db, user_id_str, conv_uuid, "user", message, "text")
 
     # ── LLM config ──
     llm_kwargs = _get_agent_llm_kwargs(db, user_id_str)
@@ -1574,10 +1579,11 @@ def generate_response_stream(
     display_text = full_text.split(CARDS_SEPARATOR)[0].strip() if CARDS_SEPARATOR in full_text else full_text
 
     # ── Save agent message ──
-    _save_message(
-        db, user_id_str, conv_uuid, "agent", display_text, "text",
-        metadata_={"intent": intent, "cards": [c.model_dump() for c in cards] if cards else None},
-    )
+    if not skip_history:
+        _save_message(
+            db, user_id_str, conv_uuid, "agent", display_text, "text",
+            metadata_={"intent": intent, "cards": [c.model_dump() for c in cards] if cards else None},
+        )
 
     # ── Record interaction ──
     record_interaction(

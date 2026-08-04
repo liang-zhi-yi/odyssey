@@ -267,6 +267,19 @@ export const LEVEL_LABELS: Record<number, { zh: string; en: string }> = {
   10: { zh: "核心", en: "Core" },
 };
 
+/** Get building level label from template's level_names, falling back to generic LEVEL_LABELS. */
+export function getBuildingLevelLabel(
+  level: number,
+  levelNames: Record<string, { zh: string; en: string }> | null | undefined,
+  locale: "zh" | "en"
+): string {
+  const key = String(level);
+  if (levelNames && levelNames[key]) {
+    return levelNames[key][locale] ?? `Lv.${level}`;
+  }
+  return LEVEL_LABELS[level]?.[locale] ?? `Lv.${level}`;
+}
+
 export const BUILDING_STATUS_LABELS: Record<BuildingStatus, { zh: string; en: string }> = {
   LOCKED: { zh: "未激活", en: "Locked" },
   CONSTRUCTING: { zh: "建设中", en: "Constructing" },
@@ -364,12 +377,14 @@ export interface CivilizationGroup {
 export const CIVILIZATION_GROUPS: CivilizationGroup[] = [
   { key: "ai", label: "AI文明", labelEn: "AI Civilization", icon: "reasoning", domains: ["AI"] },
   { key: "engineering", label: "工程文明", labelEn: "Engineering", icon: "application", domains: ["PROGRAMMING"] },
-  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "knowledge", domains: ["RESEARCH"] },
-  { key: "business", label: "商业文明", labelEn: "Business", icon: "seal", domains: ["BUSINESS"] },
+  { key: "knowledge", label: "知识文明", labelEn: "Knowledge", icon: "knowledge", domains: ["RESEARCH", "WRITING"] },
+  { key: "business", label: "商业文明", labelEn: "Business", icon: "seal", domains: ["BUSINESS", "PRODUCT"] },
   { key: "design", label: "设计文明", labelEn: "Design", icon: "creation", domains: ["DESIGN"] },
-  { key: "language", label: "语言文明", labelEn: "Language", icon: "scroll", domains: ["LANGUAGE"] },
+  { key: "media", label: "媒体文明", labelEn: "Media", icon: "creation", domains: ["MEDIA"] },
   { key: "science", label: "科学文明", labelEn: "Science", icon: "reasoning", domains: ["SCIENCE"] },
-  { key: "health", label: "健康文明", labelEn: "Health", icon: "shield", domains: ["HEALTH"] },
+  { key: "language", label: "语言文明", labelEn: "Language", icon: "scroll", domains: ["LANGUAGE"] },
+  { key: "health", label: "健康文明", labelEn: "Health", icon: "shield", domains: ["HEALTH", "FITNESS"] },
   { key: "finance", label: "金融文明", labelEn: "Finance", icon: "star", domains: ["FINANCE"] },
-  { key: "society", label: "社会文明", labelEn: "Society", icon: "civilization", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
+  { key: "digital", label: "数字文明", labelEn: "Digital", icon: "civilization", domains: [] },
+  { key: "society", label: "社会文明", labelEn: "Society", icon: "civilization", domains: ["MANAGEMENT", "CAREER"] },
 ];

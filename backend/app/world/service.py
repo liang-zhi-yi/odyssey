@@ -77,7 +77,7 @@ def score_to_era(era_score: int) -> dict:
     era_value = "WILDERNESS"
     era_name_zh = "荒野时代"
     era_name_en = "Wilderness Era"
-    era_icon = "🏕️"
+    era_icon = "building"
     next_era_at: int | None = None
 
     for era_enum, min_s, zh, en, icon, _ in ERA_RANGES:

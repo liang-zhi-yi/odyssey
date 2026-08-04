@@ -15,26 +15,23 @@ from sqlalchemy.orm import Session
 from app.world.models import BuildingTemplate, UserBuilding, World
 from app.skills.models import Skill, UserSkill
 from app.quests.models import Quest
+from app.core.enums import CIVILIZATION_TYPE_LABELS, CivilizationType, ERA_RANGES
 
 
 # ── Civilization type → display name mapping ──────────────────────────
-CIVILIZATION_TYPES = {
-    "AI": {"zh": "AI文明", "en": "AI Civilization", "icon": "🤖"},
-    "ENGINEERING": {"zh": "工程文明", "en": "Engineering Civilization", "icon": "⚙️"},
-    "KNOWLEDGE": {"zh": "知识文明", "en": "Knowledge Civilization", "icon": "📚"},
-    "BUSINESS": {"zh": "商业文明", "en": "Business Civilization", "icon": "💼"},
-    "DESIGN": {"zh": "设计文明", "en": "Design Civilization", "icon": "🎨"},
-    "SOCIAL": {"zh": "社会文明", "en": "Social Civilization", "icon": "🤝"},
-    "SCIENCE": {"zh": "科学文明", "en": "Science Civilization", "icon": "🔬"},
-    "LANGUAGE": {"zh": "语言文明", "en": "Language Civilization", "icon": "🗣️"},
-    "HEALTH": {"zh": "健康文明", "en": "Health Civilization", "icon": "💪"},
-    "FINANCE": {"zh": "金融文明", "en": "Finance Civilization", "icon": "💰"},
+# Built from the canonical CIVILIZATION_TYPE_LABELS in enums.py (12 types).
+CIVILIZATION_TYPES: dict[str, dict[str, str]] = {
+    civ_type.value: {
+        "zh": labels["zh"],
+        "en": labels["en"],
+    }
+    for civ_type, labels in CIVILIZATION_TYPE_LABELS.items()
 }
 
 
 def get_civilization_type_label(civ_type: str, locale: str = "zh") -> str:
     """Get display name for a civilization type."""
-    info = CIVILIZATION_TYPES.get(civ_type, CIVILIZATION_TYPES["AI"])
+    info = CIVILIZATION_TYPES.get(civ_type, CIVILIZATION_TYPES.get("AI", {"zh": "AI文明", "en": "AI"}))
     return info.get(locale, info["zh"])
 
 
@@ -182,21 +179,21 @@ def _calculate_era_progress(db: Session, user_id: UUID, civ_contribution: int) -
     if not world:
         return {"current_era": "WILDERNESS", "progress_pct": 0, "contribution_after": civ_contribution}
 
-    era_thresholds = {
-        "WILDERNESS": 10,
-        "AGRICULTURE": 30,
-        "ACADEMY": 60,
-        "INDUSTRY": 100,
-        "INFORMATION": 150,
-        "AI": 220,
-        "INTELLIGENCE": 300,
-        "DIGITAL": 400,
-        "FUTURE": 500,
-    }
+    # Build era thresholds from the canonical ERA_RANGES in enums.py.
+    # ERA_RANGES is a list of (era_enum, min_score, name_zh, name_en, icon, unlocked_types).
+    era_thresholds: dict[str, int] = {}
+    era_list = list(ERA_RANGES)
+    for i, (era_enum, min_score, _, _, _, _) in enumerate(era_list):
+        # The "next threshold" for this era is the min_score of the NEXT era.
+        if i + 1 < len(era_list):
+            era_thresholds[era_enum.value] = era_list[i + 1][1]
+        else:
+            # Last era — no next threshold; use a large number.
+            era_thresholds[era_enum.value] = min_score + 10000
 
     current_era = world.era or "WILDERNESS"
     era_score = world.era_score or 0
-    next_threshold = era_thresholds.get(current_era, 10)
+    next_threshold = era_thresholds.get(current_era, 100)
     progress_pct = min(100, round(era_score / max(1, next_threshold) * 100))
 
     return {
@@ -297,7 +294,7 @@ def get_quests_grouped_by_civilization(
             "civilization_type": civ_type,
             "label": info["zh"],
             "label_en": info["en"],
-            "icon": info["icon"],
+            "icon": "",
             "count": 0,
             "quests": [],
         }
@@ -369,10 +366,14 @@ def _get_civ_type_for_quest(db: Session, quest) -> str:
         "WRITING": "KNOWLEDGE",
         "RESEARCH": "SCIENCE",
         "BUSINESS": "BUSINESS",
-        "MANAGEMENT": "SOCIAL",
+        "MANAGEMENT": "SOCIETY",
         "LANGUAGE": "LANGUAGE",
         "FITNESS": "HEALTH",
-        "CAREER": "BUSINESS",
+        "CAREER": "SOCIETY",
+        "FINANCE": "FINANCE",
+        "SCIENCE": "SCIENCE",
+        "MEDIA": "MEDIA",
+        "HEALTH": "HEALTH",
     }
     if quest.skill and quest.skill.domain:
         return domain_map.get(quest.skill.domain.upper(), "KNOWLEDGE")
@@ -408,7 +409,7 @@ def get_user_quests_grouped_by_civilization(
             "civilization_type": civ_type,
             "label": info["zh"],
             "label_en": info["en"],
-            "icon": info["icon"],
+            "icon": "",
             "count": 0,
             "quests": [],
         }
@@ -440,7 +441,7 @@ def get_user_quests_grouped_by_civilization(
     quests = (
         db.query(QuestModel)
         .filter(QuestModel.id.in_(list(all_quest_ids)))
-        .order_by(QuestModel.difficulty)
+        .order_by(QuestModel.difficulty, QuestModel.created_at)
         .all()
     )
 

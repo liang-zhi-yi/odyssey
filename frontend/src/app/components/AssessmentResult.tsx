@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import type { DimensionScores, AssessmentCompleted } from "@/types/assessment";
 import { DIMENSION_WEIGHTS } from "@/types/assessment";
 import { parseFeedback } from "@/lib/assessmentMarkdown";
 import { useLocale } from "@/hooks/useLocale";
+import { worldService } from "@/services/world.service";
+import type { World } from "@/types/world";
+import { CIVILIZATION_TIER_LABELS } from "@/types/world";
 
 /* ── 资产路径 ────────────────────────────────── */
 const ASSETS = {
-  levelBadge: "/art-assets/文明等级徽章.png",
   mentor: "/art-assets/文明导师.png",
   abilityCores: {
     knowledge: "/art-assets/知识能力核心.png",
@@ -285,6 +287,27 @@ export function AssessmentResult({
 }: AssessmentResultProps) {
   const { t, locale } = useLocale();
 
+  /* ── World 数据获取 ─────────────────────────── */
+  const [worldData, setWorldData] = useState<World | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    worldService.getWorld()
+      .then((data) => { if (!cancelled) setWorldData(data); })
+      .catch(() => { /* World data unavailable — assessment still shows */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const tierInfo = useMemo(() => {
+    if (!worldData) return null;
+    const tierLabel = CIVILIZATION_TIER_LABELS[worldData.tier];
+    const tierName = tierLabel ? (locale === "en" ? tierLabel.en : tierLabel.zh) : worldData.tier_name;
+    const tierScore = worldData.tier_score ?? 0;
+    const nextTierAt = worldData.next_tier_at ?? 0;
+    const tierProgress = nextTierAt > 0 ? Math.min(100, Math.round(tierScore / nextTierAt * 100)) : 100;
+    return { tierName, tierScore, nextTierAt, tierProgress };
+  }, [worldData, locale]);
+
   /* ── 数据处理 ────────────────────────────────── */
   const parsed = useMemo(() => parseFeedback(result.feedback, result.suggestions), [result.feedback, result.suggestions]);
 
@@ -328,21 +351,6 @@ export function AssessmentResult({
 
   const abilityShortDesc = useCallback((dimension: DimensionKey) => t(`skills.dimensionShortDescs.${dimension}`), [t]);
 
-  const getCivilizationLevel = useCallback((total: number) => {
-    const n = total >= 90 ? 5 : total >= 75 ? 4 : total >= 60 ? 3 : total >= 40 ? 2 : 1;
-    return { level: n, percent: Math.round(total), title: t(`assessment.civLevels.${n}.title`), subtitle: t(`assessment.civLevels.${n}.subtitle`) };
-  }, [t]);
-
-  const getEvaluationTag = useCallback((total: number) => {
-    let key: "senior" | "junior" | "apprentice" | "novice";
-    if (total >= 85) key = "senior"; else if (total >= 65) key = "junior";
-    else if (total >= 45) key = "apprentice"; else key = "novice";
-    return t(`assessment.evalTags.${key}`);
-  }, [t]);
-
-  const civLevel = useMemo(() => getCivilizationLevel(overall), [overall, getCivilizationLevel]);
-  const evalTag = useMemo(() => getEvaluationTag(overall), [overall, getEvaluationTag]);
-
   const deltas = useMemo(() => dimensions.map((dim) => {
     const beforeVal = before ? before[dim] ?? null : null;
     const afterVal = after[dim] ?? 0;
@@ -379,9 +387,9 @@ export function AssessmentResult({
   const [showFullAnalysis, setShowFullAnalysis] = useState(false);
 
   const explorationSuggestions = useMemo(() =>
-    parsed.suggestions.length > 0 ? parsed.suggestions.slice(0, 4)
-    : parsed.improvements.length > 0 ? parsed.improvements.slice(0, 4) : [],
-  [parsed.improvements, parsed.suggestions]);
+    // 仅使用建议（探索方向），不回退到挑战，避免内容与标题不相关
+    parsed.suggestions.length > 0 ? parsed.suggestions.slice(0, 4) : [],
+  [parsed.suggestions]);
 
   const aiSummary = useMemo(() => {
     if (parsed.summary && parsed.summary.trim().length > 0) return parsed.summary;
@@ -431,9 +439,9 @@ export function AssessmentResult({
             </div>
           )}
 
-          {/* 左右布局：徽章 | 标题+描述 */}
+          {/* 左右布局：印章装饰 | 标题+描述 */}
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
-            {/* 左侧：徽章 */}
+            {/* 左侧：印章装饰 */}
             <div className="flex-none">
               <div className="relative flex items-center justify-center">
                 {/* 光晕 */}
@@ -441,15 +449,22 @@ export function AssessmentResult({
                   style={{ background: "radial-gradient(circle, oklch(0.7 0.12 80 / 0.1) 0%, transparent 65%)" }} />
                 {/* 印章外圈 */}
                 <SealRingSVG className="absolute h-[140px] w-[140px] text-[oklch(0.5_0.05_75)]" />
-                {/* 徽章图片 */}
+                {/* 文明阶段名称居中 */}
                 <div className="relative h-[110px] w-[110px] flex items-center justify-center"
                   style={{ filter: "drop-shadow(0 3px 10px oklch(0 0 0 / 0.08))" }}>
-                  <img src={ASSETS.levelBadge} alt={locale === "zh" ? "文明等级徽章" : "Civilization Level Badge"}
-                    className="h-full w-full object-contain" draggable={false} />
-                  <span className="absolute inset-0 flex items-center justify-center font-civ-serif text-2xl font-black tabular-nums pointer-events-none"
-                    style={{ color: "#4A4035", textShadow: "0 1px 0 rgba(255,255,255,0.5)" }}>
-                    {civLevel.level}
-                  </span>
+                  <div className="text-center">
+                    <p className="font-civ-serif text-[11px] font-bold tracking-[0.15em] text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
+                      {locale === "zh" ? "文明阶段" : "Civ Tier"}
+                    </p>
+                    <p className="mt-1 font-civ-serif text-[20px] font-black leading-tight text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">
+                      {tierInfo ? tierInfo.tierName : "—"}
+                    </p>
+                    {tierInfo && (
+                      <p className="mt-0.5 text-[10px] font-semibold tabular-nums text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
+                        {tierInfo.tierScore} / {tierInfo.nextTierAt > 0 ? tierInfo.nextTierAt : "∞"}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -458,21 +473,15 @@ export function AssessmentResult({
             <div className="flex-1 text-center sm:text-left min-w-0">
               <h1 className="font-civ-serif font-black tracking-wide break-words text-[oklch(0.32_0.025_70)] dark:text-[oklch(0.85_0.04_80)]"
                 style={{ fontSize: "clamp(26px, 4.5vw, 32px)", lineHeight: 1.25 }}>
-                {civLevel.title}
+                {locale === "zh" ? "能力鉴定档案" : "Ability Assessment Archive"}
               </h1>
               <p className="mt-2 text-[13px] leading-relaxed text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] max-w-md break-words">
-                {civLevel.subtitle}
+                {tierInfo
+                  ? (locale === "zh"
+                    ? `当前文明阶段：${tierInfo.tierName}（${tierInfo.tierScore} 分）`
+                    : `Current tier: ${tierInfo.tierName} (${tierInfo.tierScore} pts)`)
+                  : (locale === "zh" ? "本次评估结果已记录至文明档案。" : "Assessment results have been recorded.")}
               </p>
-              {/* AI 评价摘要 — 内联在右侧 */}
-              <div className="mt-3 flex items-start gap-2.5 justify-center sm:justify-start">
-                <div className="flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[oklch(0.72_0.06_80_/_0.15)] dark:border-[oklch(0.48_0.04_80_/_0.20)]">
-                  <img src={ASSETS.mentor} alt={locale === "zh" ? "AI 导师" : "AI Mentor"}
-                    className="h-[65%] w-[65%] object-contain" draggable={false} />
-                </div>
-                <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words max-w-md">
-                  {aiSummary}
-                </p>
-              </div>
             </div>
           </div>
 
@@ -484,7 +493,7 @@ export function AssessmentResult({
                 {t("assessment.overall")}
               </p>
               <p className="mt-1 font-civ-serif text-[22px] font-black tabular-nums text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">
-                {civLevel.percent}
+                {Math.round(overall)}
               </p>
               {hasBefore ? (
                 <ScoreDeltaMini after={overall} before={computeOverallBefore(before, dimensionWeights, dimensions)} />
@@ -494,13 +503,13 @@ export function AssessmentResult({
                 </p>
               )}
             </div>
-            {/* 协作画像 */}
+            {/* 能力等级 */}
             <div className="border-l border-[oklch(0.45_0.09_145_/_0.20)] dark:border-[oklch(0.68_0.10_145_/_0.20)] pl-3">
               <p className="text-[10px] font-semibold tracking-[0.12em] text-[oklch(0.45_0.09_145)] dark:text-[oklch(0.68_0.10_145)]">
-                {locale === "zh" ? "协作画像" : "Profile"}
+                {locale === "zh" ? "能力等级" : "Ability Level"}
               </p>
               <p className="mt-1 font-civ-serif text-[14px] font-black leading-tight text-[oklch(0.40_0.09_145)] dark:text-[oklch(0.72_0.10_145)] break-words">
-                {evalTag}
+                {abilityRank(overall)}
               </p>
             </div>
             {/* 4 维均分 */}
@@ -617,7 +626,7 @@ export function AssessmentResult({
             </div>
             {parsed.advantages.length > 0 ? (
               <ul className="space-y-1.5">
-                {parsed.advantages.slice(0, 4).map((item, i) => (
+                {parsed.advantages.map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.50 0.08 150 / 0.35)" }} aria-hidden />
                     <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
@@ -643,7 +652,7 @@ export function AssessmentResult({
             </div>
             {parsed.improvements.length > 0 ? (
               <ul className="space-y-1.5">
-                {parsed.improvements.slice(0, 4).map((item, i) => (
+                {parsed.improvements.map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.55 0.10 65 / 0.35)" }} aria-hidden />
                     <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
@@ -669,7 +678,7 @@ export function AssessmentResult({
             </div>
             {parsed.suggestions.length > 0 ? (
               <ul className="space-y-1.5">
-                {parsed.suggestions.slice(0, 4).map((item, i) => (
+                {parsed.suggestions.map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.45 0.05 45 / 0.35)" }} aria-hidden />
                     <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
@@ -699,11 +708,22 @@ export function AssessmentResult({
 
           {/* 摘要 + 展开 — 无 overflow-hidden，无固定高度 */}
           <div className="rounded-xl scroll-fuse ornamental-border">
-            {/* 摘要 */}
+            {/* 摘要 — 含 AI 导师图标 */}
             <div className="px-5 py-4">
-              <p className="text-[14px] leading-[1.8] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">
-                {aiSummary}
-              </p>
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-[oklch(0.72_0.06_80_/_0.15)] dark:border-[oklch(0.48_0.04_80_/_0.20)] bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)]">
+                  <img src={ASSETS.mentor} alt={locale === "zh" ? "AI 导师" : "AI Mentor"}
+                    className="h-[60%] w-[60%] object-contain" draggable={false} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="mb-1 text-[10px] font-semibold tracking-[0.12em] text-[oklch(0.45_0.09_145)] dark:text-[oklch(0.68_0.10_145)]">
+                    {locale === "zh" ? "AI 导师摘要" : "AI Mentor Summary"}
+                  </p>
+                  <p className="text-[14px] leading-[1.8] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">
+                    {aiSummary}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* 展开按钮 */}
@@ -711,15 +731,18 @@ export function AssessmentResult({
               className="flex w-full items-center justify-center gap-2 border-t border-[oklch(0.72_0.06_80_/_0.15)] dark:border-[oklch(0.48_0.04_80_/_0.20)] px-5 py-2.5 text-[13px] font-semibold text-[oklch(0.45_0.09_145)]/80 dark:text-[oklch(0.68_0.10_145)]/80 transition-colors hover:bg-[oklch(0.65_0.08_75_/_0.04)]">
               <span>
                 {showFullAnalysis
-                  ? (locale === "zh" ? "收起完整记录" : "Collapse Full Record")
-                  : (locale === "zh" ? "查看完整记录" : "View Full Record")}
+                  ? (locale === "zh" ? "收起详细补充" : "Collapse Details")
+                  : (locale === "zh" ? "展开详细补充" : "Expand Details")}
               </span>
               <ChevronSVG open={showFullAnalysis} />
             </button>
 
-            {/* 展开内容 — 无 overflow-hidden，无 max-height，完整显示 */}
+            {/* 展开内容 — 在摘要基础上的补充展开，非重新输出 */}
             {showFullAnalysis && (
               <div className="border-t border-[oklch(0.72_0.06_80_/_0.15)] dark:border-[oklch(0.48_0.04_80_/_0.20)] px-5 py-5">
+                <p className="mb-3 text-[11px] font-semibold tracking-[0.1em] text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
+                  {locale === "zh" ? "以下为摘要的详细补充：" : "Detailed supplement to the summary:"}
+                </p>
                 <div className="assessment-richtext text-[14px] leading-[1.85] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words"
                   style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
                   dangerouslySetInnerHTML={{ __html: parsed.safeHtml }} />
@@ -763,13 +786,13 @@ export function AssessmentResult({
               <dt className="text-[10px] font-semibold tracking-[0.12em] text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
                 {t("assessment.overall")}
               </dt>
-              <dd className="mt-0.5 font-civ-serif font-bold tabular-nums text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">{civLevel.percent}/100</dd>
+              <dd className="mt-0.5 font-civ-serif font-bold tabular-nums text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">{Math.round(overall)}/100</dd>
             </div>
             <div>
               <dt className="text-[10px] font-semibold tracking-[0.12em] text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
-                {locale === "zh" ? "协作画像" : "Profile"}
+                {locale === "zh" ? "能力等级" : "Ability Level"}
               </dt>
-              <dd className="mt-0.5 font-civ-serif font-bold break-words text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">{evalTag}</dd>
+              <dd className="mt-0.5 font-civ-serif font-bold break-words text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">{abilityRank(overall)}</dd>
             </div>
             <div className="col-span-2">
               <dt className="text-[10px] font-semibold tracking-[0.12em] text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
@@ -794,20 +817,23 @@ export function AssessmentResult({
                   <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border border-[oklch(0.65_0.08_75_/_0.20)] dark:border-[oklch(0.55_0.06_80_/_0.25)] text-[10px] font-bold text-[oklch(0.45_0.09_145)]/70 dark:text-[oklch(0.68_0.10_145)]/70 tabular-nums">
                     {i + 1}
                   </span>
-                  <p className="text-[13px] leading-relaxed text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{s}</p>
+                  <p className="text-[13px] leading-relaxed text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">
+                    {s.replace(/[*#`>_~]/g, "").trim()}
+                  </p>
                 </li>
               ))}
             </ul>
           </div>
         )}
 
-        {/* CTA — 弱化按钮：米白背景 + 绿色描边 + 深色文字 */}
+        {/* CTA — 无圆角框 + 斜体艺术字 */}
         <div className="mt-6 flex flex-col items-center gap-3 text-center">
           <p className="text-[12px] text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)]">
             {locale === "zh" ? "每一次任务提交，都会留下新的文明印记。" : "Every quest submission leaves a new mark on your record."}
           </p>
           <a href="/quests"
-            className="btn-press inline-flex items-center gap-2 rounded-xl border border-[oklch(0.65_0.08_75_/_0.35)] dark:border-[oklch(0.55_0.06_80_/_0.35)] bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] px-5 py-2.5 text-[13px] font-bold text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)] hover:border-[oklch(0.65_0.08_75_/_0.55)] dark:hover:border-[oklch(0.55_0.06_80_/_0.50)] hover:bg-[oklch(0.65_0.08_75_/_0.04)]">
+            className="btn-press inline-flex items-center gap-2 rounded-none border-2 border-[oklch(0.45_0.09_145_/_0.45)] dark:border-[oklch(0.68_0.10_145_/_0.45)] bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] px-7 py-3 italic font-civ-serif text-[15px] font-bold tracking-[0.15em] text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)] hover:border-[oklch(0.45_0.09_145_/_0.70)] dark:hover:border-[oklch(0.68_0.10_145_/_0.70)] hover:bg-[oklch(0.65_0.08_75_/_0.06)] transition-all"
+            style={{ textShadow: "0 1px 0 oklch(0.9 0.02 80 / 0.5)", fontFamily: '"Noto Serif SC","Source Han Serif SC","Songti SC",serif' }}>
             {locale === "zh" ? "继续任务" : "Continue Quests"}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
               <path d="M 3 7 L 11 7 M 8 4 L 11 7 L 8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

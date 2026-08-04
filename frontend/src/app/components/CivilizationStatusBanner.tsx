@@ -28,14 +28,15 @@ export function CivilizationStatusBanner({
   // ── Loading skeleton ────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-        <div className="flex items-center gap-6 flex-wrap">
+      <div className="relative rounded-xl scroll-fuse ornamental-border p-5 overflow-hidden">
+        <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
+        <div className="relative z-10 flex items-center gap-6 flex-wrap">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-muted skeleton-shimmer" />
+              <div className="h-8 w-8 rounded-full bg-[oklch(0.72_0.05_80_/_0.20)] skeleton-shimmer" />
               <div className="space-y-1">
-                <div className="h-3 w-12 rounded bg-muted skeleton-shimmer" />
-                <div className="h-4 w-16 rounded bg-muted skeleton-shimmer" />
+                <div className="h-3 w-12 rounded bg-[oklch(0.72_0.05_80_/_0.20)] skeleton-shimmer" />
+                <div className="h-4 w-16 rounded bg-[oklch(0.72_0.05_80_/_0.20)] skeleton-shimmer" />
               </div>
             </div>
           ))}
@@ -47,14 +48,15 @@ export function CivilizationStatusBanner({
   // ── No world data — minimal banner ──────────────────────────────────
   if (!world) {
     return (
-      <div className="rounded-2xl border border-border/60 bg-card/50 p-5">
-        <div className="flex items-center gap-3">
+      <div className="relative rounded-xl scroll-fuse ornamental-border p-5 overflow-hidden">
+        <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
+        <div className="relative z-10 flex items-center gap-3">
           <span className="text-2xl inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name="civilization" size={24} /></span>
           <div>
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
               {locale === "zh" ? "文明尚未初始化" : "Civilization not initialized"}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs font-civ-serif italic text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)]">
               {locale === "zh"
                 ? "完成首次评估以开启你的文明"
                 : "Complete your first assessment to start your civilization"}
@@ -91,33 +93,35 @@ export function CivilizationStatusBanner({
     direction?.active_paths?.[0]?.targeted_buildings?.[0] ?? null;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-card space-y-4">
+    <div className="relative rounded-xl scroll-fuse ornamental-border p-5 space-y-4 overflow-hidden">
+      <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
+      <div className="relative z-10 space-y-4">
       {/* ── Main status row ──────────────────────────────────────── */}
       <div className="flex items-center gap-4 lg:gap-8 flex-wrap">
         {/* Current Era */}
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-2xl flex-shrink-0 inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name={resolveScrollIconName(eraInfo.icon)} size={24} /></span>
           <div className="min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide">
               {locale === "zh" ? "当前时代" : "Current Era"}
             </p>
-            <p className="text-sm font-semibold truncate">{eraName}</p>
+            <p className="text-sm font-semibold font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] truncate">{eraName}</p>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="hidden sm:block w-px h-8 bg-border" />
+        <div className="hidden sm:block w-px h-8 bg-[oklch(0.72_0.06_80_/_0.25)]" />
 
         {/* Civilization Tier + Level */}
         <div className="flex items-center gap-2">
           <span className="text-2xl inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name={resolveScrollIconName(tierInfo.icon)} size={24} /></span>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide">
               {locale === "zh" ? "文明等级" : "Civ Level"}
             </p>
-            <p className="text-sm font-semibold">
+            <p className="text-sm font-semibold font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
               {tierName}{" "}
-              <span className="text-muted-foreground">
+              <span className="text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)]">
                 Lv.{world.civilization_level}
               </span>
             </p>
@@ -125,26 +129,26 @@ export function CivilizationStatusBanner({
         </div>
 
         {/* Divider */}
-        <div className="hidden sm:block w-px h-8 bg-border" />
+        <div className="hidden sm:block w-px h-8 bg-[oklch(0.72_0.06_80_/_0.25)]" />
 
         {/* Era Score progress */}
         <div className="flex-1 min-w-[160px] max-w-[280px]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+            <span className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide">
               {locale === "zh" ? "文明指数" : "Civ Score"}
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground tabular-nums">
+            <span className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] tabular-nums">
               {eraProgressLabel}
             </span>
           </div>
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-[oklch(0.85_0.015_80_/_0.50)] dark:bg-[oklch(0.30_0.01_78_/_0.50)] overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#C4A77D] transition-all duration-700"
+              className="h-full progress-liquid rounded-full transition-all duration-700"
               style={{ width: `${eraProgress}%` }}
             />
           </div>
           {!isMaxEra && (
-            <p className="text-[10px] text-muted-foreground mt-0.5">
+            <p className="text-[10px] font-civ-serif italic text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-0.5">
               {locale === "zh"
                 ? `距${nextEraLabel.zh}还需 ${nextEraAt - world.era_score} 分`
                 : `${nextEraAt - world.era_score} pts to next era`}
@@ -153,16 +157,16 @@ export function CivilizationStatusBanner({
         </div>
 
         {/* Divider */}
-        <div className="hidden md:block w-px h-8 bg-border" />
+        <div className="hidden md:block w-px h-8 bg-[oklch(0.72_0.06_80_/_0.25)]" />
 
         {/* Exploration progress (desktop only) */}
         <div className="hidden md:flex items-center gap-2">
           <span className="text-lg inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name="civilization" size={18} /></span>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+            <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide">
               {locale === "zh" ? "探索进度" : "Exploration"}
             </p>
-            <p className="text-sm font-semibold tabular-nums">
+            <p className="text-sm font-semibold font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] tabular-nums">
               {world.exploration_progress}%
             </p>
           </div>
@@ -171,18 +175,18 @@ export function CivilizationStatusBanner({
 
       {/* ── Next target building ──────────────────────────────────── */}
       {nextTarget && (
-        <div className="flex items-center gap-2 pt-3 border-t border-border/60">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wide flex-shrink-0">
+        <div className="flex items-center gap-2 pt-3 border-t border-[oklch(0.72_0.06_80_/_0.20)]">
+          <span className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide flex-shrink-0">
             {locale === "zh" ? "下一目标" : "Next Target"}:
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#8B9D83]/10 border border-[#8B9D83]/20 px-3 py-1 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.20)] px-3 py-1 text-xs font-civ-serif">
             <span className="inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name={resolveScrollIconName(nextTarget.building_icon)} size={14} /></span>
-            <span className="font-medium">
+            <span className="font-medium text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
               {locale === "en" && nextTarget.building_name_en
                 ? nextTarget.building_name_en
                 : nextTarget.building_name}
             </span>
-            <span className="text-muted-foreground">
+            <span className="text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)]">
               Lv.{nextTarget.current_level}
               {nextTarget.projected_level > nextTarget.current_level
                 ? ` → ${nextTarget.projected_level}`
@@ -190,7 +194,7 @@ export function CivilizationStatusBanner({
             </span>
           </span>
           {direction && direction.active_paths.length > 0 && (
-            <span className="text-[10px] text-muted-foreground ml-auto">
+            <span className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] ml-auto">
               {direction.active_paths.length}{" "}
               {locale === "zh" ? "条活跃路径" : "active paths"}
             </span>
@@ -200,8 +204,8 @@ export function CivilizationStatusBanner({
 
       {/* No active direction — gentle nudge */}
       {!nextTarget && (
-        <div className="flex items-center gap-2 pt-3 border-t border-border/60">
-          <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+        <div className="flex items-center gap-2 pt-3 border-t border-[oklch(0.72_0.06_80_/_0.20)]">
+          <span className="text-[10px] font-civ-serif italic text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] inline-flex items-center gap-1">
             <QuestScrollIcon name="idea" size={12} className="inline-block text-[oklch(0.55_0.12_85)]" />
             {locale === "zh"
               ? "创建第一条学习路径来设定文明发展方向"
@@ -209,6 +213,7 @@ export function CivilizationStatusBanner({
           </span>
         </div>
       )}
+      </div>
     </div>
   );
 }

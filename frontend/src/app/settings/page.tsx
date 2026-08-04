@@ -21,6 +21,8 @@ function MemoryBankPanel() {
   const [error, setError] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const PAGE_SIZE = 8;
 
   const fetchMemory = useCallback(async () => {
     setLoading(true);
@@ -28,6 +30,7 @@ function MemoryBankPanel() {
     try {
       const data = await learningPathService.listMemory();
       setEntries(data);
+      setCurrentPage(0);
     } catch (err: any) {
       setError(err?.message || t("common.error"));
     } finally {
@@ -44,6 +47,7 @@ function MemoryBankPanel() {
     try {
       await learningPathService.clearMemory();
       setEntries([]);
+      setCurrentPage(0);
       setShowConfirm(false);
     } catch (err: any) {
       setError(err?.message || t("memory.clearError"));
@@ -122,19 +126,44 @@ function MemoryBankPanel() {
     );
   }
 
+  // Pagination: flatten all entries across groups, then paginate
+  const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+  const paginatedEntries = entries.slice(
+    currentPage * PAGE_SIZE,
+    (currentPage + 1) * PAGE_SIZE
+  );
+
+  // Re-group the paginated entries
+  const paginatedGrouped = paginatedEntries.reduce<Record<string, UserMemoryEntry[]>>((acc, entry) => {
+    const type = entry.memory_type || "OTHER";
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(entry);
+    return acc;
+  }, {});
+
+  const paginatedSortedGroups = Object.keys(paginatedGrouped).sort((a, b) => {
+    const ai = groupOrder.indexOf(a);
+    const bi = groupOrder.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
   return (
     <div className="space-y-6">
-      {sortedGroups.map((type) => {
-        const groupEntries = grouped[type];
+      {paginatedSortedGroups.map((type) => {
+        const groupEntries = paginatedGrouped[type];
         const i18nKey = MEMORY_TYPE_I18N_KEYS[type];
         const label = i18nKey ? t(i18nKey) : type;
+        const totalCount = grouped[type]?.length ?? 0;
         return (
           <div key={type} className="space-y-3">
             <h4 className="text-xs font-bold text-[#C4A77D] uppercase tracking-wider border-b border-border/40 pb-1 flex items-center gap-1.5">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
               {label}
               <span className="font-mono text-[10px] opacity-75">
-                ({groupEntries.length})
+                ({groupEntries.length}{totalCount > groupEntries.length ? `/${totalCount}` : ""})
               </span>
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -162,6 +191,29 @@ function MemoryBankPanel() {
           </div>
         );
       })}
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+            disabled={currentPage === 0}
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold font-civ-serif disabled:opacity-40 hover:bg-secondary/40 transition-all"
+          >
+            {locale === "zh" ? "上一页" : "Prev"}
+          </button>
+          <span className="text-xs font-mono text-muted-foreground tabular-nums px-2">
+            {currentPage + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={currentPage >= totalPages - 1}
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold font-civ-serif disabled:opacity-40 hover:bg-secondary/40 transition-all"
+          >
+            {locale === "zh" ? "下一页" : "Next"}
+          </button>
+        </div>
+      )}
 
       {/* Clear All Memory */}
       <div className="pt-4 border-t border-border/60">

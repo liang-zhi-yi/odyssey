@@ -248,6 +248,8 @@
     "registerSub": "开启属于你的成长文明世界",
     "tabLogin": "登录",
     "tabRegister": "注册",
+    "accountLabel": "用户名 / 邮箱",
+    "accountPlaceholder": "输入用户名或邮箱",
     "emailPlaceholder": "you@example.com",
     "usernamePlaceholder": "alice",
     "passwordPlaceholder": "••••••••",
@@ -378,6 +380,19 @@
       "PRACTITIONER": "实践者",
       "ENGINEER": "工程师",
       "ARCHITECT": "架构师"
+    },
+    "insights": {
+      "strength": "优势方向",
+      "growing": "成长中",
+      "explore": "待探索"
+    },
+    "archive": {
+      "advantage": "优势维度",
+      "growthTrend": "成长趋势",
+      "nextExploration": "下一阶段探索",
+      "civIndex": "当前文明指数",
+      "latestAssessment": "最新评估",
+      "explorationStatus": "探索状态"
     }
   },
   "skills": {
@@ -551,19 +566,6 @@
     "maxWait": "最长等待 180s",
     "justification": "AI 评估说明",
     "viewJustification": "查看评估说明",
-    "civLevels": {
-      "1": { "title": "觉醒者", "subtitle": "火种已点燃，静待绽放" },
-      "2": { "title": "学徒",   "subtitle": "初窥门径，已踏上旅程" },
-      "3": { "title": "探索者", "subtitle": "求知若渴，勇敢涉足未知" },
-      "4": { "title": "开拓者", "subtitle": "坚定前行，拓展文明边界" },
-      "5": { "title": "文明先驱", "subtitle": "以卓越之姿，开创文明新篇" }
-    },
-    "evalTags": {
-      "senior":   "高级AI协作者",
-      "junior":   "初级AI协作者",
-      "apprentice": "AI协作学徒",
-      "novice":   "AI协作新人"
-    },
     "firstAssessment": {
       "badge": "首次鉴定 · 建立基线",
       "title": "文明档案初始化",
@@ -1032,7 +1034,6 @@
     "nextLevel": "下一等级需要分数",
     "scoreToNext": "还需 {score} 分达到下一等级",
     "maxLevelReached": "已达最高等级",
-    "viewSkill": "查看技能详情",
     "viewBuilding": "查看建筑",
     "viewInWorld": "在世界地图中查看",
     "emptyTitle": "你的世界尚未建立",

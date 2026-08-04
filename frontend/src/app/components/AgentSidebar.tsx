@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAgent } from "@/hooks/useAgent";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,8 +25,9 @@ import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
  * - Caching: reopens to the last conversation (handled in useAgent).
  */
 export function AgentSidebar() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { isAuthenticated, user } = useAuth();
+  const pathname = usePathname();
   const {
     isOpen,
     messages,
@@ -37,10 +39,15 @@ export function AgentSidebar() {
     activeConversationId,
     loadConversation,
     refreshConversations,
+    deleteConversation,
+    clearAllConversations,
   } = useAgent();
 
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<
+    null | { type: "single"; id: string; title?: string } | { type: "all" }
+  >(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -106,6 +113,9 @@ export function AgentSidebar() {
 
   if (!isAuthenticated) return null;
 
+  // ── Hide on intro-video page (full-screen cinematic) ──────────
+  if (pathname === "/intro-video") return null;
+
   return (
     <>
       {/* Backdrop for mobile */}
@@ -129,39 +139,45 @@ export function AgentSidebar() {
       >
         {/* ── Conversation Navigation Rail ────────────────────── */}
         <div className="flex-shrink-0 w-7 border-r border-border/40 flex flex-col items-center py-3 gap-2.5 overflow-y-auto bg-secondary/5 scrollbar-hide">
-          {/* New chat button */}
-          <button
-            onClick={startNewChat}
-            className="group relative flex items-center justify-center w-6 h-6 rounded-full border border-[#C4A77D]/50 text-[#C4A77D] hover:bg-[#C4A77D] hover:text-white hover:border-[#C4A77D] transition-all duration-200 flex-shrink-0"
-            title={t("agent.newChat")}
-            aria-label={t("agent.newChat")}
-          >
-            <span className="text-sm leading-none font-bold">+</span>
-          </button>
-
           {/* Divider */}
           {conversations.length > 0 && (
             <div className="w-3 h-px bg-border/40 flex-shrink-0" />
           )}
 
-          {/* Conversation circles */}
+          {/* Conversation circles with delete on hover */}
           {conversations.map((conv) => {
             const isActive = conv.id === activeConversationId;
             return (
-              <button
+              <div
                 key={conv.id}
-                onClick={() => loadConversation(conv.id)}
                 className="group relative flex items-center justify-center w-6 h-6 flex-shrink-0"
-                aria-label={conv.title || t("agent.newChat")}
               >
-                {/* Circle */}
-                <span
-                  className={`block rounded-full transition-all duration-200 ${
-                    isActive
-                      ? "w-3 h-3 bg-[#C4A77D] shadow-sm ring-2 ring-[#C4A77D]/25"
-                      : "w-2 h-2 border border-muted-foreground/40 bg-transparent group-hover:w-3 group-hover:h-3 group-hover:border-[#C4A77D] group-hover:bg-[#C4A77D]/20"
-                  }`}
-                />
+                <button
+                  onClick={() => loadConversation(conv.id)}
+                  aria-label={conv.title || t("agent.newChat")}
+                  className="flex items-center justify-center w-full h-full"
+                >
+                  {/* Circle */}
+                  <span
+                    className={`block rounded-full transition-all duration-200 ${
+                      isActive
+                        ? "w-3 h-3 bg-[#C4A77D] shadow-sm ring-2 ring-[#C4A77D]/25"
+                        : "w-2 h-2 border border-muted-foreground/40 bg-transparent group-hover:w-3 group-hover:h-3 group-hover:border-[#C4A77D] group-hover:bg-[#C4A77D]/20"
+                    }`}
+                  />
+                </button>
+                {/* Delete button — appears on hover (triggers confirmation) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDelete({ type: "single", id: conv.id, title: conv.title });
+                  }}
+                  className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-destructive/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-destructive"
+                  title={locale === "zh" ? "删除对话" : "Delete conversation"}
+                  aria-label="delete"
+                >
+                  <span className="text-[8px] leading-none select-none">✕</span>
+                </button>
                 {/* Tooltip — appears to the LEFT on hover */}
                 <span className="pointer-events-none absolute right-full mr-3 top-1/2 -translate-y-1/2 hidden group-hover:block z-50">
                   <span className="block max-w-[220px] rounded-lg border border-[#C4A77D]/40 bg-[oklch(0.99_0.003_95)] dark:bg-[oklch(0.22_0.008_85)] px-3 py-2 text-xs text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] shadow-lg whitespace-normal break-words text-left font-civ-serif">
@@ -170,9 +186,25 @@ export function AgentSidebar() {
                   {/* Arrow pointing right */}
                   <span className="absolute left-full top-1/2 -translate-y-1/2 -ml-px border-4 border-transparent border-l-[#C4A77D]/40" />
                 </span>
-              </button>
+              </div>
             );
           })}
+
+          {/* Clear all button — at the bottom */}
+          {conversations.length > 1 && (
+            <>
+              <div className="flex-1 min-h-2" />
+              <div className="w-3 h-px bg-border/40 flex-shrink-0" />
+              <button
+                onClick={() => setConfirmDelete({ type: "all" })}
+                className="group relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-destructive/10 transition-all duration-200 flex-shrink-0"
+                title={locale === "zh" ? "清空所有对话" : "Clear all conversations"}
+                aria-label={locale === "zh" ? "清空所有对话" : "Clear all"}
+              >
+                <span className="text-xs leading-none select-none opacity-60 group-hover:opacity-100">🗑</span>
+              </button>
+            </>
+          )}
         </div>
 
         {/* ── Main Content Column ────────────────────────────── */}
@@ -209,7 +241,7 @@ export function AgentSidebar() {
                 title={t("agent.newChat")}
                 aria-label={t("agent.newChat")}
               >
-                <QuestScrollIcon name="scroll" size={16} />
+                <span className="text-sm leading-none select-none">📜</span>
               </button>
               <button
                 onClick={() => setIsExpanded((prev) => !prev)}
@@ -217,7 +249,7 @@ export function AgentSidebar() {
                 title={isExpanded ? t("agent.collapse") : t("agent.expand")}
                 aria-label={isExpanded ? t("agent.collapse") : t("agent.expand")}
               >
-                {isExpanded ? <QuestScrollIcon name="mission" size={16} /> : <QuestScrollIcon name="world-core" size={16} />}
+                <span className="text-sm leading-none select-none">{isExpanded ? "⬅" : "↔"}</span>
               </button>
               <button
                 onClick={close}
@@ -225,7 +257,7 @@ export function AgentSidebar() {
                 title={t("agent.toggleClose")}
                 aria-label={t("agent.toggleClose")}
               >
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                <span className="text-sm leading-none select-none">✖</span>
               </button>
             </div>
           </div>
@@ -348,6 +380,77 @@ export function AgentSidebar() {
           </div>
         </div>
       </aside>
+
+      {/* ── Confirmation Dialog for Deletion ─────────────────── */}
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in"
+          onClick={() => setConfirmDelete(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-[320px] rounded-xl border-2 border-double border-[#C4A77D]/50 bg-gradient-to-b from-[oklch(0.995_0.003_95)] to-[oklch(0.98_0.005_92)] dark:from-[oklch(0.24_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-2xl"
+          >
+            {/* Decorative corner accents */}
+            <span className="absolute top-1 left-1 w-3 h-3 border-t border-l border-[#C4A77D]/60" />
+            <span className="absolute top-1 right-1 w-3 h-3 border-t border-r border-[#C4A77D]/60" />
+            <span className="absolute bottom-1 left-1 w-3 h-3 border-b border-l border-[#C4A77D]/60" />
+            <span className="absolute bottom-1 right-1 w-3 h-3 border-b border-r border-[#C4A77D]/60" />
+
+            <div className="flex flex-col items-center text-center gap-3">
+              {/* Warning emblem */}
+              <div className="w-12 h-12 rounded-full border-2 border-destructive/40 bg-destructive/8 flex items-center justify-center">
+                <span className="text-xl select-none">⚠</span>
+              </div>
+
+              <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+                {confirmDelete.type === "all"
+                  ? locale === "zh" ? "清空所有对话？" : "Clear all conversations?"
+                  : locale === "zh" ? "删除此对话？" : "Delete this conversation?"}
+              </h3>
+
+              <p className="text-xs text-muted-foreground italic leading-relaxed max-w-[260px]">
+                {confirmDelete.type === "all"
+                  ? locale === "zh"
+                    ? "此操作将永久删除所有对话记录，无法恢复。"
+                    : "This will permanently delete all conversations. This cannot be undone."
+                  : locale === "zh"
+                    ? confirmDelete.title
+                      ? "即将删除「" + confirmDelete.title + "」，此操作无法恢复。"
+                      : "此操作将永久删除该对话，无法恢复。"
+                    : confirmDelete.title
+                      ? '"' + confirmDelete.title + '" will be permanently deleted. This cannot be undone.'
+                      : "This conversation will be permanently deleted. This cannot be undone."}
+              </p>
+
+              {/* Action buttons */}
+              <div className="flex gap-2 w-full mt-1">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-transparent px-3 py-2 text-xs font-bold font-civ-serif text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all"
+                >
+                  {locale === "zh" ? "取消" : "Cancel"}
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirmDelete.type === "all") {
+                      clearAllConversations();
+                    } else {
+                      deleteConversation(confirmDelete.id);
+                    }
+                    setConfirmDelete(null);
+                  }}
+                  className="flex-1 rounded-lg bg-destructive/90 hover:bg-destructive px-3 py-2 text-xs font-bold font-civ-serif text-white transition-all shadow-sm"
+                >
+                  {locale === "zh" ? "确认删除" : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

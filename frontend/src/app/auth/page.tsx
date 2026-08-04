@@ -235,6 +235,7 @@ function AuthInput({
   minLength,
   autoComplete,
   icon,
+  showToggle = false,
 }: {
   id: string;
   type: string;
@@ -246,7 +247,11 @@ function AuthInput({
   minLength?: number;
   autoComplete?: string;
   icon: ReactNode;
+  showToggle?: boolean;
 }) {
+  const [show, setShow] = useState(false);
+  const inputType = showToggle ? (show ? "text" : "password") : type;
+
   return (
     <div className="space-y-1.5">
       <label
@@ -261,15 +266,38 @@ function AuthInput({
         </div>
         <input
           id={id}
-          type={type}
+          type={inputType}
           required={required}
           minLength={minLength}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="h-[48px] w-full rounded-[24px] border border-[oklch(0.82 0.03 82)] bg-[oklch(0.98 0.008 90 / 0.6)] pl-11 pr-4 text-[14px] text-[oklch(0.25 0.025 70)] outline-none transition-all duration-200 placeholder:text-[oklch(0.6 0.02 78)] focus:border-[oklch(0.68 0.09 82)] focus:bg-white/80 focus:shadow-[0_0_0_4px_oklch(0.68_0.09_82_/_0.12)]"
+          className="h-[48px] w-full rounded-[24px] border border-[oklch(0.82 0.03 82)] bg-[oklch(0.98 0.008 90 / 0.6)] pl-11 pr-12 text-[14px] text-[oklch(0.25 0.025 70)] outline-none transition-all duration-200 placeholder:text-[oklch(0.6 0.02 78)] focus:border-[oklch(0.68 0.09 82)] focus:bg-white/80 focus:shadow-[0_0_0_4px_oklch(0.68_0.09_82_/_0.12)]"
         />
+        {showToggle && (
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 75)] hover:text-[oklch(0.35 0.08 80)] transition-colors"
+            aria-label={show ? "隐藏密码" : "显示密码"}
+            tabIndex={-1}
+          >
+            {show ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                <line x1="2" y1="2" x2="22" y2="22" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -291,12 +319,12 @@ function AuthCard({
 }: {
   mode: "login" | "register";
   setMode: (m: "login" | "register") => void;
-  login: (payload: { email: string; password: string }) => Promise<void>;
+  login: (payload: { email: string; password: string }) => Promise<string>;
   register: (payload: {
     email: string;
     username: string;
     password: string;
-  }) => Promise<void>;
+  }) => Promise<string>;
   isLoading: boolean;
   router: ReturnType<typeof useRouter>;
   error: string | null;
@@ -324,12 +352,10 @@ function AuthCard({
       }
     }
     try {
-      if (isLogin) {
-        await login({ email, password });
-      } else {
-        await register({ email, username, password });
-      }
-      router.push("/dashboard");
+      const redirectTo = isLogin
+        ? await login({ email, password })
+        : await register({ email, username, password });
+      router.push(redirectTo);
     } catch {
       // Error handled in AuthContext
     }
@@ -434,14 +460,14 @@ function AuthCard({
           <form onSubmit={handleSubmit} className="min-h-[280px] space-y-4">
             <AuthInput
               id="email"
-              type="email"
-              label={t("auth.email")}
+              type={isLogin ? "text" : "email"}
+              label={isLogin ? t("auth.accountLabel") : t("auth.email")}
               value={email}
               onChange={setEmail}
-              placeholder={t("auth.emailPlaceholder")}
+              placeholder={isLogin ? t("auth.accountPlaceholder") : t("auth.emailPlaceholder")}
               required
-              autoComplete="email"
-              icon={<MailIcon />}
+              autoComplete={isLogin ? "username" : "email"}
+              icon={isLogin ? <UserIcon /> : <MailIcon />}
             />
 
             {!isLogin && (
@@ -470,6 +496,7 @@ function AuthCard({
               minLength={6}
               autoComplete={isLogin ? "current-password" : "new-password"}
               icon={<LockIcon />}
+              showToggle
             />
 
             {!isLogin && (
@@ -483,6 +510,7 @@ function AuthCard({
                 required
                 autoComplete="new-password"
                 icon={<LockIcon />}
+                showToggle
               />
             )}
 

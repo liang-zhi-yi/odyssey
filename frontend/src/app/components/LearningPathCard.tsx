@@ -77,7 +77,7 @@ export function LearningPathCard({
   return (
     <Link
       href={`/paths/${path.id}`}
-      className="relative block rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group overflow-hidden"
+      className="relative flex h-full flex-col rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group overflow-hidden"
     >
       {/* Background sector mark coordinates */}
       <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.06] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
@@ -97,12 +97,10 @@ export function LearningPathCard({
         </span>
       </div>
 
-      {/* Description */}
-      {path.description && (
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic">
-          {path.description}
-        </p>
-      )}
+      {/* Description — 固定两行高度，避免卡片高度不一致 */}
+      <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic min-h-[2.4em]">
+        {path.description || (locale === "zh" ? "暂无描述" : "No description")}
+      </p>
 
       {/* Badges: type + difficulty */}
       <div className="flex items-center gap-2 text-xs mb-4 flex-wrap">
@@ -138,7 +136,10 @@ export function LearningPathCard({
         </span>
       </div>
 
-      {/* Target buildings */}
+      {/* 占位扩展区 — 让底部信息固定在卡片底部对齐 */}
+      <div className="flex-1" />
+
+      {/* Target buildings — 固定在底部 */}
       {targetBuildings.length > 0 && (
         <div className="mt-3.5 pt-3 border-t border-border/60 flex items-center gap-1.5 flex-wrap">
           <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider">
@@ -160,6 +161,15 @@ export function LearningPathCard({
               )}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* 无关联建筑时填充底部分隔线，保持高度一致 */}
+      {targetBuildings.length === 0 && (
+        <div className="mt-3.5 pt-3 border-t border-border/60">
+          <span className="text-[9px] text-muted-foreground/40 italic">
+            {locale === "zh" ? "未关联文明建筑" : "No linked buildings"}
+          </span>
         </div>
       )}
 

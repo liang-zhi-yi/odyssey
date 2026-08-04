@@ -10,7 +10,8 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    # Accept username or email — backend resolves via _user_by_login
+    email: str
     password: str
 
 
@@ -49,6 +50,7 @@ class UserResponse(BaseModel):
     location: str | None = None
     website: str | None = None
     social_links: list | None = None
+    has_seen_intro_video: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

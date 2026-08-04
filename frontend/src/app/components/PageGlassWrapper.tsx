@@ -7,7 +7,7 @@ export function PageGlassWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   // Skip glass wrapper on the landing page and auth pages (full-screen layouts)
-  if (pathname === "/" || pathname === "/auth" || pathname === "/login" || pathname === "/register") {
+  if (pathname === "/" || pathname === "/auth" || pathname === "/login" || pathname === "/register" || pathname === "/intro-video") {
     return <>{children}</>;
   }
 

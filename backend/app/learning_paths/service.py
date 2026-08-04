@@ -286,6 +286,27 @@ def _generate_checkpoint_quests_internal(
     if not checkpoint:
         raise NotFoundException(detail="Checkpoint not found")
 
+    # Guard: skip if quests were already generated for this checkpoint.
+    # This prevents duplicate quest creation when the generation endpoint
+    # is called multiple times (either manually or via retries).
+    if checkpoint.quest_generation_status == "GENERATED":
+        existing_links = (
+            db.query(LearningPathQuest)
+            .filter(LearningPathQuest.checkpoint_id == checkpoint.id)
+            .count()
+        )
+        if existing_links > 0:
+            logger.info(
+                "Skipping quest generation for checkpoint %s — already has %d quests",
+                checkpoint_id, existing_links,
+            )
+            return {
+                "checkpoint_id": str(checkpoint_id),
+                "quests_generated": 0,
+                "quests": [],
+                "skipped": True,
+            }
+
     milestone = (
         db.query(LearningPathMilestone)
         .filter(LearningPathMilestone.id == milestone_id)

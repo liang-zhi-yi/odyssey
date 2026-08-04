@@ -9,12 +9,14 @@ from app.quests.schemas import (
     AcceptQuestResponse,
     UserQuestResponse,
     QuestRewardPreview,
+    QuestCreateRequest,
 )
 from app.quests import service
 from app.quests.service import (
     abandon_quest,
     calculate_reward_preview,
     get_building_for_skill,
+    create_user_quest,
 )
 from app.learning_paths import service as lp_service
 from app.world.growth_loop import get_quests_grouped_by_civilization, get_user_quests_grouped_by_civilization
@@ -149,6 +151,33 @@ def list_quests_by_civilization(
     with building association and reward previews.
     """
     return get_quests_grouped_by_civilization(db, user_id=str(current_user.id))
+
+
+@router.post("/quests", response_model=QuestDetailResponse)
+def create_quest(
+    body: QuestCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create a user-specific (AI-generated) quest.
+
+    The quest is owned by the current user (user_id is set), distinguishing
+    it from global preset quests. Returns full quest detail with building
+    and reward info so the frontend can immediately render a standard card.
+    """
+    q = create_user_quest(
+        db,
+        str(current_user.id),
+        title=body.title,
+        title_en=body.title_en,
+        description=body.description,
+        description_en=body.description_en,
+        skill_id=body.skill_id,
+        difficulty=body.difficulty,
+        quest_type=body.quest_type,
+        expected_deliverable=body.expected_deliverable,
+    )
+    return _build_quest_detail(q, db=db, user_id=str(current_user.id))
 
 
 @router.get("/quests/{quest_id}", response_model=QuestDetailResponse)

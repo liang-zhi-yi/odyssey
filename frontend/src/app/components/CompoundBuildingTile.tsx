@@ -1,7 +1,7 @@
 "use client";
 
 import type { UserCompoundBuilding } from "@/types/world";
-import { LEVEL_LABELS } from "@/types/world";
+import { getBuildingLevelLabel } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
 import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
 
@@ -23,10 +23,7 @@ export function CompoundBuildingTile({
 
   const displayName =
     locale === "en" && tpl?.name_en ? tpl.name_en : tpl?.name ?? "";
-  const levelLabel =
-    locale === "en"
-      ? LEVEL_LABELS[building.level]?.en ?? `Lv.${building.level}`
-      : LEVEL_LABELS[building.level]?.zh ?? `Lv.${building.level}`;
+  const levelLabel = getBuildingLevelLabel(building.level, tpl?.level_names, locale);
 
   const size = 90 + building.level * 8;
 

@@ -141,7 +141,7 @@ export default function PathsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
             {userPaths.map((path: LearningPath) => (
-              <div key={path.id} className="card-hover">
+              <div key={path.id} className="card-hover h-full">
                 <LearningPathCard path={path} worldBuildings={worldBuildings} />
               </div>
             ))}

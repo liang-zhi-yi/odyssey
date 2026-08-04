@@ -31,7 +31,7 @@ export function PathProgressTimeline({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] dark:border-[oklch(0.3_0.01_80)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full">
+      <div className="rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full">
         <div className="h-5 w-40 rounded-md bg-muted skeleton-shimmer mb-4" />
         <div className="h-48 w-full rounded-lg bg-muted skeleton-shimmer" />
       </div>
@@ -39,7 +39,7 @@ export function PathProgressTimeline({
   }
 
   return (
-    <div className="group relative rounded-2xl border border-[oklch(0.88_0.02_90)] dark:border-[oklch(0.3_0.01_80)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-[oklch(0.7_0.12_85_/_0.3)]">
+    <div className="group relative rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-[oklch(0.7_0.12_85_/_0.3)]">
       {/* Subtle grid texture */}
       <div
         className="absolute inset-0 opacity-[0.4] dark:opacity-[0.2] pointer-events-none"
@@ -57,7 +57,7 @@ export function PathProgressTimeline({
             <svg className="w-4 h-4 text-accent flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 17 L9 11 L13 15 L21 7 M21 7 L15 7 M21 7 L21 13" />
             </svg>
-            <h3 className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] truncate">
+            <h3 className="text-base font-bold font-civ-serif text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] truncate">
               {selectedPathId ? t("dashboard.pathGrowth") : t("dashboard.growthCurve")}
             </h3>
           </div>
@@ -68,7 +68,7 @@ export function PathProgressTimeline({
               <select
                 value={selectedPathId || ""}
                 onChange={(e) => onSelectPath(e.target.value || null)}
-                className="appearance-none rounded-xl border border-[oklch(0.88_0.02_90)] dark:border-[oklch(0.3_0.01_80)] bg-card pl-9 pr-8 py-1.5 text-sm text-foreground transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 hover:border-accent/30 cursor-pointer font-medium"
+                className="appearance-none rounded-xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-card pl-9 pr-8 py-1.5 text-sm text-foreground transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 hover:border-accent/30 cursor-pointer font-medium"
               >
                 <option value="">{t("dashboard.selectPath")}</option>
                 {allPaths.map((p) => (
@@ -239,7 +239,7 @@ function FutureBlueprintEmptyState({
           <svg className="w-4 h-4 text-accent/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M3 17 L9 11 L13 15 L21 7 M21 7 L15 7 M21 7 L21 13" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <h4 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+          <h4 className="text-sm font-bold font-civ-serif text-[#4A3825] dark:text-[oklch(0.85_0.04_80)]">
             {variant === "no-data"
               ? t("dashboard.emptyStates.unchartedTerritory")
               : t("dashboard.emptyStates.futureBlueprint")}

@@ -34,4 +34,8 @@ export const authService = {
   deleteAvatar(): Promise<{ message: string }> {
     return api.delete<{ message: string }>("/auth/me/avatar");
   },
+
+  markIntroVideoSeen(): Promise<User> {
+    return api.post<User>("/auth/me/intro-video", {});
+  },
 };

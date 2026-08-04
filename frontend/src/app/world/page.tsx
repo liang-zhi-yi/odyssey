@@ -14,6 +14,12 @@ import { EraTransitionOverlay } from "@/app/components/EraTransitionOverlay";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { QuestScrollIcon, type ScrollIconName } from "@/app/components/QuestScrollIcon";
+import {
+  CIV_COLORS,
+  CopperDivider,
+  ParchmentBackground,
+  CivArchiveStyles,
+} from "@/app/components/CivArchiveTheme";
 import type {
   UserBuilding,
   UserCompoundBuilding,
@@ -24,15 +30,17 @@ type SelectedBuilding = UserBuilding | UserCompoundBuilding;
 type ViewMode = "overview" | "map" | "techtree";
 
 /**
- * World page — redesigned per "My World.md" design document.
+ * World page — "我的文明领地" (My Civilization Territory).
  *
- * Three-layer tab structure:
- *   Tab 1 (default): Civilization Overview — hero stats, core building, next goal, growth timeline
- *   Tab 2: Civilization Map — regional board with central hub, fog of war
- *   Tab 3: Building Tech Tree — vertical layered tree (compound → basic)
+ * Refactored to the Odyssey Civilization Archive visual system:
+ *   - Parchment background, copper dividers, gold/dark-red palette
+ *   - Civilization seal SVG icons instead of generic building icons
+ *   - Scoped CSS via civ-archive-* classes (no global pollution)
  *
- * Warm theme: 奶油白/鼠尾草绿/暖灰/羊皮纸色
- * Design references: Civilization, Humankind, Monument Valley, Notion
+ * Three-layer tab structure (preserved from prior design):
+ *   Tab 1: Civilization Overview
+ *   Tab 2: Civilization Map
+ *   Tab 3: Building Tech Tree
  */
 function WorldPageContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -78,7 +86,7 @@ function WorldPageContent() {
     const found = allBuildings.find((b) => b.id === buildingId);
     if (found) {
       setSelectedBuilding(found);
-      setViewMode("map"); // switch to map to show the building
+      setViewMode("map");
       setTimeout(() => {
         document.getElementById("world-map-area")?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 300);
@@ -117,35 +125,80 @@ function WorldPageContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-cartography-grid page-enter pb-20">
-      {/* ── Top HUD Bar (sticky) ── */}
-      <div className="sticky top-0 z-40 border-b-2 border-double border-[oklch(0.7_0.12_85_/_0.4)] bg-[oklch(0.985_0.003_95)]/90 backdrop-blur-md shadow-sm">
+    <div className="civ-archive-page relative pb-20">
+      <CivArchiveStyles />
+      <ParchmentBackground opacity={0.35} />
+
+      {/* ── Top HUD Bar (sticky) — 文明档案标题区 ── */}
+      <div
+        className="sticky top-0 z-40 backdrop-blur-md shadow-sm civ-archive-fade-in"
+        style={{
+          backgroundColor: CIV_COLORS.bgContent + "EE",
+          borderBottom: `2px solid ${CIV_COLORS.gold}66`,
+        }}
+      >
         <div className="mx-auto max-w-5xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             {/* Left: Title + tab toggle */}
-            <div className="flex items-center gap-4 shrink-0">
-              <h1 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] tracking-wide flex items-center gap-2">
-                <span className="animate-rhumb-spin inline-block text-lg text-[oklch(0.55_0.12_85)] inline-flex"><QuestScrollIcon name="compass" size={18} /></span> {t("world.myWorld")}
-              </h1>
-              {/* Three-tab toggle */}
-              <div className="flex rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.95_0.005_90)] p-0.5 shadow-inner">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => {
-                      setViewMode(tab.key);
-                      setSelectedBuilding(null);
-                    }}
-                    className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-all duration-200 btn-press ${
-                      viewMode === tab.key
-                        ? "bg-gradient-to-b from-[oklch(0.99_0.002_95)] to-[oklch(0.96_0.005_90)] text-[oklch(0.3_0.02_80)] shadow-md border border-[oklch(0.7_0.12_85_/_0.5)] scale-102"
-                        : "text-[oklch(0.55_0.02_85)] hover:text-[oklch(0.35_0.02_80)] hover:bg-[oklch(0.98_0.005_95)]/50"
-                    }`}
+            <div className="flex items-center gap-4 shrink-0 flex-wrap">
+              <div className="flex flex-col">
+                <h1
+                  className="civ-archive-title text-2xl tracking-wide flex items-center gap-2"
+                  style={{ color: CIV_COLORS.textPrimary }}
+                >
+                  <span
+                    className="inline-flex"
+                    style={{ color: CIV_COLORS.gold }}
                   >
-                    <span className="text-sm inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name={tab.icon} size={14} /></span>
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </button>
-                ))}
+                    <QuestScrollIcon name="compass" size={20} />
+                  </span>
+                  {t("world.myWorld")}
+                </h1>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest mt-0.5"
+                  style={{ color: CIV_COLORS.textSecondary }}
+                >
+                  {t("world.civilizationLevel")}: Lv.{world?.civilization_level ?? "—"} ·{" "}
+                  {world?.era_name ?? "—"}
+                </span>
+              </div>
+              {/* Three-tab toggle */}
+              <div
+                className="flex rounded-xl p-0.5 shadow-inner"
+                style={{
+                  border: `1px solid ${CIV_COLORS.border}`,
+                  backgroundColor: CIV_COLORS.bgContent,
+                }}
+              >
+                {tabs.map((tab) => {
+                  const active = viewMode === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => {
+                        setViewMode(tab.key);
+                        setSelectedBuilding(null);
+                      }}
+                      className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-civ-serif italic font-semibold transition-all duration-200"
+                      style={{
+                        background: active
+                          ? `linear-gradient(to bottom, ${CIV_COLORS.bgCard}, ${CIV_COLORS.bgContent})`
+                          : "transparent",
+                        color: active ? CIV_COLORS.textPrimary : CIV_COLORS.textSecondary,
+                        border: active ? `1px solid ${CIV_COLORS.gold}80` : "1px solid transparent",
+                        boxShadow: active ? "0 2px 6px rgba(0,0,0,0.06)" : "none",
+                      }}
+                    >
+                      <span
+                        className="text-sm inline-flex"
+                        style={{ color: active ? CIV_COLORS.gold : CIV_COLORS.textSecondary }}
+                      >
+                        <QuestScrollIcon name={tab.icon} size={14} />
+                      </span>
+                      <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -158,6 +211,10 @@ function WorldPageContent() {
               </div>
             )}
           </div>
+        </div>
+        {/* Copper divider under header */}
+        <div className="mx-auto max-w-5xl px-4">
+          <CopperDivider />
         </div>
       </div>
 
@@ -173,10 +230,13 @@ function WorldPageContent() {
       )}
 
       {/* ── Main Content ── */}
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-5xl px-4 py-6 relative z-10">
         {isLoading && (
           <div className="flex items-center justify-center py-32">
-            <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[oklch(0.72_0.12_85)] border-t-transparent" />
+            <div
+              className="h-10 w-10 animate-spin rounded-full border-[3px] border-t-transparent"
+              style={{ borderColor: CIV_COLORS.gold, borderTopColor: "transparent" }}
+            />
           </div>
         )}
 
@@ -219,7 +279,10 @@ function WorldPageContent() {
 
             {/* Tab 3: Building Tech Tree */}
             {viewMode === "techtree" && (
-              <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-6 shadow-card">
+              <div
+                className="rounded-lg p-6 shadow-md civ-archive-card"
+                style={{ borderColor: CIV_COLORS.border }}
+              >
                 <TechTreeView />
               </div>
             )}
@@ -230,7 +293,7 @@ function WorldPageContent() {
   );
 }
 
-// ── Quick Stat Pill ──
+// ── Quick Stat Pill — civilization archive styled ──
 
 function QuickStat({
   icon,
@@ -245,25 +308,28 @@ function QuickStat({
 }) {
   return (
     <div
-      className={`flex items-center gap-2 rounded-lg border px-3 py-1 shadow-sm transition-all duration-300 ${
-        isLevel
-          ? "bg-gradient-to-r from-[oklch(0.72_0.12_85_/_0.1)] to-[oklch(0.72_0.12_85_/_0.02)] border-[oklch(0.72_0.12_85_/_0.3)] animate-card-glow"
-          : "bg-[oklch(0.98_0.005_95)] border-[oklch(0.88_0.02_90)] hover:border-[oklch(0.72_0.12_85_/_0.3)]"
-      }`}
+      className="flex items-center gap-2 rounded-lg border px-3 py-1 shadow-sm transition-all duration-300"
+      style={{
+        backgroundColor: isLevel ? CIV_COLORS.gold + "12" : CIV_COLORS.bgCard,
+        borderColor: isLevel ? CIV_COLORS.gold + "60" : CIV_COLORS.border,
+      }}
     >
       <span
-        className={`text-sm inline-flex ${isLevel ? "animate-gentle-float text-[oklch(0.45_0.12_85)]" : "text-[oklch(0.4_0.02_80)]"}`}
+        className="text-sm inline-flex"
+        style={{ color: isLevel ? CIV_COLORS.gold : CIV_COLORS.darkRed }}
       >
         <QuestScrollIcon name={icon} size={14} />
       </span>
       <div className="flex items-baseline gap-1.5 leading-tight">
-        <span className="hidden xl:inline text-[10px] text-[oklch(0.55_0.02_85)] font-medium uppercase tracking-wider">
+        <span
+          className="hidden xl:inline text-[10px] font-medium uppercase tracking-wider"
+          style={{ color: CIV_COLORS.textSecondary }}
+        >
           {label}:
         </span>
         <span
-          className={`font-bold tabular-nums text-xs ${
-            isLevel ? "text-[oklch(0.35_0.12_85)]" : "text-[oklch(0.3_0.02_80)]"
-          }`}
+          className="font-bold tabular-nums text-xs"
+          style={{ color: isLevel ? CIV_COLORS.darkRed : CIV_COLORS.textPrimary }}
         >
           {value}
         </span>
@@ -278,7 +344,10 @@ export default function WorldPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-32">
-        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[oklch(0.72_0.12_85)] border-t-transparent" />
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-[3px] border-t-transparent"
+          style={{ borderColor: CIV_COLORS.gold, borderTopColor: "transparent" }}
+        />
       </div>
     }>
       <WorldPageContent />

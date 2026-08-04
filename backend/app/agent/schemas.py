@@ -21,6 +21,9 @@ class ChatRequest(BaseModel):
     locale: str | None = Field(
         None, description="User preferred language: zh | en"
     )
+    skip_history: bool = Field(
+        False, description="If true, do not persist this exchange to conversation history"
+    )
 
 
 # ── Response ───────────────────────────────────────────────────────

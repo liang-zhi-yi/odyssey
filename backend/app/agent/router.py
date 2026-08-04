@@ -5,6 +5,8 @@ Endpoints (all protected with get_current_user):
   POST /agent/chat        — send a message, get agent response + optional cards
   POST /agent/chat/stream — send a message, get SSE-streamed agent response
   GET  /agent/history     — list conversations or get messages for one
+  DELETE /agent/history   — clear all conversations
+  DELETE /agent/history/{conversation_id} — delete a single conversation
   GET  /agent/greeting    — context-aware welcome message
 """
 from fastapi import APIRouter, Depends, Query
@@ -23,6 +25,7 @@ from app.agent.service import (
     get_conversation_messages,
     generate_greeting,
 )
+from app.agent.models import ConversationHistory
 from app.auth.models import User
 from app.database import get_db
 from app.dependencies import get_current_user
@@ -48,6 +51,7 @@ def chat(
         message=body.message,
         conversation_id=body.conversation_id,
         locale=body.locale or "zh",
+        skip_history=body.skip_history,
     )
 
 
@@ -74,6 +78,7 @@ def chat_stream(
             message=body.message,
             conversation_id=body.conversation_id,
             locale=body.locale or "zh",
+            skip_history=body.skip_history,
         ),
         media_type="text/event-stream",
         headers={
@@ -103,6 +108,42 @@ def get_history(
 
     conversations = list_user_conversations(db, user_id)
     return HistoryResponse(conversations=conversations)
+
+
+@router.delete("/agent/history")
+def clear_all_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete all conversation history for the current user."""
+    user_id = str(current_user.id)
+    deleted = (
+        db.query(ConversationHistory)
+        .filter(ConversationHistory.user_id == user_id)
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return {"deleted": deleted}
+
+
+@router.delete("/agent/history/{conversation_id}")
+def delete_conversation(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a single conversation and all its messages."""
+    user_id = str(current_user.id)
+    deleted = (
+        db.query(ConversationHistory)
+        .filter(
+            ConversationHistory.user_id == user_id,
+            ConversationHistory.conversation_id == conversation_id,
+        )
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return {"deleted": deleted}
 
 
 @router.get("/agent/greeting", response_model=ChatResponse)

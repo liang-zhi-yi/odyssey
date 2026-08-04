@@ -208,44 +208,44 @@ class CivilizationEra(str, enum.Enum):
 
 # Era lookup: (era_enum, min_score, name_zh, name_en, icon, unlocked_civ_types)
 ERA_RANGES: list[tuple[CivilizationEra, int, str, str, str, list[CivilizationType]]] = [
-    (CivilizationEra.WILDERNESS, 0, "荒野时代", "Wilderness Era", "🏕️", [
+    (CivilizationEra.WILDERNESS, 0, "荒野时代", "Wilderness Era", "building", [
         CivilizationType.KNOWLEDGE,
     ]),
-    (CivilizationEra.AGRICULTURE, 100, "农耕时代", "Agriculture Era", "🌾", [
+    (CivilizationEra.AGRICULTURE, 100, "农耕时代", "Agriculture Era", "creation", [
         CivilizationType.KNOWLEDGE,
         CivilizationType.LANGUAGE,
     ]),
-    (CivilizationEra.ACADEMY, 500, "学院时代", "Academy Era", "📖", [
+    (CivilizationEra.ACADEMY, 500, "学院时代", "Academy Era", "knowledge", [
         CivilizationType.KNOWLEDGE,
         CivilizationType.LANGUAGE,
         CivilizationType.SCIENCE,
     ]),
-    (CivilizationEra.INDUSTRY, 1500, "工业时代", "Industry Era", "⚙️", [
+    (CivilizationEra.INDUSTRY, 1500, "工业时代", "Industry Era", "application", [
         CivilizationType.ENGINEERING,
         CivilizationType.SCIENCE,
     ]),
-    (CivilizationEra.INFORMATION, 3000, "信息时代", "Information Era", "💻", [
+    (CivilizationEra.INFORMATION, 3000, "信息时代", "Information Era", "reasoning", [
         CivilizationType.ENGINEERING,
         CivilizationType.DIGITAL,
         CivilizationType.FINANCE,
     ]),
-    (CivilizationEra.AI, 6000, "AI时代", "AI Era", "🤖", [
+    (CivilizationEra.AI, 6000, "AI时代", "AI Era", "reasoning", [
         CivilizationType.AI,
         CivilizationType.DIGITAL,
     ]),
-    (CivilizationEra.INTELLIGENCE, 10000, "智能时代", "Intelligence Era", "🧠", [
+    (CivilizationEra.INTELLIGENCE, 10000, "智能时代", "Intelligence Era", "reasoning", [
         CivilizationType.AI,
         CivilizationType.BUSINESS,
         CivilizationType.DESIGN,
         CivilizationType.MEDIA,
     ]),
-    (CivilizationEra.DIGITAL, 15000, "数字文明时代", "Digital Civilization Era", "🌐", [
+    (CivilizationEra.DIGITAL, 15000, "数字文明时代", "Digital Civilization Era", "civilization", [
         CivilizationType.DIGITAL,
         CivilizationType.SOCIETY,
         CivilizationType.FINANCE,
         CivilizationType.HEALTH,
     ]),
-    (CivilizationEra.FUTURE, 25000, "未来文明时代", "Future Civilization Era", "🚀", [
+    (CivilizationEra.FUTURE, 25000, "未来文明时代", "Future Civilization Era", "world-core", [
         CivilizationType.KNOWLEDGE,
         CivilizationType.ENGINEERING,
         CivilizationType.AI,

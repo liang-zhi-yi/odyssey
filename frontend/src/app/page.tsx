@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { AgentSparkles } from "@/app/components/AgentSparkles";
@@ -284,6 +283,60 @@ function MetricCard({
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// TypewriterText — loop typing animation for the hero CTA
+// Types out the text character-by-character, holds, then restarts.
+// ═══════════════════════════════════════════════════════════════════════
+
+function TypewriterText({ text }: { text: string }) {
+  const [display, setDisplay] = useState("");
+  const [phase, setPhase] = useState<"typing" | "holding" | "erasing">("typing");
+
+  // Reset animation when text changes
+  useEffect(() => {
+    setDisplay("");
+    setPhase("typing");
+  }, [text]);
+
+  useEffect(() => {
+    if (!text) return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    if (phase === "typing") {
+      if (display.length < text.length) {
+        // Type next character
+        timeoutId = setTimeout(() => {
+          setDisplay(text.slice(0, display.length + 1));
+        }, 140);
+      } else {
+        // Finished typing — hold
+        timeoutId = setTimeout(() => setPhase("holding"), 2200);
+      }
+    } else if (phase === "holding") {
+      timeoutId = setTimeout(() => setPhase("erasing"), 200);
+    } else {
+      // erasing
+      if (display.length > 0) {
+        timeoutId = setTimeout(() => {
+          setDisplay(text.slice(0, display.length - 1));
+        }, 60);
+      } else {
+        // Restart
+        timeoutId = setTimeout(() => setPhase("typing"), 500);
+      }
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [display, phase, text]);
+
+  return (
+    <span className="inline-flex items-center">
+      <span>{display}</span>
+    </span>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // Main Page
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -377,9 +430,8 @@ export default function Home() {
             <div className="lg:w-[50%] text-center lg:text-left">
               {/* Logo + Name row — logo prominent, name beside it */}
               <div className="animate-fade-in-up flex items-center gap-6 mb-6 justify-center lg:justify-start">
-                {/* Logo — prominent, glowing gold compass seal */}
+                {/* Logo — 指南针 emoji */}
                 <div className="relative flex-shrink-0 animate-gentle-float">
-                  {/* Rotating decorative SVG gear behind logo */}
                   <div className="absolute inset-[-12px] opacity-25 dark:opacity-45 text-[#C4A77D] pointer-events-none">
                     <svg className="w-full h-full animate-rhumb-spin" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
                       <circle cx="50" cy="50" r="45" strokeDasharray="3 3" />
@@ -387,15 +439,8 @@ export default function Home() {
                       <path d="M50 0 L50 100 M0 50 L100 50 M15 15 L85 85 M15 85 L85 15" strokeWidth="0.6" />
                     </svg>
                   </div>
-                  <div className="relative rounded-full border-4 border-double border-[#C4A77D]/70 bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-2.5 shadow-md flex items-center justify-center">
-                    <Image
-                      src="/Odyssey_logo.png"
-                      alt="Odyssey"
-                      width={80}
-                      height={80}
-                      className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md dark:invert dark:drop-shadow-[0_0_8px_rgba(196,167,125,0.4)]"
-                      priority
-                    />
+                  <div className="relative rounded-full border-4 border-double border-[#C4A77D]/70 bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-1 shadow-md flex items-center justify-center overflow-hidden">
+                    <img src="/Odyssey_logo.png" alt="Odyssey" className="w-16 h-16 sm:w-20 sm:h-20 object-contain" />
                   </div>
                 </div>
                 {/* Name beside logo */}
@@ -432,11 +477,16 @@ export default function Home() {
               >
                 <Link
                   href={isAuthenticated ? "/dashboard" : "/auth"}
-                  className="group inline-flex items-center gap-2.5 rounded-xl bg-primary px-7 py-3 text-sm font-bold font-civ-serif text-primary-foreground transition-all duration-300 hover:opacity-90 btn-press shadow-lg shadow-primary/20 border border-primary/20"
+                  className="group inline-flex items-center gap-2 bg-transparent px-1 py-1 text-lg sm:text-xl italic font-civ-serif text-[#8B6F3C] dark:text-[#C9A45C] tracking-wide border-b-2 border-[#8B6F3C]/50 dark:border-[#C9A45C]/50 transition-all duration-300 hover:text-[#B8943F] dark:hover:text-[#E0B860] hover:border-[#B8943F] dark:hover:border-[#E0B860] hover:scale-110 origin-left"
+                  style={{ textShadow: "0 0 0 transparent" }}
                 >
-                  {isAuthenticated ? t("landing.enterDashboard") : t("landing.cta")}
+                  <span
+                    className="transition-all duration-300 group-hover:[text-shadow:0_0_12px_rgba(201,164,92,0.45)]"
+                  >
+                    <TypewriterText text={isAuthenticated ? t("landing.enterDashboard") : t("landing.cta")} />
+                  </span>
                   <svg
-                    className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+                    className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />

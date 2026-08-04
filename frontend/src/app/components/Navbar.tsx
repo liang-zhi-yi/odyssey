@@ -77,11 +77,15 @@ export function Navbar() {
 
   // Simplified navbar on auth pages — logo + back + language + dark mode
   const isAuthPage = pathname === "/auth" || pathname === "/login" || pathname === "/register";
+  // Hide navbar entirely on intro-video page (full-screen cinematic)
+  if (pathname === "/intro-video") {
+    return null;
+  }
   if (isAuthPage) {
     return (
       <header className="sticky top-0 z-50 border-b-2 border-double border-[oklch(0.7_0.12_85_/_0.45)] bg-[oklch(0.985_0.003_95)]/95 dark:bg-[oklch(0.22_0.008_85)]/95 backdrop-blur-md shadow-sm">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          {/* Left: Back button + Logo */}
+          {/* Left: Back to home only */}
           <div className="flex items-center gap-3">
             <Link
               href="/"
@@ -94,20 +98,15 @@ export function Navbar() {
               </svg>
               {t("auth.backToHome")}
             </Link>
-            <span className="h-4 w-px bg-[oklch(0.8_0.02_85_/_0.4)]" />
-            <Link
-              href="/"
-              className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
-            >
-              <svg className="animate-rhumb-spin inline-block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></svg> Odyssey
-            </Link>
           </div>
 
-          {/* Right: Dark mode + Language */}
-          <div className="flex items-center gap-2">
-            <DarkModeToggle isDark={isDark} onToggle={toggle} />
-            <LanguageSwitcher />
-          </div>
+          {/* Right: Brand mark (subtle) */}
+          <Link
+            href="/"
+            className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
+          >
+            <span className="text-base select-none" role="img" aria-label="compass">🧭</span> Odyssey
+          </Link>
         </nav>
       </header>
     );
@@ -122,7 +121,7 @@ export function Navbar() {
             href="/"
             className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
           >
-            <svg className="animate-rhumb-spin inline-block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></svg> Odyssey
+            <span className="text-base select-none leading-none" role="img" aria-label="compass">🧭</span> Odyssey
           </Link>
         </div>
 

@@ -6,18 +6,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { questService } from "@/services/quest.service";
-import { CivilizationSection } from "@/app/components/CivilizationSection";
-import { QuestHallCard } from "@/app/components/QuestHallCard";
-import { CivilizationBadge, type CivilizationType } from "@/app/components/CivilizationBadge";
 import { CivilizationArchiveChapter } from "@/app/components/CivilizationArchiveChapter";
+import { CivilizationBadge } from "@/app/components/CivilizationBadge";
+import { AIQuestGenerator } from "@/app/components/AIQuestGenerator";
 import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import { Loading } from "@/app/components/Loading";
-import { ErrorState } from "@/app/components/ErrorState";
-import type {
-  UserQuest,
-  CivilizationQuestGroup,
-  CivilizationQuestItem,
-} from "@/types/quest";
+import type { UserQuest } from "@/types/quest";
 
 type TabKey = "recommended" | "myQuests";
 
@@ -53,6 +47,7 @@ export default function QuestsPage() {
   }, [authLoading, isAuthenticated, router]);
 
   // Fetch all global quests grouped by civilization
+  // (kept for potential fallback, but "今日推荐" tab now uses AI generation)
   const {
     data: civQuestGroups = [],
     isLoading: recommendedLoading,
@@ -90,46 +85,12 @@ export default function QuestsPage() {
     userQuests.map((uq: UserQuest) => [uq.quest_id, uq])
   );
 
-  // Filter recommended groups:
-  //   - Exclude quests that are "active" or "passed" (user already finished
-  //     or is currently working on them).
-  //   - KEEP quests with ABANDONED / FAILED status so the user can retry.
-  //   - If ALL quests have been interacted with (no fresh recommendations),
-  //     fall back to showing all quests (matches backend get_recommended_quests
-  //     behavior — never show an empty "Today's Recommendations" tab unless
-  //     there are truly no quests in the system).
-  const ACTIVE_OR_PASSED_STATUSES = new Set([
-    "ACCEPTED",
-    "IN_PROGRESS",
-    "SUBMITTED",
-    "ASSESSING",
-    "PASSED",
-  ]);
-
-  const freshCivGroups = civQuestGroups
-    .map((group: CivilizationQuestGroup) => ({
-      ...group,
-      quests: group.quests.filter(
-        (q) => {
-          const uq = userQuestMap.get(q.id);
-          // No interaction yet → recommend
-          if (!uq) return true;
-          // Abandoned/Failed → user can retry, keep recommending
-          return !ACTIVE_OR_PASSED_STATUSES.has(uq.status);
-        }
-      ),
-    }))
-    .filter((g) => g.quests.length > 0);
-
-  const totalFresh = freshCivGroups.reduce((sum, g) => sum + g.quests.length, 0);
-
-  // Fallback: if no fresh recommendations, show ALL global quests (so the
-  // "Today's Recommendations" tab is never blank unless there are truly no
-  // preset quests in the system).
-  const filteredCivGroups = totalFresh === 0 ? civQuestGroups : freshCivGroups;
-  const totalRecommended = totalFresh === 0
-    ? civQuestGroups.reduce((sum, g) => sum + g.quests.length, 0)
-    : totalFresh;
+  // "今日推荐" tab 改为 AI 即时生成，不再展示预设任务；
+  // totalRecommended 仅用于 tab 角标提示（保持 0，避免误导）。
+  const totalRecommended = 0;
+  // 抑制未使用变量告警（保留以备未来扩展）
+  void civQuestGroups; void recommendedLoading; void recommendedError;
+  void acceptedQuestIds; void userQuestMap;
 
   const tabs: { key: TabKey; label: string; icon: "scroll" | "shield" }[] = [
     { key: "recommended", label: t("quests.todayRecommendation"), icon: "scroll" },
@@ -187,56 +148,8 @@ export default function QuestsPage() {
       {/* ── Tab Content ──────────────────────────────────── */}
       {activeTab === "recommended" && (
         <div className="relative z-10 space-y-4">
-          {recommendedLoading ? (
-            <Loading variant="skeleton-cards" cardCount={4} />
-          ) : recommendedError ? (
-            <ErrorState message={t("quests.loadRecommendedError")} />
-          ) : totalRecommended === 0 ? (
-            <div className="relative z-10 rounded-xl scroll-fuse ornamental-border overflow-hidden">
-              <div className="px-6 py-14 text-center">
-                <div className="mb-4 flex justify-center">
-                  <CivilizationBadge type="KNOWLEDGE" size={52} glow />
-                </div>
-                <h3 className="font-civ-serif text-base font-bold text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
-                  {t("quests.noRecommended")}
-                </h3>
-                <p className="mt-2 font-civ-serif text-xs text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] italic max-w-xs mx-auto">
-                  {t("quests.allAccepted")}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 animate-stagger">
-              {filteredCivGroups.map((group: CivilizationQuestGroup) => {
-                const civType = group.civilization_type as CivilizationType;
-                const completedInGroup = group.quests.filter(
-                  (q) => userQuestMap.get(q.id)?.status === "PASSED"
-                ).length;
-                return (
-                  <CivilizationSection
-                    key={group.civilization_type}
-                    type={civType}
-                    totalQuests={group.count}
-                    completedQuests={completedInGroup}
-                    level={Math.min(10, completedInGroup + 1)}
-                    defaultExpanded={filteredCivGroups.length === 1}
-                    quests={group.quests.map((quest: CivilizationQuestItem) => (
-                      <QuestHallCard
-                        key={quest.id}
-                        quest={quest}
-                        civType={group.civilization_type}
-                        userQuest={
-                          acceptedQuestIds.has(quest.id)
-                            ? userQuestMap.get(quest.id)
-                            : undefined
-                        }
-                      />
-                    ))}
-                  />
-                );
-              })}
-            </div>
-          )}
+          {/* "今日推荐" tab 改为 AI 即时生成 — 删除所有预设任务 */}
+          <AIQuestGenerator />
         </div>
       )}
 

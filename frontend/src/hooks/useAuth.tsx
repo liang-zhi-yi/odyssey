@@ -27,6 +27,7 @@ const DEV_USER: User = {
   location: null,
   website: null,
   social_links: null,
+  has_seen_intro_video: true,
 };
 
 interface AuthState {
@@ -37,10 +38,11 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<string>;
+  register: (data: RegisterRequest) => Promise<string>;
   logout: () => void;
   clearError: () => void;
+  markIntroVideoSeen: () => Promise<void>;
   /** Whether dev auth bypass is active */
   isDevMode: boolean;
 }
@@ -80,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  const login = useCallback(async (data: LoginRequest) => {
+  const login = useCallback(async (data: LoginRequest): Promise<string> => {
     setState((s) => ({ ...s, error: null, isLoading: true }));
     try {
       const res = await authService.login(data);
@@ -89,6 +91,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const user = await authService.me();
       setState({ user, isLoading: false, isAuthenticated: true, error: null });
+      // Return redirect target based on intro video status
+      return user.has_seen_intro_video ? "/dashboard" : "/intro-video";
     } catch (err) {
       const message =
         err instanceof ApiRequestError
@@ -99,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (data: RegisterRequest) => {
+  const register = useCallback(async (data: RegisterRequest): Promise<string> => {
     setState((s) => ({ ...s, error: null, isLoading: true }));
     try {
       const res = await authService.register(data);
@@ -108,6 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const user = await authService.me();
       setState({ user, isLoading: false, isAuthenticated: true, error: null });
+      // New users always go to intro video first
+      return user.has_seen_intro_video ? "/dashboard" : "/intro-video";
     } catch (err) {
       const message =
         err instanceof ApiRequestError
@@ -115,6 +121,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : "Registration failed. Please try again.";
       setState((s) => ({ ...s, isLoading: false, error: message }));
       throw err;
+    }
+  }, []);
+
+  const markIntroVideoSeen = useCallback(async () => {
+    try {
+      const updatedUser = await authService.markIntroVideoSeen();
+      setState((s) => ({
+        ...s,
+        user: updatedUser,
+      }));
+    } catch (err) {
+      // Silently fail — user can still proceed to dashboard
+      console.error("Failed to mark intro video as seen:", err);
     }
   }, []);
 
@@ -134,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, register, logout, clearError, isDevMode: SKIP_AUTH }}
+      value={{ ...state, login, register, logout, clearError, markIntroVideoSeen, isDevMode: SKIP_AUTH }}
     >
       {children}
     </AuthContext.Provider>

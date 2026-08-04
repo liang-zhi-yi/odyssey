@@ -21,11 +21,12 @@ export interface StreamCallbacks {
 
 export const agentService = {
   /** Send a message to the agent and get a response with optional cards. */
-  sendMessage: (message: string, conversationId?: string, locale?: string) =>
+  sendMessage: (message: string, conversationId?: string, locale?: string, skipHistory?: boolean) =>
     api.post<ChatResponse>("/agent/chat", {
       message,
       conversation_id: conversationId ?? undefined,
       locale: locale ?? "zh",
+      skip_history: skipHistory ?? false,
     }),
 
   /**
@@ -138,4 +139,12 @@ export const agentService = {
   /** Get a context-aware greeting from the agent. */
   getGreeting: (locale?: string) =>
     api.get<ChatResponse>(`/agent/greeting?locale=${locale ?? "zh"}`),
+
+  /** Delete a single conversation and all its messages. */
+  deleteConversation: (conversationId: string) =>
+    api.delete<{ deleted: number }>(`/agent/history/${conversationId}`),
+
+  /** Clear all conversation history for the current user. */
+  clearAllHistory: () =>
+    api.delete<{ deleted: number }>("/agent/history"),
 };

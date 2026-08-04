@@ -6,7 +6,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, String, Text, DateTime
+from sqlalchemy import JSON, String, Text, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -50,6 +50,9 @@ class User(Base):
     )
     social_links: Mapped[dict | list | None] = mapped_column(
         JSON, nullable=True
+    )
+    has_seen_intro_video: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False

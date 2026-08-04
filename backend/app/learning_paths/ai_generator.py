@@ -1,4 +1,4 @@
-﻿"""
+"""
 AI Learning Path Generator -- uses LLM to generate personalized learning paths,
 milestones, checkpoints, and quests from user goals.
 
@@ -51,7 +51,7 @@ Output ONLY a JSON object with this exact structure:
   "path_summary": "A 2-3 sentence summary of the civilization development route",
   "difficulty": 1-5 (integer),
   "estimated_weeks": total weeks to complete (integer),
-  "civilization_type": "AI | ENGINEERING | KNOWLEDGE | BUSINESS | DESIGN | SOCIAL | SCIENCE | LANGUAGE | HEALTH | FINANCE",
+  "civilization_type": "AI | ENGINEERING | KNOWLEDGE | BUSINESS | DESIGN | MEDIA | SCIENCE | LANGUAGE | HEALTH | FINANCE | DIGITAL | SOCIETY",
   "milestones": [
     {
       "title": "Stage name in Chinese (e.g. 基础认知)",
@@ -266,11 +266,13 @@ _CIV_KEYWORD_MAP: list[tuple[list[str], str]] = [
     (["知识", "学习", "阅读", "记忆", "研究", "research", "reading", "learning", "笔记", "思维"], "KNOWLEDGE"),
     (["商业", "创业", "营销", "销售", "产品", "市场", "business", "marketing", "sales", "product", "策略"], "BUSINESS"),
     (["设计", "UI", "UX", "品牌", "创意", "视觉", "design", "branding", "creative", "color", "typography"], "DESIGN"),
-    (["社交", "管理", "领导", "沟通", "团队", "组织", "management", "leadership", "communication", "谈判"], "SOCIAL"),
+    (["媒体", "内容", "自媒体", "视频", "直播", "播客", "media", "content", "video", "streaming", "podcast", "短视频", "文案创作"], "MEDIA"),
+    (["社交", "管理", "领导", "沟通", "团队", "组织", "management", "leadership", "communication", "谈判"], "SOCIETY"),
     (["科学", "物理", "化学", "生物", "数学", "science", "physics", "chemistry", "biology", "math", "数据分析", "统计"], "SCIENCE"),
     (["语言", "英语", "日语", "法语", "翻译", "language", "english", "japanese", "translation", "写作", "口语"], "LANGUAGE"),
     (["健康", "体育", "运动", "健身", "跑步", "游泳", "瑜伽", "饮食", "营养", "health", "fitness", "sport", "exercise", "nutrition", "workout", "gym", "篮球", "足球"], "HEALTH"),
     (["金融", "投资", "理财", "财务", "会计", "finance", "investing", "accounting", "wealth", "股票", "基金", "经济"], "FINANCE"),
+    (["数字", "数字化转型", "区块链", "Web3", "元宇宙", "digital", "blockchain", "metaverse", "NFT", "加密", "数字经济"], "DIGITAL"),
 ]
 
 

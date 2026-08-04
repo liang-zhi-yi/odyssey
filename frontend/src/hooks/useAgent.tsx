@@ -37,9 +37,12 @@ interface AgentContextValue {
   open: () => void;
   close: () => void;
   sendMessage: (text: string) => Promise<void>;
+  sendMessageRaw: (text: string, locale?: string) => Promise<string>;
   startNewChat: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
   refreshConversations: () => Promise<void>;
+  deleteConversation: (conversationId: string) => Promise<void>;
+  clearAllConversations: () => Promise<void>;
 }
 
 const AgentContext = createContext<AgentContextValue | null>(null);
@@ -366,6 +369,47 @@ export function AgentProvider({ children }: { children: ReactNode }) {
 
   const close = useCallback(() => setIsOpen(false), []);
 
+  /** Send a message without persisting to conversation history (for AI quest generation). Returns the agent's text response. */
+  const sendMessageRaw = useCallback(async (text: string, loc?: string): Promise<string> => {
+    const currentLocale = loc ?? localeRef.current;
+    const resp = await agentService.sendMessage(text, undefined, currentLocale, true);
+    return resp?.message?.content ?? "";
+  }, []);
+
+  /** Delete a single conversation */
+  const deleteConversation = useCallback(async (convId: string) => {
+    try {
+      await agentService.deleteConversation(convId);
+      setConversations((prev) => prev.filter((c) => c.id !== convId));
+      if (activeConversationId === convId) {
+        setMessages([]);
+        setConversationId(null);
+        setActiveConversationId(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(STORAGE_KEY_CONV);
+        }
+      }
+    } catch {
+      // silently fail
+    }
+  }, [activeConversationId]);
+
+  /** Clear all conversation history */
+  const clearAllConversations = useCallback(async () => {
+    try {
+      await agentService.clearAllHistory();
+      setConversations([]);
+      setMessages([]);
+      setConversationId(null);
+      setActiveConversationId(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(STORAGE_KEY_CONV);
+      }
+    } catch {
+      // silently fail
+    }
+  }, []);
+
   // ── Keyboard shortcut: Ctrl+. / Cmd+. ─────────────────────────
 
   useEffect(() => {
@@ -393,9 +437,12 @@ export function AgentProvider({ children }: { children: ReactNode }) {
     open,
     close,
     sendMessage,
+    sendMessageRaw,
     startNewChat,
     loadConversation,
     refreshConversations,
+    deleteConversation,
+    clearAllConversations,
   };
 
   return (
