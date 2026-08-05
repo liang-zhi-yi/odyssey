@@ -8,7 +8,7 @@ export function LanguageSwitcher() {
   return (
     <button
       onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
-      className="rounded-md border border-border px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+      className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
       title={locale === "zh" ? t("common.switchToEn") : t("common.switchToZh")}
       aria-label={locale === "zh" ? t("common.switchToEn") : t("common.switchToZh")}
     >

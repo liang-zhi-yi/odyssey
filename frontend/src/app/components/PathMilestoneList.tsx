@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { learningPathService } from "@/services/learningPath.service";
 import type {
   LearningPathMilestone,
@@ -154,7 +155,7 @@ export function PathMilestoneList({
                   <div className="flex items-center gap-2 flex-wrap">
                     {milestone.skill_name && (
                       <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                        <QuestScrollIcon name="mission" size={12} /> {milestone.skill_name}
+                        <QuestScrollIcon name="mission" size={12} /> {skillDisplayName(milestone.skill_name, undefined, locale)}
                       </span>
                     )}
                     {/* Building indicator from targetedBuildings */}
@@ -296,7 +297,7 @@ export function PathMilestoneList({
                               className="flex items-center gap-2 rounded bg-secondary/50 px-2.5 py-1.5"
                             >
                               <span className="flex-1 text-xs truncate">
-                                {q.title || q.skill_name || "Quest"}
+                                {q.title || skillDisplayName(q.skill_name, undefined, locale) || "Quest"}
                               </span>
                               {q.quest_id && (
                                 <a
@@ -325,7 +326,7 @@ export function PathMilestoneList({
                                 className="flex items-center gap-2 rounded bg-secondary/50 px-2.5 py-1.5"
                               >
                                 <span className="flex-1 text-xs truncate">
-                                  {q.title || q.skill_name || "Quest"}
+                                  {q.title || skillDisplayName(q.skill_name, undefined, locale) || "Quest"}
                                 </span>
                                 {q.quest_id && (
                                   <a

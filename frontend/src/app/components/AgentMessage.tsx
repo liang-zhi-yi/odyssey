@@ -5,6 +5,8 @@ import Image from "next/image";
 import type { AgentCard as AgentCardType } from "@/types/agent";
 import { CARD_TYPE_LABELS } from "@/types/agent";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 
 interface AgentMessageBubbleProps {
   role: "user" | "agent";
@@ -245,6 +247,7 @@ function renderInline(text: string): ReactNode {
 function InlineCard({ card }: { card: AgentCardType }) {
   const label = CARD_TYPE_LABELS[card.card_type] || card.card_type;
   const data = card.data || {};
+  const { locale } = useLocale();
 
   return (
     <div className="mt-2.5 rounded-lg border border-[oklch(0.88_0.02_90)] bg-background/55 p-3 shadow-inner relative overflow-hidden border-l-4 border-l-[#C4A77D]">
@@ -256,7 +259,7 @@ function InlineCard({ card }: { card: AgentCardType }) {
       </div>
       {card.card_type === "skill_summary" && (
         <div className="text-xs">
-          <span className="font-bold text-foreground">{String(data.skill_name || "Skill")}</span>
+          <span className="font-bold text-foreground">{skillDisplayName(String(data.skill_name || ""), undefined, locale) || "Skill"}</span>
           <span className="ml-2 text-[10px] text-muted-foreground font-mono">
             Level {String(data.level || "?")} · {String(data.rank_label || "")}
           </span>
@@ -315,6 +318,7 @@ export function AgentMessageBubble({
   userAvatarUrl,
 }: AgentMessageBubbleProps) {
   const isUser = role === "user";
+  const { locale } = useLocale();
 
   return (
     <div

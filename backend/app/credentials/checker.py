@@ -92,23 +92,46 @@ def check_and_award_credentials(
                     logger.warning("Credential notification failed: %s", exc)
 
     # ── 2. Agent Engineer meta-credential ───────────────────────────
-    all_user_skills = (
-        db.query(UserSkill)
-        .filter(UserSkill.user_id == user_id)
-        .all()
-    )
-
-    # Need all 4 core skills and each must pass the multi-dimension threshold
-    if len(all_user_skills) >= 4 and all(
-        _all_dims_above(us, PRACTITIONER_THRESHOLD) for us in all_user_skills
-    ):
-        ae_credential = (
-            db.query(Credential)
-            .filter(Credential.name == AGENT_ENGINEER_CREDENTIAL)
-            .first()
+    # Only the core skills that have a bound Practitioner credential
+    # should count toward the composite. This avoids requiring every
+    # skill the user has (which may exceed the 4 core skills) to pass.
+    practitioner_skill_ids = [
+        r[0]
+        for r in (
+            db.query(Credential.skill_id)
+            .filter(Credential.skill_id != None)  # noqa: E711
+            .all()
         )
-        if ae_credential is not None:
-            awarded_name = _award(db, user_id, ae_credential)
+        if r[0] is not None
+    ]
+
+    if practitioner_skill_ids:
+        core_user_skills = (
+            db.query(UserSkill)
+            .filter(
+                UserSkill.user_id == user_id,
+                UserSkill.skill_id.in_(practitioner_skill_ids),
+            )
+            .all()
+        )
+
+        # Require every practitioner-bound core skill to be held and passing
+        if (
+            len(core_user_skills) >= len(set(practitioner_skill_ids))
+            and all(
+                _all_dims_above(us, PRACTITIONER_THRESHOLD)
+                for us in core_user_skills
+            )
+        ):
+            ae_credential = (
+                db.query(Credential)
+                .filter(Credential.name == AGENT_ENGINEER_CREDENTIAL)
+                .first()
+            )
+            if ae_credential is not None:
+                awarded_name = _award(db, user_id, ae_credential)
+            else:
+                awarded_name = None
             if awarded_name:
                 awarded.append(awarded_name)
                 logger.info(

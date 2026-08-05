@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState, useEffect, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
@@ -10,7 +10,7 @@ import { useLocale } from "@/hooks/useLocale";
 // ═══════════════════════════════════════════════════════
 function CompassLogo() {
   return (
-    <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+    <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
       <circle cx="24" cy="24" r="22" stroke="oklch(0.62 0.12 80)" strokeWidth="1.2" opacity="0.65" />
       <circle cx="24" cy="24" r="16" stroke="oklch(0.66 0.14 75)" strokeWidth="0.8" opacity="0.55" strokeDasharray="2 2" />
       <path d="M24 6 L27 24 L24 42 L21 24 Z" fill="oklch(0.62 0.12 80)" opacity="0.85" />
@@ -52,42 +52,7 @@ function LockIcon() {
   );
 }
 
-function ArrowRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14M13 6l6 6-6 6" />
-    </svg>
-  );
-}
-
-function CrownIcon({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <ellipse cx="16" cy="28" rx="10" ry="1.6" fill="oklch(0.64 0.12 78)" opacity="0.45" />
-      <path d="M3 22l4-10 5 6 4-9 4 9 5-6 4 10z" fill="oklch(0.72 0.14 75)" opacity="0.55" />
-      <path d="M3 22l4-10 5 6 4-9 4 9 5-6 4 10z" stroke="oklch(0.62 0.12 80)" strokeWidth="0.8" fill="none" opacity="0.85" />
-      <circle cx="7" cy="12" r="1.2" fill="oklch(0.68 0.14 80)" />
-      <circle cx="16" cy="8" r="1.2" fill="oklch(0.72 0.14 75)" />
-      <circle cx="25" cy="12" r="1.2" fill="oklch(0.68 0.14 80)" />
-      <circle cx="3" cy="22" r="1" fill="oklch(0.62 0.12 80)" opacity="0.8" />
-      <circle cx="29" cy="22" r="1" fill="oklch(0.62 0.12 80)" opacity="0.8" />
-    </svg>
-  );
-}
-
-function BookIcon({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="11" stroke="oklch(0.66 0.14 78)" strokeWidth="0.9" fill="oklch(0.98 0.008 85)" opacity="0.6" />
-      <path d="M10 11h4v10h-4z" fill="oklch(0.7 0.12 80)" opacity="0.55" />
-      <path d="M18 11h4v10h-4z" fill="oklch(0.7 0.12 80)" opacity="0.55" />
-      <path d="M14 11v10M18 11v10" stroke="oklch(0.62 0.12 80)" strokeWidth="0.8" opacity="0.85" />
-      <path d="M11 13h2M11 15h2M11 17h2M19 13h2M19 15h2M19 17h2" stroke="oklch(0.62 0.12 80)" strokeWidth="0.6" opacity="0.6" />
-    </svg>
-  );
-}
-
-function CompassNode({ size = 22 }: { size?: number }) {
+function CompassNode({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       <circle cx="16" cy="16" r="10" stroke="oklch(0.66 0.14 78)" strokeWidth="0.8" opacity="0.6" />
@@ -98,37 +63,35 @@ function CompassNode({ size = 22 }: { size?: number }) {
   );
 }
 
-function StarNode() {
+function FeatureGlyph({ glyph }: { glyph: "book" | "crown" | "compass" }) {
+  const common = {
+    width: 13,
+    height: 13,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  if (glyph === "book")
+    return (
+      <svg {...common}>
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z" />
+        <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" />
+      </svg>
+    );
+  if (glyph === "crown")
+    return (
+      <svg {...common}>
+        <path d="M3 11l4-4 5 5 5-5 4 4v7H3v-7z" />
+        <path d="M7 21h10" />
+      </svg>
+    );
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="14" fill="oklch(0.65 0.13 80)" opacity="0.12" />
-      <path d="M20 8 L21.8 15 L29 15.5 L23.2 20 L25 27 L20 23 L15 27 L16.8 20 L11 15.5 L18.2 15 Z" fill="oklch(0.7 0.12 78)" opacity="0.65" />
-      <path d="M20 8 L21.8 15 L29 15.5 L23.2 20 L25 27 L20 23 L15 27 L16.8 20 L11 15.5 L18.2 15 Z" stroke="oklch(0.6 0.14 82)" strokeWidth="0.6" opacity="0.9" />
-      <circle cx="20" cy="20" r="1.5" fill="oklch(0.95 0.02 90)" />
-    </svg>
-  );
-}
-
-// Social icons
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.3 14.7 2.5 12 2.5 6.8 2.5 2.5 6.8 2.5 12S6.8 21.5 12 21.5c6.9 0 11.5-4.9 11.5-11.7 0-.8-.1-1.4-.2-2L12 10.2z" />
-    </svg>
-  );
-}
-function WeChatIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path fill="#22C65C" d="M8.7 2C4.5 2 1 4.9 1 8.5c0 2 1.1 3.8 2.9 5l-.7 2.2 2.5-1.3c.9.2 1.9.4 3 .4h.5c-.1-.4-.2-.9-.2-1.3 0-3 3.1-5.5 6.9-5.5h.6c-.4-2.7-3.5-5-7.5-5zm-2.8 4.5c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zm5.6 0c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1z" />
-      <path fill="#22C65C" d="M23 14.5c0-2.8-2.9-5-6.4-5s-6.4 2.2-6.4 5 2.9 5 6.4 5c.7 0 1.4-.1 2.1-.3l1.9 1-.5-1.8c1.8-1 2.9-2.5 2.9-3.9zm-8.5-1c.4 0 .8.3.8.8s-.4.8-.8.8-.8-.3-.8-.8.4-.8.8-.8zm4.2 0c.4 0 .8.3.8.8s-.4.8-.8.8-.8-.3-.8-.8.4-.8.8-.8z" />
-    </svg>
-  );
-}
-function AppleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path fill="#222" d="M16.4 12.5c0-2.7 2.2-4 2.3-4.1-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.2 1-4.1 1-.9 0-2.2-1-3.6-.9-1.9 0-3.6 1.1-4.6 2.7-1.9 3.4-.5 8.3 1.3 11.1.9 1.3 1.9 2.8 3.3 2.7 1.3-.1 1.8-.9 3.4-.8s2 .8 3.4.8 2.1-1.3 2.9-2.6c.9-1.4 1.3-2.8 1.3-2.9-.1 0-2.8-1.1-2.7-4.8zm-1.9-7.4c.7-.9 1.2-2.1 1.1-3.3-1 .1-2.3.7-3 1.6-.7.7-1.3 2-1.1 3.2 1.1.1 2.3-.6 3-1.5z" />
+    <svg {...common}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a7 7 0 0 1 0 14M2 12h20" />
     </svg>
   );
 }
@@ -152,7 +115,6 @@ function GoldenNodes() {
         </radialGradient>
       </defs>
 
-      {/* Golden connection lines — flowing dashed pathways */}
       <g stroke="oklch(0.62 0.12 78)" strokeWidth="0.6" fill="none" opacity="0.55">
         <path d="M180 720 Q220 680 260 640 Q300 600 360 560 Q420 520 470 470 Q520 430 560 390 Q600 355 620 325" strokeDasharray="3 5" />
         <path d="M180 720 Q150 780 170 830 Q190 860 230 870" strokeDasharray="3 5" />
@@ -162,7 +124,6 @@ function GoldenNodes() {
         <path d="M180 720 L260 640 M260 640 L360 560 M360 560 L470 470 M470 470 L560 390 M560 390 L620 325 M620 325 L655 160" />
       </g>
 
-      {/* Glow halos at nodes */}
       <circle cx="180" cy="720" r="28" fill="url(#nodeGlow)" />
       <circle cx="360" cy="560" r="24" fill="url(#nodeGlow)" />
       <circle cx="560" cy="390" r="22" fill="url(#nodeGlow)" />
@@ -217,12 +178,73 @@ function AuthBackground() {
 
       {/* Layer 5: Golden node decorative overlay (the signature constellation glow) */}
       <GoldenNodes />
+
+      {/* Layer 6: Ambient golden scan line — very faint, slow cycle for lingering life */}
+      <div
+        className="civil-scanline pointer-events-none absolute inset-x-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, oklch(0.78 0.12 80 / 0.55), transparent)",
+        }}
+      />
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════
-// AUTH INPUT — pill-shaped with icon and underline focus
+// SPACED CIDD LANDS — "O D Y S S E Y" 字符逐个唤醒
+// ═══════════════════════════════════════════════════════
+function SpacedLetters({
+  text,
+  className = "",
+  delayBase = 0,
+  step = 0.08,
+}: {
+  text: string;
+  className?: string;
+  delayBase?: number;
+  step?: number;
+}) {
+  return (
+    <span className="inline-flex items-center gap-[0.22em]">
+      {text.split("").map((ch, i) => (
+        <span
+          key={i}
+          className={`civil-letter inline-block ${className}`}
+          style={{ animationDelay: `${delayBase + i * step}s` }}
+        >
+          {ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// CIVILIZATION MOTTO — 底部文明箴言 淡入淡出轮换
+// ═══════════════════════════════════════════════════════
+function CivilMotto({ t }: { t: (k: string) => string }) {
+  const mottos = [t("auth.motto1"), t("auth.motto2"), t("auth.motto3")];
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % mottos.length), 10000);
+    return () => clearInterval(id);
+  }, [mottos.length]);
+
+  return (
+    <p
+      key={idx}
+      className="civil-motto max-w-[480px] font-civ-serif text-[14px] italic leading-relaxed text-[oklch(0.3 0.03 65)]"
+      style={{ textShadow: "0 1px 2px oklch(1 0.02 90 / 0.4)" }}
+    >
+      {mottos[idx]}
+    </p>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH INPUT — 下划线形式 · 极细金色线条 · 无填充背景
 // ═══════════════════════════════════════════════════════
 function AuthInput({
   id,
@@ -236,6 +258,7 @@ function AuthInput({
   autoComplete,
   icon,
   showToggle = false,
+  connectedText,
 }: {
   id: string;
   type: string;
@@ -248,22 +271,35 @@ function AuthInput({
   autoComplete?: string;
   icon: ReactNode;
   showToggle?: boolean;
+  connectedText?: string;
 }) {
   const [show, setShow] = useState(false);
+  const [focused, setFocused] = useState(false);
   const inputType = showToggle ? (show ? "text" : "password") : type;
 
   return (
     <div className="space-y-1.5">
-      <label
-        htmlFor={id}
-        className="block text-[12px] font-medium tracking-wide text-[oklch(0.48 0.04 75)]"
-      >
-        {label}
-      </label>
+      <div className="flex items-baseline justify-between gap-3">
+        <label
+          htmlFor={id}
+          className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[oklch(0.45 0.05 70)]"
+        >
+          {label}
+        </label>
+        {value.length > 0 && (
+          <span className="flex items-center gap-1.5 text-[10px] normal-case tracking-normal text-[oklch(0.55 0.1 80)]">
+            <span className="inline-block h-1 w-1 rounded-full bg-[oklch(0.62 0.12 80)]" />
+            {connectedText}
+          </span>
+        )}
+      </div>
+
       <div className="group relative">
-        <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 75)] transition-colors duration-200 group-focus-within:text-[oklch(0.68 0.09 82)]">
+        {/* symbol assist */}
+        <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 70)] transition-colors duration-300 group-focus-within:text-[oklch(0.68 0.1 80)]">
           {icon}
         </div>
+
         <input
           id={id}
           type={inputType}
@@ -271,15 +307,34 @@ function AuthInput({
           minLength={minLength}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="h-[48px] w-full rounded-[24px] border border-[oklch(0.82 0.03 82)] bg-[oklch(0.98 0.008 90 / 0.6)] pl-11 pr-12 text-[14px] text-[oklch(0.25 0.025 70)] outline-none transition-all duration-200 placeholder:text-[oklch(0.6 0.02 78)] focus:border-[oklch(0.68 0.09 82)] focus:bg-white/80 focus:shadow-[0_0_0_4px_oklch(0.68_0.09_82_/_0.12)]"
+          className="h-[44px] w-full border-0 border-b bg-transparent pl-7 pr-9 text-[14px] text-[oklch(0.25 0.03 70)] outline-none transition-colors duration-300 placeholder:text-[oklch(0.55 0.02 75)]"
+          style={{ borderBottomColor: "transparent" }}
         />
+
+        {/* base thin line */}
+        <span className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-[oklch(0.6 0.04 80 / 0.35)]" />
+        {/* active gold line */}
+        <span
+          className={`pointer-events-none absolute bottom-0 left-0 h-px bg-[#C9A45C] transition-all duration-500 ${
+            focused ? "w-full" : "w-0"
+          }`}
+        />
+        {/* moving light */}
+        <span
+          className={`civil-flow pointer-events-none absolute bottom-0 left-0 h-px w-1/3 bg-gradient-to-r from-transparent via-[oklch(0.95 0.05 90)] to-transparent transition-opacity duration-300 ${
+            focused ? "opacity-70" : "opacity-0"
+          }`}
+        />
+
         {showToggle && (
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 75)] hover:text-[oklch(0.35 0.08 80)] transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 75)] hover:text-[oklch(0.35 0.08 80)] transition-colors"
             aria-label={show ? "隐藏密码" : "显示密码"}
             tabIndex={-1}
           >
@@ -304,7 +359,7 @@ function AuthInput({
 }
 
 // ═══════════════════════════════════════════════════════
-// AUTH CARD — glassmorphism, pill-tabs, golden gradient button
+// AUTH CARD — 文明认证终端 · 半透明 · 金色细线 · 微弱光晕
 // ═══════════════════════════════════════════════════════
 function AuthCard({
   mode,
@@ -336,11 +391,26 @@ function AuthCard({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
+  const [switching, setSwitching] = useState(false);
+  const [activating, setActivating] = useState(false);
   const isLogin = mode === "login";
+
+  // 文明档案翻页 — 先淡出，再切换并侧边滑入
+  function switchMode(next: "login" | "register") {
+    if (next === mode) return;
+    setLocalError(null);
+    clearError();
+    setSwitching(true);
+    setTimeout(() => {
+      setMode(next);
+      setSwitching(false);
+    }, 200);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLocalError(null);
+    if (isLoading) return;
     if (!isLogin) {
       if (password !== confirmPassword) {
         setLocalError(t("auth.passwordMismatchError"));
@@ -351,6 +421,9 @@ function AuthCard({
         return;
       }
     }
+    // 短暂启动反馈：金色光线扩散
+    setActivating(true);
+    setTimeout(() => setActivating(false), 650);
     try {
       const redirectTo = isLogin
         ? await login({ email, password })
@@ -364,222 +437,172 @@ function AuthCard({
   const displayError = localError || error;
 
   return (
-    <div className="w-full max-w-[440px] animate-auth-fade-in">
-      {/* Glassmorphism card — stronger opacity + warm tint for readability on top of photo */}
+    <div className="w-full max-w-[440px] civil-terminal-in">
+      {/* 文明认证终端 — translucent, frosted, thin gold line, faint glow */}
       <div
-        className="overflow-hidden rounded-[28px] border border-[oklch(0.78 0.06 80 / 0.5)] shadow-[0_25px_70px_oklch(0.25_0.04_60_/_0.45),0_1px_2px_oklch(1_0_1_/_0.1)] backdrop-blur-2xl"
+        className="relative overflow-hidden rounded-[6px] border border-[#C9A45C]/45"
         style={{
           background:
-            "linear-gradient(160deg, oklch(0.98 0.015 88 / 0.92) 0%, oklch(0.96 0.02 85 / 0.88) 50%, oklch(0.94 0.025 82 / 0.92) 100%)",
+            "linear-gradient(165deg, oklch(0.98 0.02 86 / 0.3) 0%, oklch(0.96 0.02 84 / 0.22) 50%, oklch(0.94 0.03 82 / 0.26) 100%)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          boxShadow:
+            "0 20px 50px oklch(0.3 0.04 70 / 0.22), 0 0 0 1px oklch(0.4 0.03 70 / 0.06), 0 0 44px oklch(0.7 0.12 80 / 0.07)",
         }}
       >
-        {/* Top subtle gradient strip */}
-        <div
-          className="h-1.5 w-full"
+        {/* edge gold scan — 认证终端启动时扫描一次 */}
+        <span
+          className="civil-terminal-scan pointer-events-none absolute inset-0 opacity-40"
           style={{
             background:
-              "linear-gradient(90deg, oklch(0.72 0.08 82) 0%, oklch(0.78 0.10 78) 50%, oklch(0.72 0.08 82) 100%)",
+              "linear-gradient(90deg, transparent, oklch(0.78 0.12 80 / 0.45), transparent) 0% 0% / 200% 100%",
+            backgroundRepeat: "no-repeat",
           }}
         />
 
-        <div className="px-8 py-7">
-          {/* Welcome heading */}
-          <div className="mb-6 text-center">
-            <h1 className="font-civ-serif text-[24px] font-semibold tracking-[0.12em] text-[oklch(0.28 0.03 72)]">
-              {t("auth.brandTitle")}
-            </h1>
-            <p className="mt-1 text-[13px] text-[oklch(0.52 0.02 78)]">
-              {isLogin ? t("auth.loginSub") : t("auth.registerSub")}
-            </p>
-          </div>
-
-          {/* Pill-style tab switch — elevated pill on warm background */}
-          <div className="mb-6 flex items-center rounded-full border border-[oklch(0.78 0.06 80 / 0.45)] bg-[oklch(0.97 0.015 88 / 0.9)] p-1.5 shadow-[0_1px_3px_oklch(0.3_0.04_70_/_0.08)]">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("login");
-                setLocalError(null);
-                clearError();
-              }}
-              className={`relative flex-1 rounded-full py-2 text-[13px] font-medium tracking-wide transition-all duration-200 ${
-                isLogin
-                  ? "bg-gradient-to-b from-[oklch(0.76 0.09 80)] to-[oklch(0.7 0.08 78)] text-white shadow-[0_2px_8px_oklch(0.65_0.08_82_/_0.25)]"
-                  : "text-[oklch(0.52 0.02 78)] hover:text-[oklch(0.35 0.03 75)]"
-              }`}
-            >
-              {t("auth.tabLogin")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("register");
-                setLocalError(null);
-                clearError();
-              }}
-              className={`relative flex-1 rounded-full py-2 text-[13px] font-medium tracking-wide transition-all duration-200 ${
-                !isLogin
-                  ? "bg-gradient-to-b from-[oklch(0.76 0.09 80)] to-[oklch(0.7 0.08 78)] text-white shadow-[0_2px_8px_oklch(0.65_0.08_82_/_0.25)]"
-                  : "text-[oklch(0.52 0.02 78)] hover:text-[oklch(0.35 0.03 75)]"
-              }`}
-            >
-              {t("auth.tabRegister")}
-            </button>
-          </div>
-
-          {/* Error banner */}
-          {displayError && (
-            <div className="animate-auth-fade-in mb-5 rounded-xl border border-[oklch(0.6 0.1 25 / 0.18)] bg-[oklch(0.6 0.1 25 / 0.04)] px-4 py-3 text-[13px] text-[oklch(0.45 0.1 30)]">
-              <div className="flex items-center justify-between gap-3">
-                <span>{displayError}</span>
-                <button
-                  onClick={() => {
-                    setLocalError(null);
-                    clearError();
-                  }}
-                  className="text-[oklch(0.52 0.02 78)] hover:text-[oklch(0.4 0.02 76)]"
-                  aria-label={t("auth.dismiss")}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  >
-                    <path d="M6 6l12 12M18 6L6 18" />
-                  </svg>
-                </button>
+        <div className="relative px-8 py-8">
+          {/* 档案翻页内容：标题 + 表单 */}
+          <div key={mode} className={switching ? "civil-page-out" : "civil-page-in"}>
+            {/* Title */}
+            <div className="mb-6 text-center">
+              <div className="flex items-center justify-center gap-3 text-[oklch(0.6 0.1 80)]">
+                <span className="h-px w-8 bg-[oklch(0.6 0.08 80 / 0.4)]" />
+                <CompassNode size={18} />
+                <span className="h-px w-8 bg-[oklch(0.6 0.08 80 / 0.4)]" />
               </div>
+              <h1 className="mt-3 font-civ-serif text-[22px] font-semibold tracking-[0.14em] text-[oklch(0.28 0.03 72)]">
+                {isLogin ? t("auth.explorerTitle") : t("auth.establishTitle")}
+              </h1>
+              <p className="mt-1.5 text-[12px] tracking-wide text-[oklch(0.5 0.03 75)]">
+                {isLogin ? t("auth.loginSub") : t("auth.registerSub")}
+              </p>
             </div>
-          )}
 
-          {/* Form — fixed min-height prevents layout jump when switching tabs */}
-          <form onSubmit={handleSubmit} className="min-h-[280px] space-y-4">
-            <AuthInput
-              id="email"
-              type={isLogin ? "text" : "email"}
-              label={isLogin ? t("auth.accountLabel") : t("auth.email")}
-              value={email}
-              onChange={setEmail}
-              placeholder={isLogin ? t("auth.accountPlaceholder") : t("auth.emailPlaceholder")}
-              required
-              autoComplete={isLogin ? "username" : "email"}
-              icon={isLogin ? <UserIcon /> : <MailIcon />}
-            />
-
-            {!isLogin && (
-              <AuthInput
-                id="username"
-                type="text"
-                label={t("auth.username")}
-                value={username}
-                onChange={setUsername}
-                placeholder={t("auth.usernamePlaceholder")}
-                required
-                minLength={2}
-                autoComplete="username"
-                icon={<UserIcon />}
-              />
+            {/* Error banner */}
+            {displayError && (
+              <div className="mb-5 rounded-[4px] border border-[oklch(0.6 0.1 25 / 0.2)] bg-[oklch(0.6 0.1 25 / 0.06)] px-4 py-3 text-[13px] text-[oklch(0.45 0.1 30)]">
+                <div className="flex items-center justify-between gap-3">
+                  <span>{displayError}</span>
+                  <button
+                    onClick={() => {
+                      setLocalError(null);
+                      clearError();
+                    }}
+                    className="text-[oklch(0.52 0.02 78)] hover:text-[oklch(0.4 0.02 76)]"
+                    aria-label={t("auth.dismiss")}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             )}
 
-            <AuthInput
-              id="password"
-              type="password"
-              label={t("auth.password")}
-              value={password}
-              onChange={setPassword}
-              placeholder={t("auth.passwordPlaceholder")}
-              required
-              minLength={6}
-              autoComplete={isLogin ? "current-password" : "new-password"}
-              icon={<LockIcon />}
-              showToggle
-            />
-
-            {!isLogin && (
+            {/* Form — fixed min-height prevents layout jump when switching */}
+            <form onSubmit={handleSubmit} className="min-h-[300px] space-y-5">
               <AuthInput
-                id="confirmPassword"
-                type="password"
-                label={t("auth.confirmPassword")}
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                placeholder={t("auth.confirmPlaceholder")}
+                id="email"
+                type={isLogin ? "text" : "email"}
+                label={isLogin ? t("auth.identityLabel") : t("auth.email")}
+                value={email}
+                onChange={setEmail}
+                placeholder={isLogin ? t("auth.accountPlaceholder") : t("auth.emailPlaceholder")}
                 required
-                autoComplete="new-password"
+                autoComplete={isLogin ? "username" : "email"}
+                icon={isLogin ? <UserIcon /> : <MailIcon />}
+                connectedText={t("auth.identityConnected")}
+              />
+
+              {!isLogin && (
+                <AuthInput
+                  id="username"
+                  type="text"
+                  label={t("auth.username")}
+                  value={username}
+                  onChange={setUsername}
+                  placeholder={t("auth.usernamePlaceholder")}
+                  required
+                  minLength={2}
+                  autoComplete="username"
+                  icon={<UserIcon />}
+                  connectedText={t("auth.identityConnected")}
+                />
+              )}
+
+              <AuthInput
+                id="password"
+                type="password"
+                label={isLogin ? t("auth.sealLabel") : t("auth.password")}
+                value={password}
+                onChange={setPassword}
+                placeholder={t("auth.passwordPlaceholder")}
+                required
+                minLength={6}
+                autoComplete={isLogin ? "current-password" : "new-password"}
                 icon={<LockIcon />}
                 showToggle
+                connectedText={t("auth.identityConnected")}
               />
-            )}
 
-            {/* Forgot password link (login only) */}
-            {isLogin && (
-              <div className="-mt-1 text-right">
-                <span className="text-[12px] text-[oklch(0.52 0.02 78)]">
-                  {t("auth.forgotPassword")}
-                </span>
-              </div>
-            )}
+              {!isLogin && (
+                <AuthInput
+                  id="confirmPassword"
+                  type="password"
+                  label={t("auth.confirmPassword")}
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  placeholder={t("auth.confirmPlaceholder")}
+                  required
+                  autoComplete="new-password"
+                  icon={<LockIcon />}
+                  showToggle
+                  connectedText={t("auth.identityConnected")}
+                />
+              )}
 
-            {/* Golden gradient button with right-arrow icon */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative mt-2 h-[52px] w-full overflow-hidden rounded-[26px] text-[14px] font-semibold tracking-wide text-white transition-all duration-200 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
-              style={{
-                background:
-                  "linear-gradient(135deg, oklch(0.8 0.1 75) 0%, oklch(0.74 0.09 80) 45%, oklch(0.7 0.08 78) 100%)",
-                boxShadow:
-                  "0 4px 14px oklch(0.65 0.08 82 / 0.28), 0 2px 4px oklch(0.5 0.07 80 / 0.15)",
-              }}
-            >
-              {/* Top highlight */}
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/40" />
-              {/* Bottom shadow line */}
-              <span
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
-                style={{ background: "oklch(0.45 0.06 78 / 0.5)" }}
-              />
-              <span className="flex items-center justify-center gap-2">
-                <span>
+              {/* Forgot password hint (login only) */}
+              {isLogin && (
+                <div className="-mt-1 text-right">
+                  <span className="text-[11px] text-[oklch(0.5 0.03 75)]">
+                    {t("auth.forgotPassword")}
+                  </span>
+                </div>
+              )}
+
+              {/* 文明启动按钮 — 金色描边 · 半透明内部 · 微弱光效 */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative mt-2 h-[54px] w-full overflow-hidden rounded-[6px] border border-[#C9A45C]/70 text-[14px] font-semibold tracking-[0.2em] text-[oklch(0.42 0.09 75)] transition-all duration-300 hover:border-[#C9A45C] hover:text-[oklch(0.3 0.09 70)] hover:shadow-[inset_0_0_0_1px_oklch(0.72_0.12_80_/_0.35),0_0_24px_oklch(0.7_0.12_80_/_0.18)] disabled:cursor-not-allowed disabled:opacity-55"
+                style={{
+                  background:
+                    "linear-gradient(120deg, oklch(0.98 0.02 86 / 0.12) 0%, oklch(0.96 0.03 82 / 0.2) 100%)",
+                }}
+              >
+                {/* hover 金色能量流动 */}
+                <span className="civil-flow pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                {/* click 短暂启动反馈 — 金色光线扩散 */}
+                {activating && (
+                  <span className="civil-ray pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 rounded-full border border-[#C9A45C]/80" />
+                )}
+                <span className="relative flex items-center justify-center gap-2">
                   {isLoading
                     ? isLogin
                       ? t("auth.loggingIn")
                       : t("auth.creatingAccount")
-                    : isLogin
-                      ? t("auth.loginButton")
-                      : t("auth.registerButton")}
+                    : t("auth.beginJourney")}
                 </span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-transform duration-200 group-hover:translate-x-1"
-                >
-                  <path d="M5 12h14" />
-                  <path d="M13 6l6 6-6 6" />
-                </svg>
-              </span>
-            </button>
-          </form>
+              </button>
+            </form>
+          </div>
 
-          {/* Bottom hint */}
-          <p className="mt-6 text-center text-[13px] text-[oklch(0.52 0.02 78)]">
+          {/* 底部切换提示 */}
+          <p className="mt-6 text-center text-[12px] text-[oklch(0.5 0.03 75)]">
             {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}
             <button
-              onClick={() => {
-                setMode(isLogin ? "register" : "login");
-                setLocalError(null);
-                clearError();
-              }}
-              className="font-semibold text-[oklch(0.65 0.07 82)] underline-offset-2 hover:underline"
+              onClick={() => switchMode(isLogin ? "register" : "login")}
+              className="font-semibold text-[oklch(0.6 0.1 80)] transition-colors hover:text-[oklch(0.45 0.1 75)]"
             >
               {isLogin ? t("auth.tabRegister") : t("auth.tabLogin")}
             </button>
@@ -591,7 +614,7 @@ function AuthCard({
 }
 
 // ═══════════════════════════════════════════════════════
-// MAIN AUTH PAGE — two-column (brand + auth card)
+// MAIN AUTH PAGE — two-column (brand + certification terminal)
 // ═══════════════════════════════════════════════════════
 export default function AuthPage() {
   const { login, register, isLoading, error, clearError } = useAuth();
@@ -606,127 +629,95 @@ export default function AuthPage() {
 
       {/* LEFT — Brand / Story panel (~55-60% width) — warm gradient overlay for text contrast on photo */}
       <div className="relative hidden flex-[3] flex-col justify-between px-12 py-10 md:flex lg:px-16 xl:px-20">
-        {/* Soft gradient panel — warm parchment tone to ensure text contrast on top of the city image */}
+        {/* Soft parchment gradient panel — ensures text contrast on top of the city image */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "linear-gradient(100deg, oklch(0.96 0.02 85 / 0.78) 0%, oklch(0.94 0.025 82 / 0.65) 40%, oklch(0.92 0.03 80 / 0.45) 70%, oklch(0.9 0.03 78 / 0.2) 90%, transparent 100%)",
+              "linear-gradient(100deg, oklch(0.96 0.02 85 / 0.72) 0%, oklch(0.94 0.025 82 / 0.6) 40%, oklch(0.92 0.03 80 / 0.42) 70%, oklch(0.9 0.03 78 / 0.18) 90%, transparent 100%)",
           }}
         />
-        {/* Top — Logo + tagline */}
-        <div className="animate-auth-fade-in flex items-center gap-3" style={{ animationDelay: "0s" }}>
-          <div
-            className="flex h-11 w-11 items-center justify-center rounded-2xl"
-            style={{
-              background:
-                "linear-gradient(135deg, oklch(0.82 0.1 72) 0%, oklch(0.74 0.09 80) 60%, oklch(0.7 0.08 78) 100%)",
-              boxShadow:
-                "0 6px 16px oklch(0.65 0.08 82 / 0.28), inset 0 1px 0 oklch(1 0 1 / 0.35)",
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-civ-serif text-[20px] font-semibold tracking-[0.22em] text-[oklch(0.18 0.025 60)]" style={{ textShadow: "0 1px 2px oklch(1 0.02 90 / 0.5)" }}>
-              {t("auth.brandTitle")}
-            </p>
-            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-[oklch(0.42 0.06 78)]" style={{ textShadow: "0 1px 2px oklch(1 0.02 90 / 0.4)" }}>
-              {t("auth.brandTagline")}
-            </p>
+
+        {/* Top — Logo + spaced brand */}
+        <div>
+          <div className="flex items-center gap-4">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-[6px] border border-[oklch(0.6 0.1 80 / 0.5)]"
+              style={{
+                background: "oklch(0.98 0.02 86 / 0.35)",
+                boxShadow: "0 0 24px oklch(0.7 0.12 80 / 0.12)",
+              }}
+            >
+              <CompassLogo />
+            </div>
+            <div>
+              <SpacedLetters
+                text="O D Y S S E Y"
+                className="font-civ-serif text-[18px] font-semibold tracking-[0.18em] text-[oklch(0.18 0.025 60)]"
+              />
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-[oklch(0.45 0.07 78)]">
+                {t("auth.brandTagline")}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Middle — Main headline */}
-        <div
-          className="animate-auth-fade-in max-w-[520px]"
-          style={{ animationDelay: "100ms" }}
-        >
-          <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.3em] text-[oklch(0.55 0.12 82)]" style={{ textShadow: "0 1px 2px oklch(1 0.02 90 / 0.6)" }}>
+        {/* Middle — Main headline (文明刻录效果) */}
+        <div className="max-w-[520px]">
+          <p
+            className="civil-engrave mb-3 text-[12px] font-semibold uppercase tracking-[0.32em] text-[oklch(0.55 0.12 82)]"
+            style={{ animationDelay: "0.9s" }}
+          >
             {t("auth.heroEyebrow")}
           </p>
-          <h2 className="font-civ-serif text-[44px] font-semibold leading-[1.15] tracking-tight text-[oklch(0.18 0.025 60)]" style={{ textShadow: "0 2px 8px oklch(1 0.02 90 / 0.4), 0 1px 2px oklch(0.9 0.02 85 / 0.5)" }}>
+          <h2
+            className="civil-engrave font-civ-serif text-[42px] font-semibold leading-[1.2] tracking-[0.06em] text-[oklch(0.18 0.025 60)]"
+            style={{ animationDelay: "1.1s" }}
+          >
             {t("auth.heroTitle")}
           </h2>
-          <p className="mt-5 text-[15px] leading-[1.7] text-[oklch(0.3 0.02 65)]" style={{ textShadow: "0 1px 3px oklch(1 0.02 90 / 0.4)" }}>
+          <p
+            className="mt-5 text-[15px] leading-[1.8] text-[oklch(0.3 0.02 65)]"
+            style={{ textShadow: "0 1px 3px oklch(1 0.02 90 / 0.4)" }}
+          >
             {t("auth.heroDesc")}
           </p>
 
-          {/* Feature chips */}
-          <div className="mt-8 flex flex-wrap gap-3">
+          {/* Feature markers — thin-line, translucent (no white pills) */}
+          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
             {[
-              { icon: "book", text: t("auth.featureJournals") },
-              { icon: "crown", text: t("auth.featureMilestones") },
-              { icon: "compass", text: t("auth.featureMaps") },
+              { glyph: "book" as const, text: t("auth.featureJournals") },
+              { glyph: "crown" as const, text: t("auth.featureMilestones") },
+              { glyph: "compass" as const, text: t("auth.featureMaps") },
             ].map((f) => (
-              <div
-                key={f.icon}
-                className="flex items-center gap-2 rounded-full border border-[oklch(0.78 0.06 80 / 0.55)] bg-[oklch(0.98 0.015 88 / 0.88)] px-4 py-2 backdrop-blur-md shadow-[0_1px_2px_oklch(0.3_0.04_70_/_0.08)]"
-              >
-                <span
-                  className="flex h-7 w-7 items-center justify-center rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, oklch(0.78 0.09 78) 0%, oklch(0.7 0.08 78) 100%)",
-                  }}
-                >
-                  <span className="text-[13px] text-white">
-                    {f.icon === "book" ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z" />
-                        <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" />
-                      </svg>
-                    ) : f.icon === "crown" ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 11l4-4 5 5 5-5 4 4v7H3v-7z" />
-                        <circle cx="3" cy="11" r="1" />
-                        <circle cx="12" cy="12" r="1" />
-                        <circle cx="21" cy="11" r="1" />
-                        <path d="M7 21h10" />
-                      </svg>
-                    ) : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 2a7 7 0 0 1 0 14M2 12h20" />
-                      </svg>
-                    )}
-                  </span>
+              <div key={f.glyph} className="flex items-center gap-2 text-[oklch(0.4 0.04 72)]">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-[oklch(0.6 0.1 80 / 0.4)] text-[oklch(0.6 0.1 80)]">
+                  <FeatureGlyph glyph={f.glyph} />
                 </span>
-                <span className="text-[12.5px] font-medium text-[oklch(0.35 0.03 75)]">
-                  {f.text}
-                </span>
+                <span className="font-civ-serif text-[12.5px] italic">{f.text}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom — subtle quote / footer */}
-        <div
-          className="animate-auth-fade-in flex items-center gap-4"
-          style={{ animationDelay: "200ms" }}
-        >
-          <div
-            className="h-8 w-px"
-            style={{ background: "oklch(0.7 0.05 80)" }}
-          />
-          <p className="max-w-[480px] font-civ-serif text-[14px] italic leading-relaxed text-[oklch(0.3 0.03 65)]" style={{ textShadow: "0 1px 2px oklch(1 0.02 90 / 0.4)" }}>
-            {t("auth.heroQuote")}
-          </p>
+        {/* Bottom — civilization motto rotation */}
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-px" style={{ background: "oklch(0.7 0.05 80)" }} />
+          <div className="min-h-[44px]">
+            <CivilMotto t={t} />
+          </div>
         </div>
       </div>
 
-      {/* RIGHT — Auth card (~40-45% width) */}
+      {/* RIGHT — 文明认证终端 (~40-45% width) */}
       <div className="relative flex flex-[2] items-center justify-center px-5 py-10 md:px-10 md:py-16">
         {/* Mobile brand — condensed */}
         <div className="mb-6 block text-center md:hidden">
-          <h1 className="font-civ-serif text-[22px] font-semibold tracking-[0.2em] text-[oklch(0.28 0.03 72)]">
-            {t("auth.brandTitle")}
-          </h1>
-          <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.28em] text-[oklch(0.55 0.04 78)]">
+          <SpacedLetters
+            text="O D Y S S E Y"
+            className="font-civ-serif text-[20px] font-semibold tracking-[0.18em] text-[oklch(0.28 0.03 72)]"
+          />
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.28em] text-[oklch(0.55 0.04 78)]">
             {t("auth.brandTagline")}
           </p>
         </div>

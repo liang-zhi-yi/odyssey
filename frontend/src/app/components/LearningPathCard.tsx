@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import type { LearningPath } from "@/types/learningPath";
 import { PATH_STATUS_LABELS, PATH_STATUS_LABELS_ZH } from "@/types/learningPath";
 
@@ -14,18 +15,17 @@ interface LearningPathCardProps {
   worldBuildings?: { template: { skill_id: string; name: string; name_en: string | null; icon: string } | null; level: number }[];
 }
 
-const DIFFICULTY_STYLE: Record<number, string> = {
-  1: "bg-[#8B9D83]/10 text-[#8B9D83] border-[#8B9D83]/20",
-  2: "bg-[#8B9D83]/15 text-[#8B9D83] border-[#8B9D83]/30",
-  3: "bg-[#C4A77D]/10 text-[#C4A77D] border-[#C4A77D]/20",
-  4: "bg-[#C4A77D]/15 text-[#C4A77D] border-[#C4A77D]/30",
-  5: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+// Low-key text status markers (◉ ◎ ○) — no colored backgrounds.
+const STATUS_MARK: Record<string, string> = {
+  ACTIVE: "◉",
+  COMPLETED: "◎",
+  ABANDONED: "○",
 };
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; icon: ScrollIconName }> = {
-  ACTIVE: { bg: "bg-[#8B9D83]/15 text-[#8B9D83] border-[#8B9D83]/35", text: "text-[#8B9D83]", icon: "mission" },
-  COMPLETED: { bg: "bg-[#C4A77D]/15 text-[#C4A77D] border-[#C4A77D]/35", text: "text-[#C4A77D]", icon: "scroll" },
-  ABANDONED: { bg: "bg-muted/30 text-muted-foreground border-muted/20", text: "text-muted-foreground", icon: "lock" },
+const STATUS_ICON: Record<string, ScrollIconName> = {
+  ACTIVE: "mission",
+  COMPLETED: "scroll",
+  ABANDONED: "lock",
 };
 
 export function LearningPathCard({
@@ -36,13 +36,12 @@ export function LearningPathCard({
 }: LearningPathCardProps) {
   const { locale } = useLocale();
 
-  const status = STATUS_STYLE[path.status] ?? STATUS_STYLE.ACTIVE;
-  const diffStyle = DIFFICULTY_STYLE[path.difficulty] ?? DIFFICULTY_STYLE[3];
-
   const statusLabel =
     locale === "zh"
       ? PATH_STATUS_LABELS_ZH[path.status] ?? path.status
       : PATH_STATUS_LABELS[path.status] ?? path.status;
+  const statusMark = STATUS_MARK[path.status] ?? "◉";
+  const statusIcon = STATUS_ICON[path.status] ?? "mission";
 
   // Resolve target buildings: prefer API-provided targeted_buildings, fallback to worldBuildings
   const targetBuildings =
@@ -74,122 +73,165 @@ export function LearningPathCard({
             : [];
         })();
 
+  const typeLabel =
+    path.path_type === "AI_GENERATED"
+      ? locale === "zh" ? (
+          <>
+            <QuestScrollIcon name="sparkle" size={11} className="inline-block align-middle" /> AI 定制
+          </>
+        ) : (
+          <>
+            <QuestScrollIcon name="sparkle" size={11} className="inline-block align-middle" /> AI Customized
+          </>
+        )
+      : locale === "zh" ? (
+          <>
+            <QuestScrollIcon name="building" size={11} className="inline-block align-middle" /> 官方预设
+          </>
+        ) : (
+          <>
+            <QuestScrollIcon name="building" size={11} className="inline-block align-middle" /> Official
+          </>
+        );
+
   return (
-    <Link
-      href={`/paths/${path.id}`}
-      className="relative flex h-full flex-col rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group overflow-hidden"
-    >
-      {/* Background sector mark coordinates */}
-      <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.06] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-        [PATH {path.id.slice(0, 4).toUpperCase()}]
+    <div className="relative flex gap-4">
+      {/* ── Left growth-node spine ─────────────────────────────── */}
+      <div className="flex flex-col items-center">
+        <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[oklch(0.6_0.10_85_/_0.4)] bg-[oklch(0.99_0.003_95)] text-[oklch(0.6_0.10_85)] dark:bg-[oklch(0.2_0.008_85)] dark:text-[oklch(0.72_0.12_82)]">
+          <QuestScrollIcon name={statusIcon} size={16} strokeWidth={1.4} />
+        </div>
+        <div className="w-px flex-1 min-h-[2rem] bg-gradient-to-b from-[oklch(0.6_0.10_85_/_0.35)] to-[oklch(0.6_0.10_85_/_0.08)]" />
       </div>
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-2.5">
-        <h4 className="font-bold font-civ-serif text-sm truncate flex-1 text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] group-hover:text-[oklch(0.35_0.12_85)] dark:group-hover:text-[oklch(0.9_0.05_80)] transition-colors pr-6">
-          {path.title}
-        </h4>
-        <span
-          className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold border flex items-center gap-1 ${status.bg} ${status.text}`}
-        >
-          <QuestScrollIcon name={status.icon} size={12} />
-          {statusLabel}
-        </span>
-      </div>
+      {/* ── Right content ────────────────────────────────────── */}
+      <div className="relative flex-1 min-w-0 border-l border-[oklch(0.6_0.10_85_/_0.25)] pl-4 pb-7">
+        <span className="absolute left-0 top-0 -translate-x-[5px] h-2 w-2 rotate-45 border border-[oklch(0.6_0.10_85_/_0.4)] bg-[oklch(0.99_0.003_95)] dark:bg-[oklch(0.2_0.008_85)]" aria-hidden />
 
-      {/* Description — 固定两行高度，避免卡片高度不一致 */}
-      <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic min-h-[2.4em]">
-        {path.description || (locale === "zh" ? "暂无描述" : "No description")}
-      </p>
-
-      {/* Badges: type + difficulty */}
-      <div className="flex items-center gap-2 text-xs mb-4 flex-wrap">
-        {/* Path type badge */}
-        <span className="rounded bg-secondary/80 px-2 py-0.5 border border-border/40 text-muted-foreground font-medium text-[10px]">
-          {path.path_type === "AI_GENERATED" ? <><QuestScrollIcon name="sparkle" size={11} className="inline-block align-middle" /> AI Customized</> : <><QuestScrollIcon name="building" size={11} className="inline-block align-middle" /> Official</>}
-        </span>
-
-        {/* Difficulty dots */}
-        <span className={`rounded px-2 py-0.5 text-[10px] font-bold border ${diffStyle}`}>
-          {"★".repeat(path.difficulty)}
-          {"☆".repeat(5 - path.difficulty)}
-        </span>
-
-        {/* Milestone count */}
-        {path.milestone_count != null && (
-          <span className="rounded bg-secondary/80 px-2 py-0.5 border border-border/40 text-muted-foreground font-medium text-[10px] flex items-center gap-0.5">
-            <QuestScrollIcon name="mission" size={11} /> {path.milestone_count} {locale === "zh" ? "里程碑" : "milestones"}
+        {/* Header: title + low-key status */}
+        <div className="flex items-start justify-between gap-3">
+          <Link
+            href={`/paths/${path.id}`}
+            className="group inline-flex items-center gap-2 min-w-0"
+          >
+            <h4 className="truncate font-bold font-civ-serif text-sm text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] transition-colors group-hover:text-[oklch(0.4_0.12_85)]">
+              {path.title}
+            </h4>
+            <span className="text-[oklch(0.6_0.10_85)] opacity-0 transition-opacity group-hover:opacity-100">
+              <QuestScrollIcon name="arrow-right" size={13} strokeWidth={1.5} />
+            </span>
+          </Link>
+          <span
+            className={`shrink-0 text-[11px] font-medium tracking-wide ${
+              path.status === "ACTIVE"
+                ? "text-[oklch(0.55_0.10_85)]"
+                : path.status === "COMPLETED"
+                ? "text-[oklch(0.5_0.05_80)]"
+                : "text-muted-foreground"
+            }`}
+          >
+            <span className="mr-1" aria-hidden>{statusMark}</span>
+            {statusLabel}
           </span>
+        </div>
+
+        {/* Path type + difficulty (low-key text, no badges) */}
+        <div className="mt-1.5 flex items-center gap-3 text-[10px] text-muted-foreground/80">
+          <span className="inline-flex items-center gap-1">{typeLabel}</span>
+          {path.difficulty > 0 && (
+            <span className="tracking-wider text-[11px]">
+              {"★".repeat(path.difficulty)}
+              <span className="opacity-30">{"★".repeat(5 - path.difficulty)}</span>
+            </span>
+          )}
+          {path.milestone_count != null && (
+            <span className="inline-flex items-center gap-1">
+              <QuestScrollIcon name="mission" size={11} />
+              {path.milestone_count} {locale === "zh" ? "里程碑" : "milestones"}
+            </span>
+          )}
+        </div>
+
+        {/* Description */}
+        {path.description && (
+          <p className="mt-2 text-xs italic leading-relaxed text-muted-foreground line-clamp-2">
+            {path.description}
+          </p>
+        )}
+
+        {/* ── Thin-line growth trajectory (replaces progress bar) ── */}
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground/70">
+              {locale === "zh" ? "成长进度" : "Growth"}
+            </span>
+            <span className="font-mono text-[10px] font-bold text-[oklch(0.55_0.10_85)]">
+              {path.progress_pct}%
+            </span>
+          </div>
+          <div className="relative h-px w-full bg-[oklch(0.6_0.10_85_/_0.18)]">
+            <div
+              className="absolute left-0 top-0 h-px bg-gradient-to-r from-[oklch(0.6_0.10_85_/_0.35)] to-[#C4A77D] transition-all duration-500"
+              style={{ width: `${path.progress_pct}%` }}
+            />
+            <span
+              className="absolute top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-[#C4A77D] transition-all duration-500"
+              style={{ left: `calc(${path.progress_pct}% - 3px)` }}
+            />
+          </div>
+        </div>
+
+        {/* ── Associated buildings ─────────────────────────────── */}
+        {targetBuildings.length > 0 ? (
+          <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/60">
+              {locale === "zh" ? "关联建筑" : "Buildings"}
+            </span>
+            {targetBuildings.map((b) => (
+              <span
+                key={b.name}
+                title={b.skill_name ? `Skill: ${skillDisplayName(b.skill_name, undefined, locale)}` : undefined}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+              >
+                <span className="text-xs">{b.icon}</span>
+                <span className="font-medium text-muted-foreground/90 truncate max-w-[6rem]">
+                  {locale === "en" && b.name_en ? b.name_en : b.name}
+                </span>
+                {b.level > 0 && <span className="font-mono text-[9px] opacity-70">Lv.{b.level}</span>}
+                {b.remaining_milestones > 0 && (
+                  <span className="text-[9px] font-bold text-[oklch(0.55_0.10_85)]">+{b.remaining_milestones}</span>
+                )}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3.5 text-[10px] italic text-muted-foreground/40">
+            {locale === "zh" ? "未关联文明建筑" : "No linked buildings"}
+          </div>
+        )}
+
+        {/* Select button for preset paths */}
+        {onSelect && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelect(path.id);
+              }}
+              disabled={selecting}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#C4A77D]/40 px-4 py-1.5 text-xs font-bold font-civ-serif tracking-wider text-[oklch(0.55_0.10_85)] transition-all duration-300 hover:border-[#C4A77D] hover:shadow-[0_0_10px_rgba(196,167,125,0.2)] disabled:opacity-50"
+            >
+              {selecting ? (
+                locale === "zh" ? "关联中..." : "Selecting..."
+              ) : (
+                locale === "zh" ? "采纳此路径" : "Select Path"
+              )}
+            </button>
+          </div>
         )}
       </div>
-
-      {/* Progress bar */}
-      <div className="flex items-center gap-2.5 mb-2">
-        <div className="h-2 flex-1 rounded-full bg-[oklch(0.95_0.005_90)] dark:bg-[oklch(0.25_0.008_85)] border border-[oklch(0.88_0.02_90_/_0.7)] overflow-hidden relative shadow-inner">
-          <div
-            className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-[#C4A77D] to-[#A38A5E]"
-            style={{ width: `${path.progress_pct}%` }}
-          />
-        </div>
-        <span className="text-[10px] font-bold font-mono text-muted-foreground w-9 text-right">
-          {path.progress_pct}%
-        </span>
-      </div>
-
-      {/* 占位扩展区 — 让底部信息固定在卡片底部对齐 */}
-      <div className="flex-1" />
-
-      {/* Target buildings — 固定在底部 */}
-      {targetBuildings.length > 0 && (
-        <div className="mt-3.5 pt-3 border-t border-border/60 flex items-center gap-1.5 flex-wrap">
-          <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider">
-            {locale === "zh" ? "驱动文明:" : "Drives:"}
-          </span>
-          {targetBuildings.map((b) => (
-            <span
-              key={b.name}
-              title={b.skill_name ? `Skill: ${b.skill_name}` : undefined}
-              className="inline-flex items-center gap-0.5 rounded border border-border/60 bg-background/50 px-1.5 py-0.5 text-[9px] text-muted-foreground"
-            >
-              <span className="text-xs">{b.icon}</span>
-              <span className="truncate max-w-[5rem] font-medium">
-                {locale === "en" && b.name_en ? b.name_en : b.name}
-              </span>
-              {b.level > 0 && <span className="tabular-nums opacity-85">Lv.{b.level}</span>}
-              {b.remaining_milestones > 0 && (
-                <span className="text-[8px] text-[#C4A77D] font-bold">+{b.remaining_milestones}</span>
-              )}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* 无关联建筑时填充底部分隔线，保持高度一致 */}
-      {targetBuildings.length === 0 && (
-        <div className="mt-3.5 pt-3 border-t border-border/60">
-          <span className="text-[9px] text-muted-foreground/40 italic">
-            {locale === "zh" ? "未关联文明建筑" : "No linked buildings"}
-          </span>
-        </div>
-      )}
-
-      {/* Select button for preset paths */}
-      {onSelect && (
-        <div className="mt-4 pt-3.5 border-t border-border/60">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onSelect(path.id);
-            }}
-            disabled={selecting}
-            className="w-full rounded-lg bg-primary/90 text-primary-foreground py-2 text-xs font-bold font-civ-serif tracking-wider hover:bg-primary transition-colors disabled:opacity-50 border border-primary/20"
-          >
-            {selecting ? "Selecting..." : "Select Path"}
-          </button>
-        </div>
-      )}
-    </Link>
+    </div>
   );
 }

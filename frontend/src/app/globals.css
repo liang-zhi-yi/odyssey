@@ -34,6 +34,13 @@
     --card: 0.975 0.018 80;
     --card-foreground: 0.20 0.025 70;
     --radius: 0.75rem;
+    /* Civilization Archive CSS variables — global for cross-page components */
+    --civ-bg-main: #F7F0E2;
+    --civ-bg-content: #FFF9ED;
+    --civ-bg-card: #FCF5E7;
+    --civ-text-primary: #33291F;
+    --civ-text-secondary: #756957;
+    --civ-border: #D8C29A;
   }
 
   .dark {
@@ -66,6 +73,13 @@
     /* Dark basalt card */
     --card: 0.17 0.015 70;
     --card-foreground: 0.91 0.018 85;
+    /* Civilization Archive CSS variables — dark mode */
+    --civ-bg-main: oklch(0.14 0.012 70);
+    --civ-bg-content: oklch(0.17 0.015 70);
+    --civ-bg-card: oklch(0.20 0.012 70);
+    --civ-text-primary: oklch(0.91 0.018 85);
+    --civ-text-secondary: oklch(0.60 0.012 80);
+    --civ-border: oklch(0.26 0.012 75);
   }
 
   * {
@@ -363,6 +377,109 @@
 
 .animate-glow-pulse {
   animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ─── 文明智能核心启动入口 ─────────────────────────── */
+
+/* 光晕缓慢扩散 — 呼吸效果 */
+@keyframes core-halo-expand {
+  0%, 100% {
+    opacity: 0.10;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  50% {
+    opacity: 0.22;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+.core-halo {
+  background: radial-gradient(circle, rgba(201, 164, 92, 0.55) 0%, rgba(201, 164, 92, 0.15) 45%, transparent 70%);
+  animation: core-halo-expand 3.5s ease-in-out infinite;
+  filter: blur(2px);
+}
+@keyframes core-halo-inner-pulse {
+  0%, 100% {
+    opacity: 0.25;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+.core-halo-inner {
+  background: radial-gradient(circle, rgba(201, 164, 92, 0.70) 0%, rgba(201, 164, 92, 0.2) 55%, transparent 75%);
+  animation: core-halo-inner-pulse 2.6s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+/* 火种摇曳 — 外焰整体呼吸 */
+@keyframes core-flame-sway {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scaleY(1) scaleX(1);
+  }
+  30% {
+    opacity: 1;
+    transform: scaleY(1.08) scaleX(0.96);
+  }
+  60% {
+    opacity: 0.95;
+    transform: scaleY(0.94) scaleX(1.05);
+  }
+}
+.core-flame {
+  animation: core-flame-sway 1.6s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+/* 内焰闪烁 */
+@keyframes core-flame-inner {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  40% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.7;
+  }
+}
+.core-flame-inner {
+  animation: core-flame-inner 1.2s ease-in-out infinite;
+}
+
+/* 火星飞溅 */
+@keyframes core-ember-rise {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translateY(2px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-3px);
+  }
+}
+.core-ember {
+  animation: core-ember-rise 2.4s ease-in-out infinite;
+}
+.core-ember:nth-child(2) {
+  animation-delay: 0.4s;
+}
+.core-ember:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
+/* hover 能量聚集 — 作用于核心 */
+button:hover .core-halo {
+  animation-duration: 1.6s;
+  opacity: 0.3;
+}
+button:hover .core-halo-inner {
+  animation-duration: 1.1s;
+}
+button:hover .core-flame {
+  animation-duration: 0.9s;
 }
 
 /* Float upward — sparkle particles drifting toward the sky */
@@ -1320,6 +1437,89 @@
 }
 
 .animate-auth-fade-in { animation: auth-fade-in 0.45s ease-out both; }
+
+/* ═══ Odyssey 文明入口 / 探索者认证 视觉系统 ═══ */
+
+/* 阶段1 · 文明唤醒 — Logo 字符逐个显现 + 轻微金色扫描 */
+@keyframes civil-letter {
+  0% { opacity: 0; transform: translateY(6px); filter: blur(3px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.civil-letter { animation: civil-letter 0.7s ease-out both; }
+
+/* 阶段2 · 文明刻录 — 标题从模糊到清晰，微弱金色描边 */
+@keyframes civil-engrave {
+  0% { opacity: 0; filter: blur(6px); }
+  55% { opacity: 0.85; filter: blur(1px); text-shadow: 0 0 16px oklch(0.72 0.12 80 / 0.35); }
+  100% { opacity: 1; filter: blur(0); text-shadow: 0 1px 2px oklch(1 0.02 90 / 0.4); }
+}
+.civil-engrave { animation: civil-engrave 1.4s ease-out both; }
+
+/* 阶段3 · 认证终端浮现 — 从背景中升起 + 边缘金色扫描一次 */
+@keyframes civil-terminal-in {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.civil-terminal-in { animation: civil-terminal-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* 认证终端边缘金色扫描（一次性） */
+.civil-terminal-scan { animation: civil-terminal-scan 1.1s ease-out 0.9s both; }
+@keyframes civil-terminal-scan {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* 背景金色扫描层 — 每 9s 一条极淡扫描线 */
+@keyframes civil-scanline {
+  0% { top: -8%; opacity: 0; }
+  8% { opacity: 0.07; }
+  45% { opacity: 0.07; }
+  55% { opacity: 0; top: 108%; }
+  100% { opacity: 0; top: 108%; }
+}
+.civil-scanline { animation: civil-scanline 9s linear infinite; }
+
+/* 文明启动按钮 — 金色能量从左向右流动 */
+@keyframes civil-flow {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+.civil-flow { animation: civil-flow 1.1s ease-in-out infinite; }
+
+/* 点击启动反馈 — 金色光线扩散 */
+@keyframes civil-ray {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+.civil-ray { animation: civil-ray 0.6s ease-out both; }
+
+/* 登录/注册 档案翻页（淡出 → 侧边滑入） */
+@keyframes civil-page-in {
+  from { opacity: 0; transform: translateX(26px); filter: blur(2px); }
+  to { opacity: 1; transform: translateX(0); filter: blur(0); }
+}
+@keyframes civil-page-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-26px); }
+}
+.civil-page-in { animation: civil-page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.civil-page-out { animation: civil-page-out 0.22s ease-in both; }
+
+/* 底部文明箴言 淡入淡出轮换 */
+@keyframes civil-motto {
+  0% { opacity: 0; transform: translateY(4px); }
+  12% { opacity: 1; transform: translateY(0); }
+  88% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+.civil-motto { animation: civil-motto 10s ease-in-out infinite; }
+
+@keyframes achievement-toast-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.97); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.animate-achievement-toast { animation: achievement-toast-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {

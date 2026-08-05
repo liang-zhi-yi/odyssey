@@ -26,11 +26,14 @@ export function WorldSnapshotWidget({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full">
-        <div className="h-5 w-24 rounded-md bg-muted skeleton-shimmer mb-4" />
+      <div
+        className="relative bg-gradient-to-br from-[#F7F2E8]/80 to-[#F0E8D8]/50 dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 h-full"
+        style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
+      >
+        <div className="h-5 w-24 bg-[#C9A45C]/15 skeleton-shimmer mb-4" />
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-4 w-full rounded-md bg-muted skeleton-shimmer" />
+            <div key={i} className="h-4 w-full bg-[#C9A45C]/10 skeleton-shimmer" />
           ))}
         </div>
       </div>
@@ -38,11 +41,15 @@ export function WorldSnapshotWidget({
   }
 
   return (
-    <div className="group relative rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 shadow-card h-full overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-[oklch(0.7_0.12_85_/_0.3)]">
+    <div
+      className="group relative bg-gradient-to-br from-[#F7F2E8]/70 to-[#F0E8D8]/40 dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 h-full overflow-hidden transition-all duration-300 hover:from-[#F7F2E8]/90 hover:to-[#F0E8D8]/60"
+      style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
+    >
+      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent" />
       <div className="flex items-center gap-2 mb-4">
-        <svg className="w-4 h-4 text-accent flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" />
+        {/* Civilization Building icon — 文明建筑 */}
+        <svg className="w-4 h-4 text-[#C9A45C] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 21V8l5-4 5 4v13M7 21h10M9 21v-4h2v4M13 21v-4h2v4M9 12h2M13 12h2" />
         </svg>
         <h3 className="text-base font-civ-serif font-bold text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] truncate">
           {t("dashboard.sections.civilizationWorld")}
@@ -52,68 +59,72 @@ export function WorldSnapshotWidget({
       {buildingCount === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <div className="relative mb-4">
-            <div className="absolute inset-0 rounded-full bg-accent/[0.06] blur-xl animate-glow-pulse" />
-            <div className="relative w-16 h-16 rounded-full border border-[oklch(0.7_0.12_85_/_0.2)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.96_0.008_88)] flex items-center justify-center">
-              <svg className="w-7 h-7 text-accent/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
-                <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01" />
+            <div className="absolute inset-0 rounded-full bg-[#C9A45C]/8 blur-xl animate-glow-pulse" />
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              {/* Inactive civilization building */}
+              <svg className="w-8 h-8 text-[#C9A45C]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 21V8l5-4 5 4v13M7 21h10" />
               </svg>
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{t("dashboard.noWorld")}</p>
           <Link
             href="/quests"
-            className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+            className="mt-2 inline-block text-sm font-medium text-[#C9A45C] hover:underline"
           >
             {t("dashboard.startQuesting")}
           </Link>
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Tier display — hexagon badge */}
+          {/* Tier display — stone seal */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{t("dashboard.civilizationTier")}</span>
+            <span className="text-sm text-[#8C7655] dark:text-[oklch(0.6_0.012_80)]">{t("dashboard.civilizationTier")}</span>
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2 L22 8.5 L22 15.5 L12 22 L2 15.5 L2 8.5 Z" fill="oklch(0.7 0.12 85 / 0.12)" stroke="oklch(0.7 0.12 85 / 0.5)" strokeWidth="1" />
+                <circle cx="12" cy="12" r="10" fill="#C9A45C" fillOpacity="0.1" stroke="#C9A45C" strokeWidth="0.8" opacity="0.5" />
+                <circle cx="12" cy="12" r="7" fill="none" stroke="#C9A45C" strokeWidth="0.5" opacity="0.3" strokeDasharray="1 2" />
               </svg>
-              <span className="absolute text-sm font-bold tabular-nums text-accent font-mono">
+              <span className="absolute text-sm font-bold tabular-nums text-[#C9A45C] font-mono">
                 {worldTier}
               </span>
             </div>
           </div>
 
-          {/* Building count */}
+          {/* Building count — civilization building icon */}
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <svg className="w-3.5 h-3.5 text-muted-foreground/50 dark:text-muted-foreground/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
+            <span className="flex items-center gap-1.5 text-sm text-[#8C7655] dark:text-[oklch(0.6_0.012_80)]">
+              <svg className="w-3.5 h-3.5 text-[#C9A45C]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 21V8l5-4 5 4v13M7 21h10M9 21v-4h2v4M13 21v-4h2v4" />
               </svg>
               {t("dashboard.buildings")}
             </span>
-            <span className="text-sm font-semibold tabular-nums text-foreground">
+            <span className="text-sm font-semibold tabular-nums text-[#4A3825] dark:text-[oklch(0.85_0.04_80)]">
               {buildingCount}
             </span>
           </div>
 
-          {/* Region count */}
+          {/* Region count — territory marker */}
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <svg className="w-3.5 h-3.5 text-muted-foreground/50 dark:text-muted-foreground/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2 L22 8.5 L22 15.5 L12 22 L2 15.5 L2 8.5 Z" />
+            <span className="flex items-center gap-1.5 text-sm text-[#8C7655] dark:text-[oklch(0.6_0.012_80)]">
+              <svg className="w-3.5 h-3.5 text-[#C9A45C]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="6" cy="6" r="0.8" fill="currentColor" stroke="none" />
+                <circle cx="18" cy="8" r="0.6" fill="currentColor" stroke="none" opacity="0.7" />
+                <circle cx="12" cy="14" r="1" fill="currentColor" stroke="none" />
+                <path d="M6 6 L18 8 L12 14" strokeWidth="0.5" opacity="0.35" />
               </svg>
               {t("dashboard.regions")}
             </span>
-            <span className="text-sm font-semibold tabular-nums text-foreground">
+            <span className="text-sm font-semibold tabular-nums text-[#4A3825] dark:text-[oklch(0.85_0.04_80)]">
               {regionCount}
             </span>
           </div>
 
           {/* Active paths driving growth */}
           {activePathCount != null && activePathCount > 0 && (
-            <div className="flex items-center gap-2 rounded-lg bg-success/5 border border-success/20 px-3 py-2">
-              <span className="h-2 w-2 rounded-full bg-success animate-warm-pulse" />
-              <span className="text-xs text-success font-medium">
+            <div className="flex items-center gap-2 bg-[#C9A45C]/8 px-3 py-2" style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+              <span className="h-2 w-2 rounded-full bg-[#C9A45C] animate-glow-pulse" />
+              <span className="text-xs text-[#8C7655] dark:text-[oklch(0.6_0.012_80)] font-medium">
                 {activePathCount === 1
                   ? t("dashboard.pathDrivingOne")
                   : t("dashboard.pathDriving", { count: String(activePathCount) })}
@@ -123,7 +134,7 @@ export function WorldSnapshotWidget({
 
           <Link
             href="/world"
-            className="mt-2 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary/50 py-2 text-xs font-medium text-muted-foreground transition-all duration-300 hover:border-accent/30 hover:text-accent"
+            className="mt-2 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-[#8C7655] dark:text-[oklch(0.6_0.012_80)] transition-all duration-300 hover:text-[#C9A45C] border-t border-[#C9A45C]/15"
           >
             {t("dashboard.viewWorld")}
             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

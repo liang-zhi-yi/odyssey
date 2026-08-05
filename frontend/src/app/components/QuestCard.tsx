@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { QuestListItem } from "@/types/quest";
 import { DIFFICULTY_LABELS, QUEST_TYPE_LABELS } from "@/types/quest";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { StarRating, difficultyToLevel } from "./StarRating";
 import { BuildingBadge } from "./BuildingBadge";
 
@@ -67,7 +68,7 @@ export function QuestCard({ quest }: QuestCardProps) {
         {quest.skill_name && (
           <>
             <span className="text-muted-foreground/40">·</span>
-            <span className="truncate">{quest.skill_name}</span>
+            <span className="truncate">{skillDisplayName(quest.skill_name, undefined, locale)}</span>
           </>
         )}
         {quest.skill_id && (

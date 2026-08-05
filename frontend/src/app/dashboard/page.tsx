@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { skillService } from "@/services/skill.service";
 import { progressService } from "@/services/progress.service";
 import { questService } from "@/services/quest.service";
@@ -20,12 +21,13 @@ import { WorldSnapshotWidget } from "@/app/components/WorldSnapshotWidget";
 import { StreakWidget } from "@/app/components/StreakWidget";
 import { CivilizationArchive } from "@/app/components/CivilizationArchive";
 import { Loading } from "@/app/components/Loading";
+import { BuildingSealIcon, inferSkillId } from "@/app/components/CivArchiveTheme";
 import type { UserSkill } from "@/types/skill";
 import type { LearningPath } from "@/types/learningPath";
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
   const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
 
@@ -283,11 +285,16 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3 px-1">
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#C9A45C]/30 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-sm">
+      <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-[#F7F2E8]/60 to-[#F0E8D8]/40 dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)]"
+        style={{ clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}
+      >
         <svg className="w-4 h-4 text-[#C9A45C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-          {icon === "domain" && <><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" /><ellipse cx="12" cy="12" rx="10" ry="4" opacity="0.6" /><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" opacity="0.4" /></>}
-          {icon === "trajectory" && <path d="M3 17 L9 11 L13 15 L21 7 M21 7 L15 7 M21 7 L21 13" />}
-          {icon === "world" && <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" strokeWidth="1" /></>}
+          {/* Crystal Core — 能力领域 */}
+          {icon === "domain" && <><path d="M12 2 L18 9 L12 22 L6 9 Z" /><path d="M6 9 L18 9" strokeWidth="1" /><path d="M12 2 L12 22" strokeWidth="0.6" opacity="0.4" /></>}
+          {/* Star Map — 成长轨迹 */}
+          {icon === "trajectory" && <><path d="M3 17 L9 11 L13 15 L21 7" strokeWidth="1.4" /><circle cx="3" cy="17" r="1" fill="currentColor" stroke="none" /><circle cx="9" cy="11" r="0.8" fill="currentColor" stroke="none" opacity="0.7" /><circle cx="13" cy="15" r="0.8" fill="currentColor" stroke="none" opacity="0.7" /><circle cx="21" cy="7" r="1.2" fill="currentColor" stroke="none" /></>}
+          {/* Civilization Building — 文明世界 */}
+          {icon === "world" && <><path d="M7 21V8l5-4 5 4v13M7 21h10M9 21v-4h2v4M13 21v-4h2v4M9 12h2M13 12h2" /></>}
         </svg>
       </div>
       <div className="flex-1">
@@ -313,10 +320,15 @@ function SkillCodexCard({
   userSkills: UserSkill[];
   isLoading: boolean;
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   return (
-    <div className="rounded-2xl border border-[#C9A45C]/20 bg-[#F7F2E8] dark:bg-[oklch(0.17_0.015_70)] p-5 shadow-sm relative overflow-hidden h-full">
+    <div
+      className="relative bg-gradient-to-br from-[#F7F2E8]/70 to-[#F0E8D8]/40 dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-5 overflow-hidden h-full transition-all duration-300 hover:from-[#F7F2E8]/90 hover:to-[#F0E8D8]/60"
+      style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
+    >
+      {/* Top accent — gold gradient line */}
+      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent" />
       {/* Coordinates stamp */}
       <div className="absolute top-2 right-3 text-[8px] font-mono opacity-25 text-[#8C7655] dark:text-[oklch(0.6_0.012_80)] select-none">
         [S 12° 04' / E 77° 35']
@@ -324,8 +336,12 @@ function SkillCodexCard({
 
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <svg className="w-4 h-4 text-[#C9A45C] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2M4 4h16v16H4z M8 8h8M8 12h8M8 16h5" />
+        {/* Stone Tablet icon — 石碑 */}
+        <svg className="w-4 h-4 text-[#C9A45C] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 3 L18 3 L18 21 L6 21 Z" />
+          <line x1="9" y1="8" x2="15" y2="8" strokeWidth="0.8" opacity="0.6" />
+          <line x1="9" y1="12" x2="15" y2="12" strokeWidth="0.8" opacity="0.6" />
+          <line x1="9" y1="16" x2="13" y2="16" strokeWidth="0.8" opacity="0.6" />
         </svg>
         <h3 className="text-base font-bold font-civ-serif text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] truncate">
           {t("dashboard.sections.skillCodex")}
@@ -335,14 +351,17 @@ function SkillCodexCard({
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-4 w-full rounded-md bg-[#C9A45C]/15 skeleton-shimmer" />
+            <div key={i} className="h-4 w-full bg-[#C9A45C]/15 skeleton-shimmer" />
           ))}
         </div>
       ) : userSkills.length === 0 ? (
         <div className="py-8 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#C9A45C]/8 mb-3">
-            <svg className="w-5 h-5 text-[#C9A45C]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2M4 4h16v16H4z M8 8h8M8 12h8M8 16h5" strokeLinecap="round" strokeLinejoin="round" />
+          <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
+            {/* Inactive stone tablet */}
+            <svg className="w-6 h-6 text-[#C9A45C]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3 L18 3 L18 21 L6 21 Z" />
+              <line x1="9" y1="8" x2="15" y2="8" strokeWidth="0.8" opacity="0.5" />
+              <line x1="9" y1="12" x2="15" y2="12" strokeWidth="0.8" opacity="0.5" />
             </svg>
           </div>
           <p className="text-sm text-[#8C7655] dark:text-[oklch(0.6_0.012_80)]">
@@ -354,28 +373,20 @@ function SkillCodexCard({
           {userSkills.slice(0, 5).map((skill, i) => (
             <div
               key={skill.skill_id}
-              className="group flex items-center justify-between rounded-xl px-3 py-2 border border-transparent hover:border-[#C9A45C]/20 hover:bg-[#C9A45C]/5 transition-all duration-300 hover:translate-x-0.5"
+              className="group flex items-center justify-between px-3 py-2 hover:bg-[#C9A45C]/8 transition-all duration-300 hover:translate-x-0.5"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <div className="flex items-center gap-3 min-w-0">
-                {/* Hexagonal bullet */}
-                <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 2 L22 8.5 L22 15.5 L12 22 L2 15.5 L2 8.5 Z"
-                    fill={skillMasteryColor(skill.overall)}
-                    opacity="0.15"
-                    stroke={skillMasteryColor(skill.overall)}
-                    strokeWidth="1.5"
-                  />
-                </svg>
+                {/* Skill Ruin — BuildingSealIcon 技能遗迹 */}
+                <BuildingSealIcon type={inferSkillId(skill.skill_name || "", skill.skill_id)} size={28} className="flex-shrink-0" />
                 <span className="text-sm font-semibold text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] truncate group-hover:text-[#C9A45C] transition-colors">
-                  {skill.skill_name}
+                  {skillDisplayName(skill.skill_name, undefined, locale)}
                 </span>
               </div>
               <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                {/* Rank badge */}
+                {/* Rank badge — stone seal style */}
                 <span
-                  className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded"
+                  className="text-[9px] font-bold tracking-wider px-1.5 py-0.5"
                   style={{
                     color: skillMasteryColor(skill.overall),
                     backgroundColor: `${skillMasteryColor(skill.overall).replace(")", " / 0.08)")}`,

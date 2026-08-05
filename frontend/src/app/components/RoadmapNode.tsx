@@ -19,7 +19,8 @@ interface RoadmapNodeProps {
  */
 export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
   const { locale } = useLocale();
-  const [expanded, setExpanded] = useState(node.status === "ACTIVE");
+  // Subtasks are collapsed by default (reduce info density).
+  const [expanded, setExpanded] = useState(false);
   const [expandedCheckpoint, setExpandedCheckpoint] = useState<string | null>(null);
 
   const displayTitle =
@@ -30,7 +31,9 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
       ? node.associated_building.name_en
       : node.associated_building?.name;
 
-  // Status-based colors
+  // Unified Odyssey palette — warm gold (done) / warm olive (active) /
+  // warm parchment beige (locked). No gray "muted" tones so the three
+  // states read as one coherent warm family.
   const statusStyles = {
     COMPLETED: {
       ring: "border-[#C4A77D] bg-[#C4A77D]/10",
@@ -39,16 +42,16 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
       badge: "bg-[#C4A77D]/15 text-[#8B7355]",
     },
     ACTIVE: {
-      ring: "border-[#8B9D83] bg-[#8B9D83]/10",
-      dot: "bg-[#8B9D83] animate-warm-pulse",
-      text: "text-[#5C7A5C]",
-      badge: "bg-[#8B9D83]/15 text-[#5C7A5C]",
+      ring: "border-[#A08C5A] bg-[#A08C5A]/10",
+      dot: "bg-[#A08C5A] animate-warm-pulse",
+      text: "text-[#8B7355]",
+      badge: "bg-[#A08C5A]/15 text-[#7A6840]",
     },
     LOCKED: {
       ring: "border-[#D4C9BE] bg-[#FAF7F2]/50",
       dot: "bg-[#D4C9BE]",
-      text: "text-muted-foreground",
-      badge: "bg-muted text-muted-foreground",
+      text: "text-[#A89B8A]",
+      badge: "bg-[#D4C9BE]/25 text-[#8A7B68]",
     },
   };
 
@@ -65,21 +68,27 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
         >
           <span className={`h-3 w-3 rounded-full ${s.dot}`} />
         </button>
-        {/* Connector line */}
+        {/* Connector line — enhanced with gradient for the current branch */}
         {!isLast && (
           <div
             className={`w-0.5 flex-1 min-h-[2rem] ${
-              node.status === "COMPLETED" ? "bg-[#C4A77D]/40" : "bg-[#D4C9BE]/40"
+              node.status === "LOCKED"
+                ? "bg-[oklch(0.6_0.10_85_/_0.12)]"
+                : "bg-gradient-to-b from-[#C4A77D]/55 to-[#C4A77D]/20"
             }`}
           />
         )}
       </div>
 
-      {/* Content column */}
-      <div className={`flex-1 min-w-0 pb-6 ${!isLast ? "" : ""}`}>
+      {/* Content column — locked nodes fade, active node is emphasized */}
+      <div className={`flex-1 min-w-0 pb-6 ${node.status === "LOCKED" ? "opacity-55" : ""}`}>
         <div
           className={`rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-300 ${
-            node.status === "ACTIVE" ? "ring-1 ring-[#8B9D83]/20" : ""
+            node.status === "ACTIVE"
+              ? "ring-2 ring-[#A08C5A]/30 border-[#A08C5A]/40"
+              : node.status === "COMPLETED"
+              ? "border-[#C4A77D]/30"
+              : ""
           }`}
         >
           {/* Header row */}
@@ -124,10 +133,14 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
           </div>
 
           {/* Progress bar */}
-          <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+          <div className="mt-2 h-1 rounded-full bg-secondary overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-700 ${
-                node.status === "COMPLETED" ? "bg-[#C4A77D]" : "bg-[#8B9D83]"
+                node.status === "LOCKED"
+                  ? "bg-[#D4C9BE]"
+                  : node.status === "ACTIVE"
+                  ? "bg-[#A08C5A]"
+                  : "bg-[#C4A77D]"
               }`}
               style={{ width: `${node.progress_pct}%` }}
             />
@@ -163,7 +176,7 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
                       className="w-full flex items-center gap-2 text-left"
                     >
                       {cp.is_completed ? (
-                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#8B9D83] flex items-center justify-center">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#C4A77D] flex items-center justify-center">
                           <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
@@ -204,7 +217,7 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
                     {totalSubs > 0 && (
                       <div className="h-1 rounded-full bg-secondary overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-[#8B9D83] transition-all duration-500"
+                          className="h-full rounded-full bg-[#A08C5A] transition-all duration-500"
                           style={{ width: `${cpProgress}%` }}
                         />
                       </div>
@@ -226,7 +239,7 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
                                 className="flex items-center gap-2 rounded bg-background/60 px-2.5 py-1.5"
                               >
                                 {isPassed ? (
-                                  <span className="flex-shrink-0 w-3.5 h-3.5 rounded-full bg-[#8B9D83] flex items-center justify-center">
+                                  <span className="flex-shrink-0 w-3.5 h-3.5 rounded-full bg-[#C4A77D] flex items-center justify-center">
                                     <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
@@ -240,7 +253,7 @@ export function RoadmapNode({ node, isLast, pathId }: RoadmapNodeProps) {
                                 {q.quest_id && (
                                   <Link
                                     href={`/quests/${q.quest_id}`}
-                                    className="shrink-0 inline-flex items-center gap-0.5 rounded bg-[#8B9D83]/10 border border-[#8B9D83]/20 px-2 py-0.5 text-[10px] font-medium text-[#5C7A5C] hover:bg-[#8B9D83]/20 transition-colors"
+                                    className="shrink-0 inline-flex items-center gap-0.5 rounded bg-[#A08C5A]/10 border border-[#A08C5A]/20 px-2 py-0.5 text-[10px] font-medium text-[#7A6840] hover:bg-[#A08C5A]/20 transition-colors"
                                   >
                                     {locale === "zh" ? "去完成任务" : "Go to Quest"}
                                     <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

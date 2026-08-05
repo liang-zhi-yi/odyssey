@@ -6,6 +6,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { skillService } from "@/services/skill.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -261,7 +262,7 @@ export default function CivilizationDetailPage() {
                         style={{ backgroundColor: masteryColor(us.overall) }}
                       />
                     )}
-                    {skill.name}
+                    {skillDisplayName(skill.name, skill.name_en, locale)}
                     {us && (
                       <span className="text-[10px] text-[oklch(0.4_0.02_80)] font-mono tabular-nums ml-1">
                         {us.overall}

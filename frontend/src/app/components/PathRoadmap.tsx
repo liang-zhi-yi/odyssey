@@ -62,7 +62,7 @@ export function PathRoadmap({ nodes, pathId }: PathRoadmapProps) {
           {locale === "zh" ? "已完成" : "Done"}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#8B9D83] animate-warm-pulse" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#A08C5A] animate-warm-pulse" />
           {locale === "zh" ? "进行中" : "Active"}
         </span>
         <span className="inline-flex items-center gap-1">

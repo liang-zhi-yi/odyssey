@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { skillService } from "@/services/skill.service";
 import { worldService } from "@/services/world.service";
 import { progressService } from "@/services/progress.service";
@@ -20,7 +21,7 @@ export default function SkillDetailPage() {
   const { id: skillId } = useParams<{ id: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -108,7 +109,7 @@ export default function SkillDetailPage() {
 
       <div>
         <h1 className="text-2xl font-bold">
-          {userSkill.skill_name || userSkill.skill_id}
+          {skillDisplayName(userSkill.skill_name, undefined, locale) || userSkill.skill_id}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t("skills.detailSubtitle")}
@@ -117,7 +118,7 @@ export default function SkillDetailPage() {
 
       {/* Score card with radar */}
       <ScoreCard
-        title={userSkill.skill_name || userSkill.skill_id}
+        title={skillDisplayName(userSkill.skill_name, undefined, locale) || userSkill.skill_id}
         overall={userSkill.overall}
         scores={{
           knowledge: userSkill.knowledge,
@@ -172,7 +173,7 @@ export default function SkillDetailPage() {
         <div className="rounded-xl border border-border bg-background p-4">
           <ProgressTimeline
             points={growthPoints}
-            skillName={userSkill.skill_name || skillId}
+            skillName={skillDisplayName(userSkill.skill_name, undefined, locale) || skillId}
             isLoading={growthLoading}
           />
         </div>

@@ -492,14 +492,6 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-                {!isAuthenticated && (
-                  <Link
-                    href="/auth"
-                    className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-7 py-3 text-sm font-bold font-civ-serif text-foreground transition-all duration-300 hover:border-primary/30 hover:bg-secondary/50 btn-press"
-                  >
-                    {t("landing.secondaryCta")}
-                  </Link>
-                )}
               </div>
             </div>
 

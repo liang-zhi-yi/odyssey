@@ -8,6 +8,7 @@ import { RANK_LABELS } from "@/types/skill";
 import { CIVILIZATION_GROUPS } from "@/types/world";
 import { masteryColor } from "@/app/components/GrowthRing";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { QuestScrollIcon } from "./QuestScrollIcon";
 
 /**
@@ -113,7 +114,8 @@ export function SkillTreeSidebar({
         skills: group.skills.filter(
           (s) =>
             s.name.toLowerCase().includes(q) ||
-            (s.name_en && s.name_en.toLowerCase().includes(q))
+            (s.name_en && s.name_en.toLowerCase().includes(q)) ||
+            skillDisplayName(s.name, s.name_en, "zh").toLowerCase().includes(q)
         ),
       }))
       .filter((g) => g.skills.length > 0);
@@ -333,7 +335,7 @@ export function SkillTreeSidebar({
                                     : "text-[oklch(0.5_0.02_85)]"
                               }`}
                             >
-                              {skill.name}
+                              {skillDisplayName(skill.name, skill.name_en, locale)}
                             </span>
 
                             {/* Score or rank */}

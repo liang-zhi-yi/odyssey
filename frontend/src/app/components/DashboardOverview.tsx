@@ -4,6 +4,7 @@ import { Loading } from "./Loading";
 import type { UserSkill } from "@/types/skill";
 import type { LearningPath } from "@/types/learningPath";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 
 interface DashboardOverviewProps {
   userSkills: UserSkill[];
@@ -23,7 +24,7 @@ export function DashboardOverview({
   currentPath,
   isLoading,
 }: DashboardOverviewProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   if (isLoading) {
     return <Loading text={t("common.loading")} />;
@@ -62,7 +63,7 @@ export function DashboardOverview({
     {
       label: t("dashboard.topRank"),
       value: topSkill?.rank || "—",
-      sub: topSkill?.skill_name || t("dashboard.completeFirstQuest"),
+      sub: topSkill?.skill_name ? skillDisplayName(topSkill.skill_name, undefined, locale) : t("dashboard.completeFirstQuest"),
     },
   ];
 

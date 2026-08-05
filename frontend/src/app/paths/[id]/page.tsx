@@ -5,6 +5,7 @@ import useSWR, { mutate } from "swr";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { learningPathService } from "@/services/learningPath.service";
 import { PathRoadmap } from "@/app/components/PathRoadmap";
 import { Loading } from "@/app/components/Loading";
@@ -336,6 +337,42 @@ export default function PathDetailPage() {
       ? PATH_STATUS_LABELS_ZH[path.status] ?? path.status
       : PATH_STATUS_LABELS[path.status] ?? path.status;
 
+  // Low-key text status marker (◉ ◎ ○) — no colored pill backgrounds.
+  const statusMark =
+    path.status === "COMPLETED" ? "◎" : path.status === "ABANDONED" ? "○" : "◉";
+
+  // ── Path metrics for the horizontal inscription bar ──────────
+  const totalCheckpoints =
+    path.milestones?.reduce((sum, m) => sum + (m.checkpoints?.length || 0), 0) || 0;
+  const targetedBuildings = path.targeted_buildings ?? [];
+  const pathMetrics: { icon: ScrollIconName; label: string; value: string }[] = [
+    {
+      icon: "mission",
+      label: locale === "zh" ? "当前阶段" : "Stage",
+      value: currentStage ? `${currentStage.idx + 1}/${currentStage.total}` : "—",
+    },
+    {
+      icon: "scroll",
+      label: locale === "zh" ? "总阶段" : "Stages",
+      value: String(path.milestone_count || 0),
+    },
+    {
+      icon: "checklist",
+      label: locale === "zh" ? "节点" : "Checkpoints",
+      value: String(totalCheckpoints),
+    },
+    {
+      icon: "hourglass",
+      label: locale === "zh" ? "预计剩余" : "Est. Time",
+      value: `${estimatedRemaining}h`,
+    },
+    {
+      icon: "star",
+      label: locale === "zh" ? "文明增益" : "Civ Gain",
+      value: `+${civIndexGain}`,
+    },
+  ];
+
   // ── Handlers ────────────────────────────────────────────────
   const handleEdit = () => {
     setEditTitle(path.title);
@@ -378,13 +415,6 @@ export default function PathDetailPage() {
     } catch { /* SWR handles */ } finally {
       setRegenerating(false);
     }
-  };
-
-  // ── Styles ──────────────────────────────────────────────────
-  const warmStyles = {
-    sage: "#8B9D83",
-    cream: "#C4A77D",
-    progressBg: "bg-[#8B9D83]",
   };
 
   return (
@@ -454,125 +484,130 @@ export default function PathDetailPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          CIVILIZATION ROUTE HEADER
+          PATH INSCRIPTION — 路径铭牌
+          Unifies the upper info area into the Odyssey archive language:
+          no cards, thin warm-gold lines, low-key status, thin growth line.
           ═══════════════════════════════════════════════════════════ */}
-      <div className="rounded-2xl border border-border bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-6 shadow-card space-y-4">
+      <div className="border-y border-[oklch(0.6_0.10_85_/_0.4)] py-6 space-y-5">
+        {/* ── Title row + low-key status ── */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
-            {/* Civilization badge */}
             {civInfo && (
-              <div className="flex items-center gap-2 mb-2">
-                <QuestScrollIcon name={civInfo.icon} size={18} />
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#C4A77D]/15 text-[#8B7355] border border-[#C4A77D]/25">
-                  {locale === "en" ? civInfo.en : civInfo.zh}
-                </span>
+              <div className="flex items-center gap-2 mb-2 text-[oklch(0.55_0.10_85)]">
+                <QuestScrollIcon name={civInfo.icon} size={15} />
+                <span className="text-xs tracking-wide">{locale === "en" ? civInfo.en : civInfo.zh}</span>
                 {path.path_type === "AI_GENERATED" && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#8B9D83]/10 text-[#8B9D83] border border-[#8B9D83]/20">
-                    AI {locale === "zh" ? "定制" : "Custom"}
-                  </span>
+                  <>
+                    <span className="text-[oklch(0.6_0.10_85_/_0.4)]">·</span>
+                    <span className="text-[10px] italic text-muted-foreground">AI {locale === "zh" ? "定制" : "Custom"}</span>
+                  </>
                 )}
               </div>
             )}
-            <h1 className="text-2xl font-bold text-[oklch(0.3_0.02_80)]">{path.title}</h1>
+            <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+              {path.title}
+            </h1>
             {path.description && (
-              <p className="text-sm text-muted-foreground mt-1">{path.description}</p>
+              <p className="mt-1.5 max-w-2xl text-sm italic leading-relaxed text-muted-foreground">
+                {path.description}
+              </p>
             )}
           </div>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-            path.status === "COMPLETED"
-              ? "bg-[#8B9D83]/15 text-[#8B9D83] border border-[#8B9D83]/25"
-              : path.status === "ABANDONED"
-              ? "bg-muted/50 text-muted-foreground border border-border"
-              : "bg-[#C4A77D]/15 text-[#8B7355] border border-[#C4A77D]/25"
-          }`}>
+          <span
+            className={`shrink-0 text-xs tracking-wide ${
+              path.status === "COMPLETED"
+                ? "text-[oklch(0.5_0.05_80)]"
+                : path.status === "ABANDONED"
+                ? "text-muted-foreground"
+                : "text-[oklch(0.55_0.10_85)]"
+            }`}
+          >
+            <span className="mr-1.5" aria-hidden>{statusMark}</span>
             {statusLabel}
           </span>
         </div>
 
-        {/* Current stage banner */}
+        {/* ── Current stage (low-key, no card) ── */}
         {currentStage && (
-          <div className="rounded-xl border border-[#C4A77D]/20 bg-[#C4A77D]/5 p-4 flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <QuestScrollIcon name={currentStage.isComplete ? "star" : "mission"} size={24} />
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {locale === "zh" ? "当前阶段" : "Current Stage"}
-                </p>
-                <p className="text-sm font-semibold">
-                  {currentStage.isComplete
-                    ? locale === "zh"
-                      ? "全部完成"
-                      : "All Complete"
-                    : locale === "en" && currentStage.title_en
-                    ? currentStage.title_en
-                    : currentStage.title}
-                  <span className="text-xs text-muted-foreground ml-1">
-                    ({currentStage.idx + 1}/{currentStage.total})
-                  </span>
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <QuestScrollIcon
+              name={currentStage.isComplete ? "star" : "mission"}
+              size={14}
+              className="text-[oklch(0.6_0.10_85)]"
+            />
+            <span className="font-medium text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+              {currentStage.isComplete
+                ? locale === "zh" ? "全部阶段已完成" : "All stages complete"
+                : locale === "en" && currentStage.title_en
+                ? currentStage.title_en
+                : currentStage.title}
+            </span>
+            {!currentStage.isComplete && (
+              <span className="text-[oklch(0.6_0.10_85)]">
+                · {currentStage.idx + 1}/{currentStage.total}
+              </span>
+            )}
             {currentStage.building_target && (
-              <div className="flex items-center gap-2 ml-auto">
-                <span className="text-xs text-muted-foreground">
-                  {locale === "zh" ? "目标建筑" : "Target Building"}:
-                </span>
-                <span className="text-lg">{currentStage.building_target.icon}</span>
-                <span className="text-sm font-medium">
+              <span className="inline-flex items-center gap-1 ml-1">
+                <span className="text-sm">{currentStage.building_target.icon}</span>
+                <span className="text-muted-foreground">
                   {locale === "en" && currentStage.building_target.name_en
                     ? currentStage.building_target.name_en
                     : currentStage.building_target.name}
                 </span>
-              </div>
+              </span>
             )}
           </div>
         )}
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="rounded-xl bg-background/60 border border-border/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">{locale === "zh" ? "总阶段" : "Stages"}</p>
-            <p className="text-lg font-bold">{path.milestone_count || 0}</p>
-          </div>
-          <div className="rounded-xl bg-background/60 border border-border/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">{locale === "zh" ? "总节点" : "Checkpoints"}</p>
-            <p className="text-lg font-bold">
-              {path.milestones?.reduce((sum, m) => sum + (m.checkpoints?.length || 0), 0) || 0}
-            </p>
-          </div>
-          <div className="rounded-xl bg-background/60 border border-border/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">{locale === "zh" ? "预计剩余" : "Est. Remaining"}</p>
-            <p className="text-lg font-bold">{estimatedRemaining}h</p>
-          </div>
-          <div className="rounded-xl bg-background/60 border border-border/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">{locale === "zh" ? "文明指数" : "Civ Index"}</p>
-            <p className="text-lg font-bold text-[#8B9D83]">+{civIndexGain}</p>
-          </div>
+        {/* ── Horizontal metrics bar — thin-line separated, no cards ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[oklch(0.6_0.10_85_/_0.22)] border-y border-[oklch(0.6_0.10_85_/_0.3)]">
+          {pathMetrics.map((m) => (
+            <div key={m.label} className="flex items-center gap-2.5 px-3 py-3">
+              <QuestScrollIcon name={m.icon} size={15} className="shrink-0 text-[oklch(0.6_0.10_85)]" />
+              <div className="min-w-0">
+                <div className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground/80">
+                  {m.label}
+                </div>
+                <div className="mt-0.5 font-mono text-base font-bold leading-tight text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+                  {m.value}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Progress bar */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{locale === "zh" ? "完成率" : "Completion"}</span>
-            <span className="text-sm font-bold">{path.progress_pct}%</span>
+        {/* ── Thin growth trajectory (replaces the progress bar) ── */}
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground/70">
+              {locale === "zh" ? "成长进度" : "Growth"}
+            </span>
+            <span className="font-mono text-[10px] font-bold text-[oklch(0.55_0.10_85)]">
+              {path.progress_pct}%
+            </span>
           </div>
-          <div className="h-2.5 rounded-full bg-[oklch(0.92_0.01_90)] overflow-hidden border border-border/30">
+          <div className="relative h-px w-full bg-[oklch(0.6_0.10_85_/_0.18)]">
             <div
-              className={`h-full rounded-full transition-all duration-700 ${warmStyles.progressBg}`}
+              className="absolute left-0 top-0 h-px bg-gradient-to-r from-[oklch(0.6_0.10_85_/_0.35)] to-[#C9A45C] transition-all duration-700"
               style={{ width: `${path.progress_pct}%` }}
+            />
+            <span
+              className="absolute top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-[#C9A45C] transition-all duration-700"
+              style={{ left: `calc(${path.progress_pct}% - 3px)` }}
             />
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+        {/* ── Actions ── */}
+        <div className="flex items-center gap-2 pt-1 border-t border-[oklch(0.6_0.10_85_/_0.2)]">
           <button onClick={handleEdit}
-            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+            className="rounded-lg border border-[oklch(0.6_0.10_85_/_0.3)] px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-[#C4A77D]/10 hover:text-[oklch(0.45_0.10_85)] transition-colors">
             {locale === "zh" ? "编辑" : "Edit"}
           </button>
           {path.path_type === "AI_GENERATED" && (
             <button onClick={handleRegenerate} disabled={regenerating}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50">
+              className="rounded-lg border border-[oklch(0.6_0.10_85_/_0.3)] px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-[#C4A77D]/10 hover:text-[oklch(0.45_0.10_85)] transition-colors disabled:opacity-50">
               {regenerating ? (locale === "zh" ? "重新生成中..." : "Regenerating...") : (locale === "zh" ? "重新生成" : "Regenerate")}
             </button>
           )}
@@ -587,9 +622,10 @@ export default function PathDetailPage() {
       {/* ═══════════════════════════════════════════════════════════
           MAIN CONTENT: 70/30 SPLIT — Unified Roadmap (milestones merged)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">
-          {locale === "zh" ? "文明发展路线图" : "Civilization Development Roadmap"}
+      <div className="border-b border-[oklch(0.6_0.10_85_/_0.3)] pb-2">
+        <h2 className="flex items-center gap-2 text-base font-bold font-civ-serif text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+          <QuestScrollIcon name="world-core" size={16} className="text-[oklch(0.6_0.10_85)]" />
+          {locale === "zh" ? "文明发展路线图" : "Civilization Roadmap"}
         </h2>
       </div>
 
@@ -597,7 +633,7 @@ export default function PathDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left 70% — Civilization Roadmap Timeline */}
         <div className="lg:col-span-3 min-w-0">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-card overflow-hidden">
+          <div className="border-y border-[oklch(0.6_0.10_85_/_0.3)] py-5">
             {roadmapNodes.length > 0 ? (
               <PathRoadmap nodes={roadmapNodes} pathId={pathId} />
             ) : (
@@ -610,34 +646,42 @@ export default function PathDetailPage() {
             )}
           </div>
 
-          {/* Building targets summary */}
-          {path.targeted_buildings && path.targeted_buildings.length > 0 && (
-            <div className="mt-4 rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.98_0.005_90)] to-[oklch(0.96_0.01_92)] p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <QuestScrollIcon name="building" size={18} />
-                <h3 className="text-sm font-semibold">
-                  {locale === "zh" ? "可解锁/升级建筑" : "Unlockable Buildings"}
+          {/* ── Associated building nodes (aligned with route nodes) ── */}
+          {targetedBuildings.length > 0 && (
+            <div className="mt-6 border-b border-[oklch(0.6_0.10_85_/_0.3)] pb-5">
+              <div className="flex items-center gap-2 mb-3">
+                <QuestScrollIcon name="building" size={15} className="text-[oklch(0.6_0.10_85)]" />
+                <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+                  {locale === "zh" ? "关联建筑" : "Buildings"}
                 </h3>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {path.targeted_buildings.map((tb) => (
-                  <a key={tb.building_id} href={`/world?building=${tb.building_id}`}
-                    className="flex items-center gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-[oklch(0.97_0.005_92)] px-4 py-3 transition-all hover:shadow-card hover:border-[#C4A77D]/30 group">
-                    <span className="text-2xl group-hover:scale-110 transition-transform inline-flex items-center justify-center">{tb.building_icon || <QuestScrollIcon name="building" size={24} />}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {locale === "en" && tb.building_name_en ? tb.building_name_en : tb.building_name}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {tb.remaining_milestones > 0
-                          ? `${tb.remaining_milestones} ${locale === "zh" ? "个里程碑可推动升级" : "milestones to upgrade"}`
-                          : locale === "zh" ? "已完成所有里程碑" : "All milestones completed"}
-                      </p>
+              <div className="space-y-1">
+                {targetedBuildings.map((tb, idx) => (
+                  <div key={tb.building_id} className="relative flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[oklch(0.6_0.10_85_/_0.4)] bg-[#F7EFE0] text-sm dark:bg-[oklch(0.2_0.008_85)]">
+                        {tb.building_icon || <QuestScrollIcon name="building" size={15} />}
+                      </span>
+                      {idx < targetedBuildings.length - 1 && (
+                        <div className="w-px flex-1 min-h-[1.25rem] bg-gradient-to-b from-[oklch(0.6_0.10_85_/_0.4)] to-[oklch(0.6_0.10_85_/_0.08)]" />
+                      )}
                     </div>
-                    <svg className="w-3 h-3 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                  </a>
+                    <a
+                      href={`/world?building=${tb.building_id}`}
+                      className="group flex-1 min-w-0 border-l border-[oklch(0.6_0.10_85_/_0.25)] pl-3 pb-5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-medium text-[oklch(0.35_0.02_80)] transition-colors group-hover:text-[oklch(0.45_0.10_85)] dark:text-[oklch(0.85_0.04_80)]">
+                          {locale === "en" && tb.building_name_en ? tb.building_name_en : tb.building_name}
+                        </span>
+                        <span className="shrink-0 text-[10px] text-muted-foreground">
+                          {tb.remaining_milestones > 0
+                            ? `${tb.remaining_milestones} ${locale === "zh" ? "里程碑" : "milestones"}`
+                            : locale === "zh" ? "已完成" : "Done"}
+                        </span>
+                      </div>
+                    </a>
+                  </div>
                 ))}
               </div>
             </div>
@@ -687,35 +731,9 @@ function EnhancedMentorPanel({
 }) {
   const { locale } = useLocale();
 
-  // Collect building targets from all milestones
-  const buildingTargets = useMemo(() => {
-    if (!milestones) return [];
-    const seen = new Set<string>();
-    const result: any[] = [];
-    for (const ms of milestones) {
-      if (ms.building_target && !seen.has(ms.building_target.id)) {
-        seen.add(ms.building_target.id);
-        result.push(ms.building_target);
-      }
-    }
-    return result;
-  }, [milestones]);
-
-  // Count total quests generated
-  const totalQuests = useMemo(() => {
-    if (!milestones) return 0;
-    return milestones.reduce(
-      (sum: number, ms: any) =>
-        sum + (ms.checkpoints?.reduce(
-          (cSum: number, cp: any) => cSum + (cp.generated_quests?.length || 0), 0
-        ) || 0),
-      0
-    );
-  }, [milestones]);
-
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-card sticky top-20">
+      <div className="border-y border-[oklch(0.6_0.10_85_/_0.3)] py-5 space-y-4 sticky top-20">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-muted skeleton-shimmer" />
           <div className="h-4 w-24 rounded-md bg-muted skeleton-shimmer" />
@@ -727,160 +745,119 @@ function EnhancedMentorPanel({
     );
   }
 
+  const recommended = suggestion?.recommended_quests?.slice(0, 3) ?? [];
+
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden sticky top-20">
-      {/* Mentor header */}
-      <div className="bg-gradient-to-r from-[#8B9D83]/10 to-[#C4A77D]/10 px-5 py-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <QuestScrollIcon name="sparkle" size={24} />
-          <div>
-            <h3 className="text-sm font-semibold text-[oklch(0.35_0.02_80)]">
-              {locale === "zh" ? "奥德赛导师" : "Odyssey Mentor"}
-            </h3>
-            <p className="text-[10px] text-muted-foreground">
-              {locale === "zh" ? "专属AI成长伙伴" : "AI Growth Companion"}
-            </p>
-          </div>
+    <div className="border-y border-[oklch(0.6_0.10_85_/_0.3)] py-5 space-y-5 sticky top-20">
+      {/* ── Header ── */}
+      <div className="flex items-center gap-2">
+        <QuestScrollIcon name="path" size={18} className="text-[oklch(0.6_0.10_85)]" />
+        <div>
+          <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+            {locale === "zh" ? "路径分析记录" : "Path Analysis"}
+          </h3>
+          <p className="text-[10px] text-muted-foreground">
+            {locale === "zh" ? "成长进程与下一步" : "Progress & next steps"}
+          </p>
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
-        {/* ── Current Stage ── */}
-        {currentStage && (
-          <div className="rounded-xl bg-[#8B9D83]/5 border border-[#8B9D83]/10 p-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              <QuestScrollIcon name="mission" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "当前阶段" : "Current Stage"}
-            </p>
-            <p className="text-sm font-semibold">
-              {currentStage.isComplete
-                ? <><QuestScrollIcon name="star" size={14} className="inline-block align-middle mr-1" />{locale === "zh" ? "全部完成！" : "All Complete!"}</>
-                : locale === "en" && currentStage.title_en
-                ? currentStage.title_en
-                : currentStage.title}
-            </p>
-            {!currentStage.isComplete && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {locale === "zh"
-                  ? `第 ${currentStage.idx + 1} 阶段 / 共 ${currentStage.total} 阶段`
-                  : `Stage ${currentStage.idx + 1} of ${currentStage.total}`}
-              </p>
-            )}
-          </div>
+      {/* ── 当前阶段 ── */}
+      <div className="border-l-2 border-[oklch(0.6_0.10_85_/_0.4)] pl-3">
+        <p className="mb-1 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80">
+          {locale === "zh" ? "当前阶段" : "Current Stage"}
+        </p>
+        <p className="text-sm font-medium text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+          {currentStage?.isComplete ? (
+            <>
+              <QuestScrollIcon name="star" size={13} className="mr-1 inline-block align-middle text-[oklch(0.6_0.10_85)]" />
+              {locale === "zh" ? "全部完成" : "All complete"}
+            </>
+          ) : currentStage ? (
+            locale === "en" && currentStage.title_en ? currentStage.title_en : currentStage.title
+          ) : (
+            "—"
+          )}
+        </p>
+        {currentStage && !currentStage.isComplete && (
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            {locale === "zh"
+              ? `第 ${currentStage.idx + 1} / ${currentStage.total} 阶段`
+              : `Stage ${currentStage.idx + 1} of ${currentStage.total}`}
+          </p>
         )}
+      </div>
 
-        {/* ── Stats ── */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-[#C4A77D]/5 border border-[#C4A77D]/10 p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground">{locale === "zh" ? "完成率" : "Progress"}</p>
-            <p className="text-lg font-bold text-[oklch(0.35_0.02_80)]">{progressPct}%</p>
-          </div>
-          <div className="rounded-lg bg-[#C4A77D]/5 border border-[#C4A77D]/10 p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground">{locale === "zh" ? "预计剩余" : "Est. Remaining"}</p>
-            <p className="text-lg font-bold text-[oklch(0.35_0.02_80)]">{estimatedRemaining}h</p>
-          </div>
-        </div>
-
-        {/* ── Civilization Index Gain ── */}
-        <div className="rounded-xl bg-gradient-to-br from-[#8B9D83]/8 to-[#8B9D83]/3 border border-[#8B9D83]/15 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-[#8B9D83] mb-1 font-medium">
-            <QuestScrollIcon name="reasoning" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "可获得文明指数" : "Civilization Index"}
+      {/* ── 完成预计 (thin-line metrics, no cards) ── */}
+      <div className="flex divide-x divide-[oklch(0.6_0.10_85_/_0.22)] border-y border-[oklch(0.6_0.10_85_/_0.3)]">
+        <div className="flex-1 px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {locale === "zh" ? "完成预计" : "Progress"}
           </p>
-          <p className="text-xl font-bold text-[#6B8D73]">+{civIndexGain}</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">
-            {locale === "zh" ? "完成剩余任务后获得" : "Upon completing remaining quests"}
+          <p className="mt-0.5 font-mono text-lg font-bold text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+            {progressPct}%
           </p>
         </div>
+        <div className="flex-1 px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {locale === "zh" ? "预计剩余" : "Remaining"}
+          </p>
+          <p className="mt-0.5 font-mono text-lg font-bold text-[oklch(0.35_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
+            {estimatedRemaining}h
+          </p>
+        </div>
+        <div className="flex-1 px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {locale === "zh" ? "文明增益" : "Civ Gain"}
+          </p>
+          <p className="mt-0.5 font-mono text-lg font-bold text-[oklch(0.5_0.07_90)]">
+            +{civIndexGain}
+          </p>
+        </div>
+      </div>
 
-        {/* ── Unlockable Buildings ── */}
-        {buildingTargets.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-2 font-medium">
-              <QuestScrollIcon name="building" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "可解锁/升级建筑" : "Unlockable Buildings"}
-            </p>
-            <div className="space-y-1.5">
-              {buildingTargets.map((b: any) => (
-                <div key={b.id} className="flex items-center gap-2 rounded-lg bg-secondary/30 px-3 py-2">
-                  <span className="text-lg inline-flex items-center justify-center">{b.icon || <QuestScrollIcon name="building" size={18} />}</span>
-                  <span className="text-xs font-medium">
-                    {locale === "en" && b.name_en ? b.name_en : b.name}
-                  </span>
+      {/* ── 推荐下一步 / 导师建议 ── */}
+      {recommended.length > 0 ? (
+        <div>
+          <p className="mb-2 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {locale === "zh" ? "推荐下一步" : "Recommended Next"}
+          </p>
+          <div className="space-y-1.5">
+            {recommended.map((q) => (
+              <a
+                key={q.quest_id}
+                href={`/quests/${q.quest_id}`}
+                className="group flex items-center gap-2 border-l border-[oklch(0.6_0.10_85_/_0.4)] py-1.5 pl-3 transition-colors hover:border-[#C4A77D]"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-xs font-medium text-[oklch(0.35_0.02_80)] transition-colors group-hover:text-[oklch(0.45_0.10_85)] dark:text-[oklch(0.85_0.04_80)]">
+                    {q.title}
+                  </p>
+                  {q.skill_name && (
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      {skillDisplayName(q.skill_name, undefined, locale)}
+                    </p>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Quest Count ── */}
-        <div className="flex items-center gap-3 rounded-lg bg-secondary/20 px-3 py-2.5">
-          <QuestScrollIcon name="checklist" size={18} />
-          <div>
-            <p className="text-xs font-medium">{totalQuests} {locale === "zh" ? "个任务" : "quests"}</p>
-            <p className="text-[10px] text-muted-foreground">
-              {locale === "zh" ? "已完成路径自动生成" : "Auto-generated from path"}
-            </p>
+                <QuestScrollIcon
+                  name="arrow-right"
+                  size={12}
+                  className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                />
+              </a>
+            ))}
           </div>
         </div>
-
-        {/* ── Mentor suggestion ── */}
-        {suggestion?.current_suggestion && (
-          <div className="rounded-xl bg-[#8B9D83]/5 border border-[#8B9D83]/10 p-3">
-            <p className="text-[10px] text-muted-foreground mb-1">
-              <QuestScrollIcon name="sparkle" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "导师建议" : "Mentor Advice"}
-            </p>
-            <p className="text-xs leading-relaxed">{suggestion.current_suggestion}</p>
-          </div>
-        )}
-
-        {/* ── Recommended quests ── */}
-        {suggestion?.recommended_quests && suggestion.recommended_quests.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-2 font-medium">
-              <QuestScrollIcon name="mission" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "推荐下一步" : "Recommended Next"}
-            </p>
-            <div className="space-y-2">
-              {suggestion.recommended_quests.slice(0, 3).map((q) => (
-                <a
-                  key={q.quest_id}
-                  href={`/quests/${q.quest_id}`}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 transition-all hover:border-[#8B9D83]/30 hover:bg-[#8B9D83]/5 group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate group-hover:text-[oklch(0.35_0.02_80)]">{q.title}</p>
-                    {q.skill_name && (
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{q.skill_name}</p>
-                    )}
-                  </div>
-                  <svg className="w-3 h-3 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Quick Actions ── */}
-        <div className="pt-2 border-t border-border">
-          <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider">
-            <QuestScrollIcon name="application" size={12} className="inline-block align-middle mr-1" />{locale === "zh" ? "快捷操作" : "Quick Actions"}
+      ) : suggestion?.current_suggestion ? (
+        <div>
+          <p className="mb-1 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {locale === "zh" ? "导师建议" : "Mentor Advice"}
           </p>
-          <div className="flex flex-wrap gap-1.5">
-            <a href="/quests"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-[#8B9D83]/30 hover:bg-[#8B9D83]/5 transition-all">
-              <QuestScrollIcon name="checklist" size={12} /> {locale === "zh" ? "查看任务" : "View Quests"}
-            </a>
-            <a href="/world"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-[#C4A77D]/30 hover:bg-[#C4A77D]/5 transition-all">
-              <QuestScrollIcon name="civilization" size={12} /> {locale === "zh" ? "我的世界" : "My World"}
-            </a>
-            <button
-              className="inline-flex items-center gap-1 rounded-lg border border-[#8B9D83]/20 bg-[#8B9D83]/5 px-3 py-1.5 text-xs font-medium text-[#8B9D83] hover:bg-[#8B9D83]/10 transition-all"
-            >
-              <QuestScrollIcon name="sparkle" size={12} /> {locale === "zh" ? "询问导师" : "Ask Mentor"}
-            </button>
-          </div>
+          <p className="text-xs italic leading-relaxed text-muted-foreground">
+            {suggestion.current_suggestion}
+          </p>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

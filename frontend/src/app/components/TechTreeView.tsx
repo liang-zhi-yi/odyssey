@@ -6,6 +6,7 @@ import { worldService } from "@/services/world.service";
 import { getBuildingLevelLabel } from "@/types/world";
 import type { TechTreeNode, TechTreeData } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { BuildingSealIcon, CIV_COLORS, inferSkillId } from "./CivArchiveTheme";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 
@@ -324,7 +325,7 @@ function TechTreeNodeCard({
                 }
                 style={p.met ? { color: CIV_COLORS.darkRed } : undefined}
               >
-                {p.met ? <svg className="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : "○"} {p.skill_name}
+                {p.met ? <svg className="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : "○"} {skillDisplayName(p.skill_name, undefined, locale)}
               </span>
               <span
                 className={`font-mono tabular-nums ${

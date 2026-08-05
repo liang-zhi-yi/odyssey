@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { skillService } from "@/services/skill.service";
 import { worldService } from "@/services/world.service";
 import { badgeService } from "@/services/badge.service";
@@ -13,16 +14,23 @@ import { credentialService } from "@/services/credential.service";
 import { questService } from "@/services/quest.service";
 import { computeAggregateScores } from "@/lib/scores";
 import { resolveAvatarSrc } from "@/lib/avatar";
-import { RadarChart } from "@/app/components/RadarChart";
-import { GrowthTimeline } from "@/app/components/GrowthTimeline";
 import { Loading } from "@/app/components/Loading";
-import { masteryColor } from "@/app/components/GrowthRing";
 import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import type { ScrollIconName } from "@/app/components/QuestScrollIcon";
-import { BuildingSealIcon, inferSkillId } from "@/app/components/CivArchiveTheme";
+import {
+  AbilityEmblem,
+  BuildingSealIcon,
+  CopperDivider,
+  EraStoneIcon,
+  SealRing,
+  ParchmentBackground,
+  CIV_COLORS,
+  inferSkillId,
+} from "@/app/components/CivArchiveTheme";
 import {
   ERA_LABELS,
   CIVILIZATION_TIER_LABELS,
+  EVENT_TYPE_LABELS,
   type UserBuilding,
   type UserCompoundBuilding,
 } from "@/types/world";
@@ -46,45 +54,6 @@ const DOMAIN_GROUPS: { key: string; label: string; labelEn: string; icon: string
   { key: "society", label: "社会文明", labelEn: "Society", icon: "civilization", domains: ["MANAGEMENT", "CAREER", "MEDIA"] },
 ];
 
-// ── Icon helper for civilization icon name strings ───────────────
-
-function CivIcon({ name, size = 16, className = "" }: { name: string; size?: number; className?: string }) {
-  const scrollIcons = new Set([
-    "knowledge", "reasoning", "application", "creation", "building", "building-emblem",
-    "civilization", "world-core", "quest", "mission", "checklist", "scroll", "shield",
-    "arrow-left", "arrow-right", "star", "star-outline", "lock", "sparkle", "seal",
-  ]);
-  if (scrollIcons.has(name)) {
-    return <QuestScrollIcon name={name as ScrollIconName} size={size} className={className} />;
-  }
-  const customPaths: Record<string, React.ReactNode> = {
-    tent: <path d="M3 21h18M5 21L12 8l7 13M9 21v-5h6v5" />,
-    wheat: <path d="M12 22V8M12 8c0-2-1-4-3-5M12 8c0-2 1-4 3-5M12 12c0-2-1-4-3-5M12 12c0-2 1-4 3-5M12 16c0-2-1-4-3-5M12 16c0-2 1-4 3-5" strokeWidth="1.2" />,
-    monitor: <><rect x="3" y="4" width="18" height="12" rx="1" /><path d="M8 20h8M12 16v4" /></>,
-    robot: <><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 4v4M9 4h6" /><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none" /><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none" /></>,
-    rocket: <path d="M12 2c3 2 5 5 5 9l-2 3h-6l-2-3c0-4 2-7 5-9zM9 17l-2 4M15 17l2 4" />,
-    "arrow-up": <path d="M12 19V5M5 12l7-7 7 7" />,
-    unlock: <><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 7-2.5" /></>,
-    path: <path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4" strokeWidth="1.2" />,
-    hourglass: <path d="M6 2h12M6 22h12M6 2c0 5 6 6 6 10s-6 5-6 10M18 2c0 5-6 6-6 10s6 5 6 10" />,
-    search: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
-    "chart-up": <><path d="M3 3v18h18" /><path d="M7 14l4-4 3 3 5-6" /></>,
-    business: <><rect x="3" y="7" width="18" height="13" rx="1" /><path d="M9 7V4h6v3" /><path d="M3 12h18" strokeWidth="1" opacity="0.6" /></>,
-    language: <path d="M3 5h12M9 5v14M7 19h4M14 9h7M14 9l3.5 8M14 9l-3 6M19 13h-4" strokeWidth="1.2" />,
-    science: <path d="M9 3v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 9V3M9 3h6" />,
-    health: <path d="M12 21s-7-5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6-7 11-7 11z" />,
-    finance: <><circle cx="12" cy="12" r="9" /><path d="M12 7v10M14.5 9c0-1-1-2-2.5-2s-2.5 1-2.5 2 1 1.5 2.5 2 2.5 1 2.5 2-1 2-2.5 2-2.5-1-2.5-2" strokeWidth="1.2" /></>,
-    crown: <path d="M3 18h18M3 18l2-10 5 6 2-8 2 8 5-6 2 10" />,
-    compass: <><circle cx="12" cy="12" r="10" /><path d="M12 6L14 12L12 18L10 12z" fill="currentColor" stroke="none" /></>,
-  };
-  const content = customPaths[name];
-  if (!content) return <QuestScrollIcon name="sparkle" size={size} className={className} />;
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {content}
-    </svg>
-  );
-}
 // ── Page Component ──────────────────────────────────────────────
 
 export default function PersonalPage() {
@@ -151,10 +120,6 @@ export default function PersonalPage() {
 
   // ── Derived data ──────────────────────────────────────────────
 
-  // Expand/collapse toggles for badge & credential sections
-  const [badgesExpanded, setBadgesExpanded] = useState(false);
-  const [credsExpanded, setCredsExpanded] = useState(false);
-
   const aggregateScores: DimensionScores = useMemo(
     () => computeAggregateScores(userSkills),
     [userSkills]
@@ -195,11 +160,11 @@ export default function PersonalPage() {
   }, [worldData]);
 
   const questCompletionCount = useMemo(
-    () => userQuests.filter((q: any) => q.status === "PASSED").length,
+    () => userQuests.filter((q) => q.status === "PASSED").length,
     [userQuests]
   );
 
-  // Domain overview
+  // Domain overview (文明大陆 nodes)
   const domainOverview = useMemo(() => {
     return DOMAIN_GROUPS.map((group) => {
       const domainSkillIds = new Set(
@@ -226,6 +191,66 @@ export default function PersonalPage() {
     return { name, level: highest.level, icon: tpl?.icon ?? "building", id: highest.id };
   }, [worldData, locale]);
 
+  // Unified civilization event log: world events + badges + credentials + passed quests
+  const eventLog = useMemo(() => {
+    const entries: LogEntry[] = [];
+
+    for (const ev of worldData?.recent_events ?? []) {
+      entries.push({
+        id: `ev-${ev.id}`,
+        kind: "event",
+        title: locale === "en" && ev.title_en ? ev.title_en : ev.title,
+        desc: locale === "en" && ev.description_en ? ev.description_en : ev.description,
+        date: ev.created_at,
+        icon: <EventGlyph type={ev.event_type} size={13} />,
+        tag: EVENT_TYPE_LABELS[ev.event_type] ? (locale === "en" ? EVENT_TYPE_LABELS[ev.event_type].en : EVENT_TYPE_LABELS[ev.event_type].zh) : null,
+      });
+    }
+
+    for (const { badge, userBadge } of earnedBadges) {
+      entries.push({
+        id: `bdg-${badge.id}`,
+        kind: "badge",
+        title: locale === "en" && badge.name_en ? badge.name_en : badge.name,
+        date: userBadge.earned_at ?? null,
+        icon: <span className="text-[13px] leading-none">{badge.icon || "\u{1F3C6}"}</span>,
+        tag: locale === "en" ? "Badge" : "徽章",
+      });
+    }
+
+    for (const cred of userCredentials) {
+      entries.push({
+        id: `cred-${cred.id}`,
+        kind: "credential",
+        title: cred.name,
+        date: cred.issued_at ?? null,
+        icon: <QuestScrollIcon name="star" size={13} />,
+        tag: locale === "en" ? "Credential" : "证书",
+      });
+    }
+
+    for (const q of userQuests as any[]) {
+      if (q?.status !== "PASSED") continue;
+      entries.push({
+        id: `q-${q.quest_id}`,
+        kind: "quest",
+        title: (locale === "en" && q.quest_title_en) ? q.quest_title_en : q.quest_title,
+        date: null,
+        icon: <QuestScrollIcon name="quest" size={13} />,
+        tag: locale === "en" ? "Quest" : "远征",
+      });
+    }
+
+    // Sort by date desc, timeless entries last
+    entries.sort((a, b) => {
+      const ta = a.date ? new Date(a.date).getTime() : -Infinity;
+      const tb = b.date ? new Date(b.date).getTime() : -Infinity;
+      return tb - ta;
+    });
+
+    return entries.slice(0, 14);
+  }, [worldData, earnedBadges, userCredentials, userQuests, locale]);
+
   const eraLabel = worldData?.era ? ERA_LABELS[worldData.era] : null;
   const tierLabel = worldData?.tier ? CIVILIZATION_TIER_LABELS[worldData.tier] : null;
   const stats = worldData?.stats;
@@ -233,6 +258,10 @@ export default function PersonalPage() {
   const avatarSrc = resolveAvatarSrc(user?.avatar_url ?? null);
   const displayTitle = user?.title || (locale === "en" ? "No title set" : "尚未设置头衔");
   const displayBio = user?.bio || (locale === "en" ? "Nothing here yet~" : "这里还什么都没有~");
+  const civIndex = stats
+    ? (stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()
+    : "0";
+  const activeDirection = civDirection?.active_paths?.[0] ?? null;
 
   // ── Auth guard render ─────────────────────────────────────────
 
@@ -243,483 +272,574 @@ export default function PersonalPage() {
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 py-6 animate-fade-in">
-      {/* ═══ HERO PROFILE HEADER ═══════════════════════ */}
-      <section className="relative rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-md overflow-hidden p-6 sm:p-8">
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
-          {/* Identity Info */}
-          <div className="flex-1 flex flex-col sm:flex-row gap-5 items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden ring-2 ring-[oklch(0.7_0.12_85_/_0.35)] shadow-inner">
-              {avatarSrc ? (
-                <img
-                  src={avatarSrc}
-                  alt={displayName}
-                  className="h-full w-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-              ) : (
-                <QuestScrollIcon name="knowledge" size={32} />
-              )}
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] truncate">
-                {displayName}
-              </h1>
-              <p className={`text-xs font-bold font-civ-serif mt-0.5 uppercase tracking-wide ${user?.title ? "text-accent" : "text-muted-foreground italic normal-case"}`}>
-                <QuestScrollIcon name="star" size={14} className="inline-block align-text-bottom" /> {displayTitle}
-              </p>
-              {tierLabel && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 flex-wrap font-medium">
-                  <CivIcon name={tierLabel.icon} size={14} />
-                  <span>{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
-                  {eraLabel && (
-                    <>
-                      <span className="opacity-40">·</span>
-                      <CivIcon name={eraLabel.icon} size={14} />
-                      <span>{locale === "en" ? eraLabel.en : eraLabel.zh}</span>
-                    </>
-                  )}
-                </p>
-              )}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground font-medium border-t border-border/40 pt-2.5">
-                {stats && (
-                  <span className="flex items-center gap-0.5">
-                    <CivIcon name="crown" size={14} className="inline-block align-text-bottom" />
-                    {locale === "en" ? "Index" : "文明指数"}{" "}
-                    <strong className="text-accent font-bold font-mono ml-0.5">
-                      {(stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()}
-                    </strong>
-                  </span>
-                )}
-                <span className="flex items-center gap-0.5">
-                  <QuestScrollIcon name="shield" size={14} className="inline-block align-text-bottom" />
-                  {locale === "en" ? "Skills" : "已掌握"}{" "}
-                  <strong className="text-foreground font-bold font-mono ml-0.5">{userSkills.length}</strong>{" "}
-                  {locale === "en" ? "abilities" : "项能力"}
-                </span>
-                {stats && (
-                  <span className="flex items-center gap-0.5">
-                    <QuestScrollIcon name="building" size={14} className="inline-block align-text-bottom" />
-                    {locale === "en" ? "Buildings" : "已建造"}{" "}
-                    <strong className="text-foreground font-bold font-mono ml-0.5">
-                      {stats.active_buildings ?? stats.total_buildings ?? 0}
-                    </strong>{" "}
-                    {locale === "en" ? "buildings" : "座建筑"}
-                  </span>
-                )}
-              </div>
-              <p className={`mt-3 text-xs leading-relaxed italic border-l-2 border-border/50 pl-2 ${user?.bio ? "text-muted-foreground" : "text-muted-foreground/70"}`}>
-                "{displayBio}"
-              </p>
-            </div>
-          </div>
+    <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-8 animate-fade-in">
+      {/* Parchment backdrop */}
+      <ParchmentBackground opacity={0.5} />
 
-          {/* Recent badges list */}
-          {earnedBadges.length > 0 && (
-            <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-border/60 pt-4 lg:pt-0 lg:pl-6 flex flex-col">
-              <h3 className="text-[10px] font-bold font-civ-serif text-[#C4A77D] uppercase tracking-wider mb-2.5">
-                <QuestScrollIcon name="scroll" size={14} className="inline-block align-text-bottom" /> {locale === "en" ? "Recent Badges" : "最近获得徽章"}
-              </h3>
-              <div className="space-y-2 flex-1">
-                {earnedBadges.slice(0, 3).map(({ badge, userBadge }) => (
-                  <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-background/50 border border-border/40 px-3 py-1.5">
-                    <span className="text-lg shrink-0">{badge.icon}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold font-civ-serif text-foreground truncate">
-                        {locale === "en" && badge.name_en ? badge.name_en : badge.name}
-                      </p>
-                      {userBadge.earned_at && (
-                        <p className="text-[9px] text-muted-foreground font-mono">
-                          {new Date(userBadge.earned_at).toLocaleDateString(
-                            locale === "en" ? "en-US" : "zh-CN",
-                            { year: "numeric", month: "short", day: "numeric" }
-                          )}
-                        </p>
-                      )}
+      <div className="relative grid grid-cols-1 lg:grid-cols-[48px_1fr] gap-0">
+        {/* Chronicle spine (desktop) */}
+        <div className="hidden lg:flex flex-col items-center pt-2">
+          <div className="w-px flex-1" style={{ background: `linear-gradient(180deg, ${CIV_COLORS.gold}55, ${CIV_COLORS.gold}22)` }} />
+        </div>
+
+        <div className="min-w-0">
+          {/* ═══ 探索者铭牌 ═══════════════════════════════ */}
+          <ExplorerNameplate
+            avatarSrc={avatarSrc}
+            displayName={displayName}
+            displayTitle={displayTitle}
+            displayBio={displayBio}
+            eraLabel={eraLabel}
+            tierLabel={tierLabel}
+            civIndex={civIndex}
+            userSkillCount={userSkills.length}
+            buildingCount={stats?.active_buildings ?? stats?.total_buildings ?? 0}
+            questCount={questCompletionCount}
+            explorationProgress={worldData?.exploration_progress ?? 0}
+            activeDirection={activeDirection ? { title: activeDirection.path_title, href: `/paths/${activeDirection.path_id}` } : null}
+            locale={locale}
+          />
+
+          <CopperDivider className="my-8" />
+
+          {/* ═══ 文明能力星图 ═══════════════════════════════ */}
+          <ArchiveSection
+            seal="star"
+            title={locale === "en" ? "Ability Star Map" : "文明能力星图"}
+            subtitle={locale === "en" ? "Four facets of your civilization" : "构筑你文明的四大能力维度"}
+          >
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="shrink-0">
+                <AbilityEmblem
+                  scores={{
+                    knowledge: aggregateScores.knowledge,
+                    reasoning: aggregateScores.reasoning,
+                    application: aggregateScores.application,
+                    creation: aggregateScores.creation,
+                  }}
+                  size={300}
+                  labels={{
+                    knowledge: t("skills.dimensions.knowledge") || "知识",
+                    reasoning: t("skills.dimensions.reasoning") || "推理",
+                    application: t("skills.dimensions.application") || "应用",
+                    creation: t("skills.dimensions.creation") || "创造",
+                  }}
+                />
+              </div>
+              <div className="w-full md:w-auto flex-1 grid grid-cols-2 gap-x-6 gap-y-4">
+                {([
+                  ["knowledge", "knowledge"],
+                  ["reasoning", "reasoning"],
+                  ["application", "application"],
+                  ["creation", "creation"],
+                ] as [keyof DimensionScores, ScrollIconName][]).map(([dim, icon]) => (
+                  <div key={dim} className="relative pl-4">
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border" style={{ borderColor: `${CIV_COLORS.gold}66`, background: `${CIV_COLORS.gold}22` }} />
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: CIV_COLORS.textSecondary }}>
+                      <QuestScrollIcon name={icon} size={12} />
+                      {t(`skills.dimensions.${dim}`) || dim}
+                    </div>
+                    <div className="text-xl font-bold font-mono" style={{ color: CIV_COLORS.textPrimary }}>
+                      {aggregateScores[dim]}
                     </div>
                   </div>
                 ))}
               </div>
-              {earnedBadges.length > 3 && (
-                <Link href="/badges" className="mt-2 text-[10px] font-bold font-civ-serif text-primary hover:underline self-end">
-                  {locale === "en" ? `+${earnedBadges.length - 3} more` : `还有 ${earnedBadges.length - 3} 个`} →
-                </Link>
-              )}
             </div>
-          )}
-        </div>
-      </section>
+          </ArchiveSection>
 
-      {/* ═══ DUAL COLUMN: Analysis + Archive ═══════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Capability Analysis */}
-        <section className="space-y-6">
-          {/* Radar Chart Panel */}
-          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
-            <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-              [RADAR_SEC_01]
-            </div>
-            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2 flex items-center gap-1.5">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-text-bottom"><path d="M3 3v18h18" /><rect x="7" y="13" width="3" height="5" /><rect x="12" y="9" width="3" height="9" /><rect x="17" y="5" width="3" height="13" /></svg>
-              {locale === "en" ? "Capability Radar" : "综合能力雷达"}
-            </h3>
-            <div className="flex justify-center my-2">
-              <RadarChart scores={aggregateScores} size={200} showLabels />
-            </div>
-            <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-border/40">
-              {(["knowledge", "reasoning", "application", "creation"] as (keyof DimensionScores)[]).map((dim) => (
-                <div key={dim} className="text-center">
-                  <div className="text-base font-bold font-mono text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">{aggregateScores[dim]}</div>
-                  <div className="text-[9px] font-bold font-civ-serif text-muted-foreground uppercase">{t(`skills.dimensions.${dim}`) || dim}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <CopperDivider className="my-8" />
 
-          {/* Domain Overview Panel */}
-          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
-            <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-              [DOMAINS_SEC_02]
-            </div>
-            <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2 flex items-center gap-1.5">
-              <QuestScrollIcon name="civilization" size={16} className="inline-block align-text-bottom" />
-              {locale === "en" ? "Civilization Domains" : "文明领域概览"}
-            </h3>
-            <div className="space-y-3">
-              {domainOverview.map((d) => (
-                <div key={d.key} className="flex items-center gap-3">
-                  <span className="w-6 flex items-center justify-center shrink-0"><CivIcon name={d.icon} size={16} /></span>
-                  <span className="text-xs font-bold font-civ-serif text-foreground w-20 shrink-0 truncate">{d.label}</span>
-                  <div className="flex-1 h-2 rounded-full bg-[oklch(0.95_0.005_90)] dark:bg-[oklch(0.25_0.008_85)] border border-border/40 overflow-hidden shadow-inner relative">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#C4A77D] to-[#A38A5E] transition-all duration-500"
-                      style={{ width: `${Math.min(100, (d.avgScore / 100) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono text-muted-foreground w-12 text-right shrink-0">Lv{d.level}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Right Column: Civilization Archive Log */}
-        <section>
-          <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden h-full">
-            <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-              [LOG_SEC_03]
-            </div>
-            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/60">
-              <QuestScrollIcon name="building" size={18} />
-              <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
-                {locale === "en" ? "Civilization Archive" : "文明档案"}
-              </h3>
-            </div>
-            <div className="mb-4 pb-3 border-b border-border/40">
-              <p className="text-base font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)]">
-                {displayName}{" "}
-                <span className="text-xs font-normal text-muted-foreground italic">{locale === "en" ? "Civilization Record" : "文明纪要"}</span>
-              </p>
-            </div>
-            <div className="space-y-2.5">
-              <ArchiveRow icon={<CivIcon name="hourglass" size={14} />} label={locale === "en" ? "Current Era" : "当前时代"} value={eraLabel ? (locale === "en" ? eraLabel.en : eraLabel.zh) : "—"} />
-              <ArchiveRow icon={<CivIcon name="crown" size={14} />} label={locale === "en" ? "Civ Index" : "文明指数"} value={stats ? ((stats.civilization_level * 100 + (stats.average_level ?? 0) * 10).toLocaleString()) : "—"} />
-              <ArchiveRow icon={<QuestScrollIcon name="civilization" size={14} />} label={locale === "en" ? "Exploration Rate" : "探索率"} value={worldData ? `${worldData.exploration_progress}%` : "—"} />
-              <ArchiveRow icon={<QuestScrollIcon name="building" size={14} />} label={locale === "en" ? "Buildings" : "建筑"} value={stats ? String(stats.active_buildings ?? stats.total_buildings ?? 0) : "—"} />
-              <ArchiveRow icon={<QuestScrollIcon name="scroll" size={14} />} label={locale === "en" ? "Skills Unlocked" : "已解锁技能"} value={String(userSkills.length)} />
-              <ArchiveRow icon={<CivIcon name="compass" size={14} />} label={locale === "en" ? "Quests Completed" : "任务完成"} value={String(questCompletionCount)} />
-              {highestBuilding && (
-                <ArchiveRow icon={<QuestScrollIcon name="building" size={14} />} label={locale === "en" ? "Highest Building" : "最高建筑"} value={`${highestBuilding.name} Lv${highestBuilding.level}`} href={`/world?building=${highestBuilding.id}`} />
-              )}
-              {civDirection?.active_paths?.[0] && (
-                <ArchiveRow icon={<QuestScrollIcon name="knowledge" size={14} />} label={locale === "en" ? "Active Path" : "当前学习路径"} value={civDirection.active_paths[0].path_title} href={`/paths/${civDirection.active_paths[0].path_id}`} />
-              )}
-            </div>
-            {tierLabel && worldData?.next_tier_at != null && (
-              <div className="mt-5 pt-4 border-t border-border/50">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <CivIcon name={tierLabel.icon} size={16} />
-                  <span className="font-bold font-civ-serif text-foreground">{locale === "en" ? tierLabel.en : tierLabel.zh}</span>
-                  <span className="italic">— {locale === "en" ? "Next level in" : "晋升下一阶尚需"} <strong className="text-[#C4A77D] font-bold font-mono ml-0.5">{worldData.next_tier_at}</strong></span>
+          {/* ═══ 文明纪年 ═══════════════════════════════════ */}
+          <ArchiveSection
+            seal="hourglass"
+            title={locale === "en" ? "Civilization Chronicle" : "文明纪年"}
+            subtitle={locale === "en" ? "The annals of your realm" : "你文明王国的编年实录"}
+          >
+            {worldData?.era && (
+              <div className="flex items-center gap-4 mb-5">
+                <EraStoneIcon era={worldData.era} size={56} />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: CIV_COLORS.textSecondary }}>
+                    {locale === "en" ? "Current Era" : "当前时代"}
+                  </p>
+                  <p className="text-lg font-bold font-civ-serif" style={{ color: CIV_COLORS.textPrimary }}>
+                    {locale === "en" ? eraLabel?.en : eraLabel?.zh}
+                  </p>
+                  {tierLabel && (
+                    <p className="text-xs" style={{ color: CIV_COLORS.textSecondary }}>
+                      {locale === "en" ? tierLabel.en : tierLabel.zh}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
-          </div>
-        </section>
-      </div>
 
-      {/* ═══ REPRESENTATIVE ACHIEVEMENTS ═══════════════════════ */}
-      <section className="space-y-6">
-        {/* Row 1: Badges + Credentials */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <SectionCard
-            icon={<QuestScrollIcon name="star" size={16} />}
-            title={locale === "en" ? "Recent Badges" : "最近获得徽章"}
-            emptyText={locale === "en" ? "No badges earned yet" : "尚未获得徽章"}
-            isEmpty={earnedBadges.length === 0}
-            expandLabel={badgesExpanded ? t("personal.collapseAll") : t("personal.expandAll")}
-            totalCount={earnedBadges.length}
-            visibleCount={3}
-            isExpanded={badgesExpanded}
-            onToggleExpand={() => setBadgesExpanded(!badgesExpanded)}
-          >
-            <div className="space-y-2">
-              {(badgesExpanded ? earnedBadges : earnedBadges.slice(0, 3)).map(({ badge, userBadge }) => (
-                <div key={badge.id} className="flex items-center gap-2.5 rounded-lg bg-background/50 border border-border/40 px-3 py-2">
-                  <span className="text-lg shrink-0">{badge.icon || <QuestScrollIcon name="star" size={18} />}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold font-civ-serif text-foreground truncate">
-                      {locale === "en" && badge.name_en ? badge.name_en : badge.name}
-                    </p>
-                    {userBadge.earned_at && (
-                      <p className="text-[10px] text-muted-foreground font-mono">
-                        {new Date(userBadge.earned_at).toLocaleDateString(
-                          locale === "en" ? "en-US" : "zh-CN",
-                          { year: "numeric", month: "short", day: "numeric" }
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <span className="rounded bg-[#8B9D83]/10 border border-[#8B9D83]/20 px-2 py-0.5 text-[9px] font-bold text-[#8B9D83] shrink-0">
-                    {t("badges.earned")}
-                  </span>
-                </div>
-              ))}
+            <div className="border-t" style={{ borderColor: `${CIV_COLORS.border}60` }}>
+              <ChronicleRow icon={<QuestScrollIcon name="star" size={13} />} label={locale === "en" ? "Civilization Level" : "文明等级"} value={String(stats?.civilization_level ?? 0)} />
+              <ChronicleRow icon={<QuestScrollIcon name="world-core" size={13} />} label={locale === "en" ? "Civilization Index" : "文明指数"} value={civIndex} />
+              <ChronicleRow icon={<QuestScrollIcon name="map" size={13} />} label={locale === "en" ? "Exploration Areas" : "探索区域"} value={`${worldData?.regions?.length ?? 0}`} />
+              <ChronicleRow icon={<QuestScrollIcon name="building" size={13} />} label={locale === "en" ? "Buildings" : "建筑"} value={String(stats?.active_buildings ?? stats?.total_buildings ?? 0)} />
+              <ChronicleRow icon={<QuestScrollIcon name="mission" size={13} />} label={locale === "en" ? "Achievements" : "成果"} value={stats ? `${stats.milestones_unlocked}/${stats.total_milestones}` : "0/0"} />
+              <ChronicleRow icon={<QuestScrollIcon name="quest" size={13} />} label={locale === "en" ? "Quests Completed" : "已完成远征"} value={String(questCompletionCount)} />
+              {highestBuilding && (
+                <ChronicleRow
+                  icon={<QuestScrollIcon name="building-emblem" size={13} />}
+                  label={locale === "en" ? "Highest Building" : "最高建筑"}
+                  value={`${highestBuilding.name} Lv.${highestBuilding.level}`}
+                  href={`/world?building=${highestBuilding.id}`}
+                />
+              )}
             </div>
-          </SectionCard>
+          </ArchiveSection>
 
-          <SectionCard
-            icon={<QuestScrollIcon name="star" size={16} />}
-            title={locale === "en" ? "Recent Credentials" : "最近获得证书"}
-            emptyText={locale === "en" ? "No credentials earned yet" : "尚未获得证书"}
-            isEmpty={userCredentials.length === 0}
-            expandLabel={credsExpanded ? t("personal.collapseAll") : t("personal.expandAll")}
-            totalCount={userCredentials.length}
-            visibleCount={3}
-            isExpanded={credsExpanded}
-            onToggleExpand={() => setCredsExpanded(!credsExpanded)}
+          <CopperDivider className="my-8" />
+
+          {/* ═══ 文明大陆 ═══════════════════════════════════ */}
+          <ArchiveSection
+            seal="map"
+            title={locale === "en" ? "Civilization Continent" : "文明大陆"}
+            subtitle={locale === "en" ? "Territories of your exploration" : "你已踏足的探索疆域"}
           >
-            <div className="space-y-2">
-              {(credsExpanded ? userCredentials : userCredentials.slice(0, 3)).map((cred) => (
-                <div key={cred.id} className="flex items-center gap-3 rounded-lg bg-background/50 border border-border/40 px-3 py-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <QuestScrollIcon name="star" size={16} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold font-civ-serif text-foreground truncate">{cred.name}</p>
-                    <p className="text-[9px] text-muted-foreground font-mono">
-                      {cred.issued_at
-                        ? new Date(cred.issued_at).toLocaleDateString(
-                            locale === "en" ? "en-US" : "zh-CN",
-                            { year: "numeric", month: "short", day: "numeric" }
-                          )
-                        : ""}
-                    </p>
-                  </div>
+            {domainOverview.length === 0 ? (
+              <p className="text-sm italic py-6 text-center" style={{ color: CIV_COLORS.textSecondary }}>
+                {locale === "en" ? "No territories explored yet" : "尚未开辟任何探索疆域"}
+              </p>
+            ) : (
+              <div className="relative">
+                {/* connective gold line */}
+                <div className="hidden md:block absolute top-6 left-4 right-4 h-px" style={{ background: `linear-gradient(90deg, transparent, ${CIV_COLORS.gold}50, transparent)` }} />
+                <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {domainOverview.map((d) => (
+                    <ContinentNode key={d.key} icon={d.icon} label={d.label} labelEn={d.labelEn} level={d.level} avgScore={d.avgScore} locale={locale} />
+                  ))}
                 </div>
-              ))}
-            </div>
-          </SectionCard>
-        </div>
+              </div>
+            )}
+          </ArchiveSection>
 
-        {/* Row 2: Core Skills + Buildings */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <SectionCard
-            icon={<QuestScrollIcon name="mission" size={16} />}
-            title={locale === "en" ? "Core Skills" : "核心技能"}
+          <CopperDivider className="my-8" />
+
+          {/* ═══ 文明事件日志 ═══════════════════════════════ */}
+          <ArchiveSection
+            seal="scroll"
+            title={locale === "en" ? "Civilization Event Log" : "文明事件日志"}
+            subtitle={locale === "en" ? "Chronicle of your deeds" : "记录你文明旅途中的每一桩事迹"}
+          >
+            {eventLog.length === 0 ? (
+              <p className="text-sm italic py-6 text-center" style={{ color: CIV_COLORS.textSecondary }}>
+                {locale === "en" ? "No recorded deeds yet" : "尚无记录的事迹"}
+              </p>
+            ) : (
+              <div className="space-y-0">
+                {eventLog.map((entry, idx) => (
+                  <EventLogRow key={entry.id} entry={entry} isLast={idx === eventLog.length - 1} locale={locale} />
+                ))}
+              </div>
+            )}
+          </ArchiveSection>
+
+          <CopperDivider className="my-8" />
+
+          {/* ═══ 能力印记 ═══════════════════════════════════ */}
+          <ArchiveSection
+            seal="seal"
+            title={locale === "en" ? "Ability Seals" : "能力印记"}
+            subtitle={locale === "en" ? "Runes of your mastery" : "你所凝聚的符文印记"}
             viewAllHref="/skills"
             viewAllLabel={locale === "en" ? "View All" : "查看全部"}
-            emptyText={locale === "en" ? "No skills unlocked yet" : "尚未解锁技能"}
             isEmpty={topSkills.length === 0}
+            emptyText={locale === "en" ? "No skills unlocked yet" : "尚未凝聚任何能力印记"}
           >
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-5">
               {topSkills.map((us) => {
                 const skillDef = skillMap.get(us.skill_id);
+                const name = skillDef
+                  ? skillDisplayName(skillDef.name, skillDef.name_en, locale)
+                  : skillDisplayName(us.skill_name, undefined, locale) || us.skill_id;
                 return (
-                  <Link
-                    key={us.skill_id}
-                    href={`/skills/${us.skill_id}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-3 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: masteryColor(us.overall) }} />
-                    <span className="font-bold font-civ-serif">{skillDef?.name || us.skill_name || us.skill_id}</span>
-                    <span className="text-muted-foreground font-mono text-[10px]">{us.overall}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            icon={<QuestScrollIcon name="building" size={14} />}
-            title={locale === "en" ? "Top Buildings" : "代表建筑"}
-            viewAllHref="/world"
-            viewAllLabel={locale === "en" ? "View All" : "查看全部"}
-            emptyText={locale === "en" ? "No buildings yet" : "尚未建造建筑"}
-            isEmpty={topBuildings.length === 0}
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {topBuildings.map((building) => {
-                const tpl = (building as any).template;
-                const name = locale === "en" && tpl?.name_en ? tpl.name_en : tpl?.name ?? building.id;
-                return (
-                  <Link
-                    key={building.id}
-                    href={`/world?building=${building.id}`}
-                    className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/50 p-2.5 transition-all hover:shadow-card hover:border-primary/20 group"
-                  >
-                    <span className="flex-shrink-0 transition-transform group-hover:scale-110">
-                      <BuildingSealIcon type={inferSkillId(tpl?.name ?? "", building.id)} size={32} />
+                  <Link key={us.skill_id} href={`/skills/${us.skill_id}`} className="group flex flex-col items-center gap-2">
+                    <span className="relative transition-transform duration-300 group-hover:scale-110" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.08))" }}>
+                      <BuildingSealIcon type={inferSkillId(name, us.skill_id)} size={56} />
+                      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold font-mono" style={{ color: CIV_COLORS.gold }}>
+                        {us.overall}
+                      </span>
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold font-civ-serif text-foreground truncate">{name}</p>
-                      <p className="text-[9px] text-muted-foreground font-mono">Lv.{building.level}</p>
-                    </div>
+                    <span className="text-[11px] font-bold font-civ-serif text-center leading-tight max-w-[84px] truncate" style={{ color: CIV_COLORS.textPrimary }}>
+                      {name}
+                    </span>
                   </Link>
                 );
               })}
             </div>
-          </SectionCard>
-        </div>
-      </section>
+          </ArchiveSection>
 
-      {/* ═══ GROWTH TIMELINE ══════════════════════════════════ */}
-      <section className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
-        <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-          [TIMELINE_SEC_04]
-        </div>
-        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2">
-          <CivIcon name="hourglass" size={16} className="inline-block align-text-bottom" /> {locale === "en" ? "Growth Timeline" : "成长时间轴"}
-        </h3>
-        <GrowthTimeline
-          events={worldData?.recent_events}
-          unlockedCount={stats?.milestones_unlocked}
-          totalCount={stats?.total_milestones}
-        />
-      </section>
+          <CopperDivider className="my-8" />
 
-      {/* ═══ QUICK WAYPOINT ENTRY LINKS ═══════════════════════ */}
-      <section className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
-        <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-          [WAYPOINTS_SEC_05]
+          {/* ═══ 文明入口 ═══════════════════════════════════ */}
+          <ArchiveSection
+            seal="compass"
+            title={locale === "en" ? "Civilization Entrances" : "文明入口"}
+            subtitle={locale === "en" ? "Gateways to continue your journey" : "通往下一段征途的入口"}
+          >
+            <div className="border-t" style={{ borderColor: `${CIV_COLORS.border}60` }}>
+              <EntranceRow
+                iconName="reasoning"
+                title={locale === "en" ? "Skill Center" : "技能中心"}
+                desc={locale === "en" ? `Manage ${userSkills.length} skills` : `管理 ${userSkills.length} 项技能`}
+                href="/skills"
+              />
+              <EntranceRow
+                iconName="checklist"
+                title={locale === "en" ? "Quest Board" : "任务面板"}
+                desc={locale === "en" ? `${questCompletionCount} quests completed` : `已完成 ${questCompletionCount} 个远征`}
+                href="/quests"
+              />
+              <EntranceRow
+                iconName="civilization"
+                title={locale === "en" ? "My World" : "我的世界"}
+                desc={
+                  stats
+                    ? locale === "en"
+                      ? `${stats.active_buildings ?? stats.total_buildings ?? 0} buildings, ${eraLabel?.en ?? "?"} era`
+                      : `${stats.active_buildings ?? stats.total_buildings ?? 0} 座建筑, ${eraLabel?.zh ?? "?"}时代`
+                    : ""
+                }
+                href="/world"
+              />
+            </div>
+          </ArchiveSection>
         </div>
-        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] mb-4 border-b border-border/60 pb-2">
-          <QuestScrollIcon name="civilization" size={16} className="inline-block align-text-bottom" /> {locale === "en" ? "Quick Waypoints" : "快捷入口"}
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <QuickLink
-            icon={<QuestScrollIcon name="reasoning" size={24} />}
-            title={locale === "en" ? "Skill Center" : "技能中心"}
-            desc={locale === "en" ? `Manage ${userSkills.length} skills` : `管理 ${userSkills.length} 项技能`}
-            href="/skills"
-          />
-          <QuickLink
-            icon={<QuestScrollIcon name="checklist" size={24} />}
-            title={locale === "en" ? "Quest Board" : "任务面板"}
-            desc={locale === "en" ? `${questCompletionCount} quests completed` : `已完成 ${questCompletionCount} 个任务`}
-            href="/quests"
-          />
-          <QuickLink
-            icon={<QuestScrollIcon name="civilization" size={24} />}
-            title={locale === "en" ? "My World" : "我的世界"}
-            desc={
-              stats
-                ? locale === "en"
-                  ? `${stats.active_buildings ?? stats.total_buildings ?? 0} buildings, Era ${worldData?.era ?? "?"}`
-                  : `${stats.active_buildings ?? stats.total_buildings ?? 0} 座建筑, ${eraLabel?.zh ?? "?"}时代`
-                : ""
-            }
-            href="/world"
-          />
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
 
-// ── Sub-components ─────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────────────
 
-function ArchiveRow({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: string; href?: string }) {
+interface LogEntry {
+  id: string;
+  kind: "event" | "badge" | "credential" | "quest";
+  title: string;
+  desc?: string | null;
+  date?: string | null;
+  tag?: string | null;
+  icon: ReactNode;
+}
+
+// ── Sub-components ──────────────────────────────────────────────
+
+/** Section header with a compass/seal mark + ruled lines, no card. */
+function ArchiveSection({
+  seal,
+  title,
+  subtitle,
+  children,
+  viewAllHref,
+  viewAllLabel,
+  isEmpty = false,
+  emptyText,
+}: {
+  seal: ScrollIconName;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  viewAllHref?: string;
+  viewAllLabel?: string;
+  isEmpty?: boolean;
+  emptyText?: string;
+}) {
+  return (
+    <section className="relative">
+      {/* corner accents */}
+      <span className="absolute -top-1 -left-1 h-4 w-4 border-l border-t" style={{ borderColor: `${CIV_COLORS.gold}66` }} />
+      <span className="absolute -bottom-1 -right-1 h-4 w-4 border-b border-r" style={{ borderColor: `${CIV_COLORS.gold}66` }} />
+
+      <div className="flex items-center gap-3 mb-1">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full border" style={{ borderColor: `${CIV_COLORS.gold}60`, background: `${CIV_COLORS.gold}14` }}>
+          <QuestScrollIcon name={seal} size={16} />
+        </span>
+        <h2 className="text-base font-bold font-civ-serif tracking-wide" style={{ color: CIV_COLORS.textPrimary }}>
+          {title}
+        </h2>
+        {subtitle && (
+          <span className="hidden sm:inline text-[11px] italic ml-1" style={{ color: CIV_COLORS.textSecondary }}>
+            — {subtitle}
+          </span>
+        )}
+        {viewAllHref && (
+          <Link href={viewAllHref} className="ml-auto text-xs font-bold font-civ-serif italic transition-colors hover:opacity-70" style={{ color: CIV_COLORS.gold }}>
+            {viewAllLabel || "View All"} →
+          </Link>
+        )}
+      </div>
+      <div className="h-px w-full mb-6" style={{ background: `linear-gradient(90deg, ${CIV_COLORS.gold}66, transparent)` }} />
+
+      {isEmpty ? (
+        <p className="text-sm italic py-8 text-center" style={{ color: CIV_COLORS.textSecondary }}>{emptyText}</p>
+      ) : (
+        children
+      )}
+    </section>
+  );
+}
+
+/** Explorer nameplate — identity + stage + points + direction, no card. */
+function ExplorerNameplate({
+  avatarSrc, displayName, displayTitle, displayBio, eraLabel, tierLabel,
+  civIndex, userSkillCount, buildingCount, questCount, explorationProgress, activeDirection, locale,
+}: {
+  avatarSrc: string | null;
+  displayName: string;
+  displayTitle: string;
+  displayBio: string;
+  eraLabel: { zh: string; en: string; icon: string } | null;
+  tierLabel: { zh: string; en: string; icon: string } | null;
+  civIndex: string;
+  userSkillCount: number;
+  buildingCount: number;
+  questCount: number;
+  explorationProgress: number;
+  activeDirection: { title: string; href: string } | null;
+  locale: string;
+}) {
+  return (
+    <section className="relative">
+      <span className="absolute -top-2 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${CIV_COLORS.gold}80, transparent)` }} />
+      <span className="absolute -top-2 left-0 h-5 w-5 border-l border-t" style={{ borderColor: CIV_COLORS.gold }} />
+      <span className="absolute -top-2 right-0 h-5 w-5 border-r border-t" style={{ borderColor: CIV_COLORS.gold }} />
+
+      <div className="relative flex flex-col md:flex-row items-start gap-6 pt-6 pb-4">
+        {/* Identity */}
+        <div className="flex items-center gap-5 flex-1 min-w-0">
+          <div className="relative shrink-0">
+            <SealRing size={92} />
+            <div className="absolute inset-[9px] flex items-center justify-center overflow-hidden rounded-full border bg-[#FBF4E4] dark:bg-[#241d14]" style={{ borderColor: `${CIV_COLORS.gold}55` }}>
+              {avatarSrc ? (
+                <img src={avatarSrc} alt={displayName} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              ) : (
+                <QuestScrollIcon name="compass" size={34} />
+              )}
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: CIV_COLORS.gold }}>
+              {locale === "en" ? "Explorer's Nameplate" : "探索者铭牌"}
+            </p>
+            <h1 className="text-2xl font-bold font-civ-serif mt-0.5 truncate" style={{ color: CIV_COLORS.textPrimary }}>
+              {displayName}
+            </h1>
+            <p className="text-xs font-bold font-civ-serif mt-0.5 italic" style={{ color: CIV_COLORS.darkRed }}>
+              <QuestScrollIcon name="star" size={12} className="inline-block align-text-bottom" /> {displayTitle}
+            </p>
+            {displayBio && (
+              <p className="mt-2 text-xs leading-relaxed italic max-w-sm line-clamp-2" style={{ color: CIV_COLORS.textSecondary }}>
+                "{displayBio}"
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Stage + Points + Direction */}
+        <div className="w-full md:w-auto grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4 border-t md:border-t-0 pt-4 md:pt-0 relative">
+          <span className="absolute top-0 md:top-2 md:bottom-2 left-0 hidden md:block w-px" style={{ background: `linear-gradient(180deg, transparent, ${CIV_COLORS.gold}66, transparent)` }} />
+
+          <NameplateStat
+            icon={<QuestScrollIcon name="sparkle" size={15} />}
+            label={locale === "en" ? "Civilization Stage" : "文明阶段"}
+            value={tierLabel ? (locale === "en" ? tierLabel.en : tierLabel.zh) : "—"}
+            sub={eraLabel ? (locale === "en" ? eraLabel.en : eraLabel.zh) : undefined}
+          />
+          <NameplateStat
+            icon={<QuestScrollIcon name="world-core" size={15} />}
+            label={locale === "en" ? "Civilization Points" : "文明点"}
+            value={civIndex}
+            sub={`${locale === "en" ? "Index" : "指数"}`}
+          />
+          <NameplateStat
+            icon={<QuestScrollIcon name="compass" size={15} />}
+            label={locale === "en" ? "Exploration Rate" : "探索率"}
+            value={`${explorationProgress}%`}
+            sub={`${userSkillCount} ${locale === "en" ? "abilities" : "项能力"}`}
+          />
+          <div className="col-span-2 sm:col-span-1 relative">
+            <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: CIV_COLORS.textSecondary }}>
+              <QuestScrollIcon name="path" size={13} />
+              {locale === "en" ? "Current Direction" : "当前探索方向"}
+            </div>
+            {activeDirection ? (
+              <Link href={activeDirection.href} className="text-sm font-bold font-civ-serif italic leading-tight transition-colors hover:opacity-70" style={{ color: CIV_COLORS.gold }}>
+                {activeDirection.title}
+              </Link>
+            ) : (
+              <p className="text-sm italic" style={{ color: CIV_COLORS.textSecondary }}>
+                {locale === "en" ? "No direction set" : "尚未设定"}
+              </p>
+            )}
+            <p className="text-[10px] mt-0.5" style={{ color: CIV_COLORS.textSecondary }}>
+              {buildingCount} {locale === "en" ? "buildings" : "建筑"} · {questCount} {locale === "en" ? "quests" : "远征"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NameplateStat({ icon, label, value, sub }: { icon: ReactNode; label: string; value: string; sub?: string }) {
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: CIV_COLORS.textSecondary }}>
+        {icon}
+        {label}
+      </div>
+      <div className="font-mono text-xl font-bold" style={{ color: CIV_COLORS.textPrimary }}>
+        {value}
+      </div>
+      {sub && <div className="text-[10px]" style={{ color: CIV_COLORS.textSecondary }}>{sub}</div>}
+    </div>
+  );
+}
+
+function ChronicleRow({ icon, label, value, href }: { icon: ReactNode; label: string; value: string; href?: string }) {
   const inner = (
-    <div className="flex items-center justify-between py-2">
-      <span className="text-xs text-muted-foreground flex items-center gap-2">
-        <span className="w-5 flex items-center justify-center">{icon}</span>
-        <span className="font-medium">{label}</span>
+    <div className="flex items-center justify-between py-2.5">
+      <span className="text-xs" style={{ color: CIV_COLORS.textSecondary }}>
+        <span className="inline-flex items-center gap-2">
+          <span className="w-4 flex items-center justify-center">{icon}</span>
+          <span className="font-medium">{label}</span>
+        </span>
       </span>
-      <span className={`text-xs font-bold font-civ-serif truncate max-w-[60%] text-right ${href ? "text-primary hover:underline" : "text-foreground"}`}>
+      <span className="text-xs font-bold font-civ-serif text-right max-w-[55%] truncate" style={{ color: href ? CIV_COLORS.gold : CIV_COLORS.textPrimary }}>
         {value}
       </span>
     </div>
   );
-  if (href) {
-    return <Link href={href} className="block hover:bg-secondary/40 rounded -mx-2 px-2 py-0.5 transition-colors">{inner}</Link>;
-  }
-  return <div className="border-b border-border/20 last:border-b-0">{inner}</div>;
-}
-
-function SectionCard({
-  icon, title, viewAllHref, viewAllLabel, emptyText, isEmpty, children,
-  expandLabel, totalCount = 0, visibleCount = 3,
-  isExpanded = false, onToggleExpand,
-}: {
-  icon: React.ReactNode; title: string; viewAllHref?: string; viewAllLabel?: string;
-  emptyText: string; isEmpty: boolean; children: React.ReactNode;
-  expandLabel?: string; totalCount?: number; visibleCount?: number;
-  isExpanded?: boolean; onToggleExpand?: () => void;
-}) {
   return (
-    <div className="rounded-2xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-sm relative overflow-hidden">
-      <div className="absolute -bottom-1 -right-1 text-[8px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-        [ARCHIVE_{title.slice(0, 4).toUpperCase()}]
-      </div>
-      <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/60">
-        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
-          {icon} {title}
-          {totalCount > 0 && (
-            <span className="text-[10px] text-muted-foreground font-bold font-mono">
-              ({isExpanded ? totalCount : Math.min(visibleCount, totalCount)}/{totalCount})
-            </span>
-          )}
-        </h3>
-        {expandLabel && totalCount > visibleCount && onToggleExpand ? (
-          <button
-            onClick={onToggleExpand}
-            className="text-xs font-bold font-civ-serif text-primary hover:underline transition-colors"
-          >
-            {expandLabel} {isExpanded ? "↑" : "↓"}
-          </button>
-        ) : viewAllHref ? (
-          <Link href={viewAllHref} className="text-xs font-bold font-civ-serif text-primary hover:underline transition-colors">
-            {viewAllLabel || "View All"} →
-          </Link>
-        ) : null}
-      </div>
-      {isEmpty ? (
-        <p className="text-xs text-muted-foreground text-center py-8 italic">{emptyText}</p>
-      ) : (
-        children
-      )}
+    <div className="border-b last:border-b-0" style={{ borderColor: `${CIV_COLORS.border}40` }}>
+      {href ? <Link href={href} className="block transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">{inner}</Link> : inner}
     </div>
   );
 }
 
-function QuickLink({ icon, title, desc, href }: { icon: React.ReactNode; title: string; desc: string; href: string }) {
+function ContinentNode({ icon, label, labelEn, level, avgScore, locale }: {
+  icon: string; label: string; labelEn: string; level: number; avgScore: number; locale: string;
+}) {
+  const size = 34 + level * 4;
   return (
-    <Link
-      href={href}
-      className="relative flex items-start gap-3 rounded-xl border border-[oklch(0.88_0.02_90)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-4 transition-all hover:shadow-md hover:border-[oklch(0.7_0.12_85)] group"
-    >
-      <div className="absolute -bottom-1 -right-1 text-[7px] font-mono opacity-[0.05] pointer-events-none select-none text-[oklch(0.3_0.02_80)]">
-        [WAYPOINT_{title.slice(0, 4).toUpperCase()}]
+    <div className="relative flex flex-col items-center gap-2 py-1">
+      <div className="relative flex items-center justify-center rounded-full border transition-transform duration-300 hover:scale-110"
+        style={{ width: size, height: size, borderColor: `${CIV_COLORS.gold}66`, background: `${CIV_COLORS.gold}14` }}>
+        <CivGlyph name={icon} size={18} />
+        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border text-[8px] font-bold font-mono"
+          style={{ borderColor: CIV_COLORS.gold, background: "#FBF4E4", color: CIV_COLORS.darkRed }}>
+          {level}
+        </span>
       </div>
-      <span className="shrink-0 transition-transform group-hover:scale-110">{icon}</span>
+      <span className="text-[10px] font-bold font-civ-serif text-center leading-tight" style={{ color: CIV_COLORS.textPrimary }}>
+        {locale === "en" ? labelEn : label}
+      </span>
+      <span className="text-[9px] font-mono" style={{ color: CIV_COLORS.textSecondary }}>{avgScore}</span>
+    </div>
+  );
+}
+
+function EventLogRow({ entry, isLast, locale }: { entry: LogEntry; isLast: boolean; locale: string }) {
+  const timeLabel = entry.date ? formatDate(entry.date, locale) : locale === "en" ? "completed" : "已通关";
+  return (
+    <div className="relative flex gap-3 pb-4 pl-5">
+      {!isLast && (
+        <div className="absolute left-[8px] top-5 bottom-0 w-px" style={{ background: `${CIV_COLORS.gold}35` }} />
+      )}
+      <div className="absolute left-0 top-1 flex h-[17px] w-[17px] items-center justify-center rounded-full border"
+        style={{ borderColor: `${CIV_COLORS.gold}60`, background: "#FBF4E4" }}>
+        {entry.icon}
+      </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] group-hover:text-primary transition-colors">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{desc}</p>
+        <div className="flex items-center gap-2">
+          {entry.tag && (
+            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: CIV_COLORS.textSecondary }}>{entry.tag}</span>
+          )}
+          <span className="text-[10px] font-mono" style={{ color: CIV_COLORS.textSecondary }}>{timeLabel}</span>
+        </div>
+        <p className="text-sm font-bold font-civ-serif truncate" style={{ color: CIV_COLORS.textPrimary }}>{entry.title}</p>
+        {entry.desc && (
+          <p className="text-xs leading-snug line-clamp-2" style={{ color: CIV_COLORS.textSecondary }}>{entry.desc}</p>
+        )}
       </div>
-      <svg className="w-3.5 h-3.5 text-muted-foreground shrink-0 self-center transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-      </svg>
+    </div>
+  );
+}
+
+function EntranceRow({ iconName, title, desc, href }: { iconName: ScrollIconName; title: string; desc: string; href: string }) {
+  return (
+    <Link href={href} className="group flex items-center gap-3 py-3.5 border-b last:border-b-0 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]" style={{ borderColor: `${CIV_COLORS.border}40` }}>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-transform duration-300 group-hover:scale-110" style={{ borderColor: `${CIV_COLORS.gold}60`, background: `${CIV_COLORS.gold}14` }}>
+        <QuestScrollIcon name={iconName} size={18} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold font-civ-serif italic transition-colors group-hover:opacity-70" style={{ color: CIV_COLORS.textPrimary }}>{title}</p>
+        {desc && <p className="text-[11px] mt-0.5" style={{ color: CIV_COLORS.textSecondary }}>{desc}</p>}
+      </div>
+      <span className="text-muted-foreground transition-transform duration-300 group-hover:translate-x-1" style={{ color: CIV_COLORS.gold }}>
+        <QuestScrollIcon name="arrow-right" size={16} />
+      </span>
     </Link>
   );
+}
+
+/** Map a domain/civilization icon string to a glyph. */
+function CivGlyph({ name, size = 18 }: { name: string; size?: number }) {
+  const scrollIcons = new Set<ScrollIconName>([
+    "knowledge", "reasoning", "application", "creation", "building", "building-emblem",
+    "civilization", "world-core", "quest", "mission", "checklist", "scroll", "shield",
+    "arrow-left", "arrow-right", "star", "star-outline", "lock", "sparkle", "seal",
+  ]);
+  if (scrollIcons.has(name as ScrollIconName)) {
+    return <QuestScrollIcon name={name as ScrollIconName} size={size} />;
+  }
+  const customPaths: Record<string, ReactNode> = {
+    robot: <><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 4v4M9 4h6" /><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none" /><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none" /></>,
+    business: <><rect x="3" y="7" width="18" height="13" rx="1" /><path d="M9 7V4h6v3" /><path d="M3 12h18" strokeWidth="1" opacity="0.6" /></>,
+    language: <path d="M3 5h12M9 5v14M7 19h4M14 9h7M14 9l3.5 8M14 9l-3 6M19 13h-4" strokeWidth="1.2" />,
+    science: <path d="M9 3v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 9V3M9 3h6" />,
+    health: <path d="M12 21s-7-5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6-7 11-7 11z" />,
+    finance: <><circle cx="12" cy="12" r="9" /><path d="M12 7v10M14.5 9c0-1-1-2-2.5-2s-2.5 1-2.5 2 1 1.5 2.5 2 2.5 1 2.5 2-1 2-2.5 2-2.5-1-2.5-2" strokeWidth="1.2" /></>,
+  };
+  const content = customPaths[name];
+  if (!content) return <QuestScrollIcon name="sparkle" size={size} />;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      {content}
+    </svg>
+  );
+}
+
+/** Map a world event type to a small glyph. */
+function EventGlyph({ type, size = 13 }: { type: string; size?: number }) {
+  switch (type) {
+    case "BUILDING_UPGRADE":
+    case "COMPOUND_UPGRADE":
+      return <QuestScrollIcon name="building-emblem" size={size} />;
+    case "MILESTONE_REACHED":
+    case "PATH_MILESTONE_COMPLETED":
+      return <QuestScrollIcon name="mission" size={size} />;
+    case "TIER_ADVANCE":
+      return <QuestScrollIcon name="star" size={size} />;
+    case "ERA_ADVANCE":
+      return <QuestScrollIcon name="sparkle" size={size} />;
+    case "REGION_UNLOCK":
+    case "EXPLORATION_UNLOCK":
+      return <QuestScrollIcon name="map" size={size} />;
+    case "COMPOUND_UNLOCK":
+      return <QuestScrollIcon name="lock" size={size} />;
+    default:
+      return <QuestScrollIcon name="seal" size={size} />;
+  }
+}
+
+function formatDate(dateStr: string, locale: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(locale === "en" ? "en-US" : "zh-CN", { year: "numeric", month: "short", day: "numeric" });
 }

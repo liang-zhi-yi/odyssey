@@ -5,6 +5,7 @@ import Link from "next/link";
 import { worldService } from "@/services/world.service";
 import { questService } from "@/services/quest.service";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { getBuildingLevelLabel } from "@/types/world";
 import { RANK_LABELS } from "@/types/skill";
 import { StarRating, difficultyToLevel } from "./StarRating";
@@ -527,7 +528,7 @@ function CompoundDetail({
           <div className="space-y-2">
             {detail.source_skill_scores.map((src) => (
               <div
-                key={src.skill_name}
+                key={skillDisplayName(src.skill_name, undefined, locale)}
                 className="rounded-lg p-3 space-y-2 relative overflow-hidden"
                 style={{
                   backgroundColor: CIV_COLORS.bgContent + "80",
@@ -539,7 +540,7 @@ function CompoundDetail({
                     className="text-sm font-bold civ-archive-title truncate"
                     style={{ color: CIV_COLORS.textPrimary }}
                   >
-                    {src.skill_name}
+                    {skillDisplayName(src.skill_name, undefined, locale)}
                   </span>
                   <span
                     className="text-[10px] font-bold rounded-full px-2 py-0.5 shrink-0"

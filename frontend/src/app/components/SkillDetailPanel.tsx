@@ -10,6 +10,7 @@ import { RANK_LABELS } from "@/types/skill";
 import { SUBMISSION_STATUS_LABELS } from "@/types/quest";
 import { computeAggregateScores } from "@/lib/scores";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import type { DimensionScores } from "@/types/assessment";
 import {
@@ -199,7 +200,7 @@ export function SkillDetailPanel({
                           const top = allUserSkills.reduce((a, b) =>
                             b.overall > a.overall ? b : a
                           );
-                          return `${top.skill_name || top.skill_id} (${top.overall})`;
+                          return `${skillDisplayName(top.skill_name, undefined, locale) || top.skill_id} (${top.overall})`;
                         })()
                       : "—"
                   }
@@ -241,7 +242,7 @@ export function SkillDetailPanel({
                         className="h-1.5 w-1.5 rounded-full inline-block mr-1.5"
                         style={{ backgroundColor: CIV_COLORS.gold }}
                       />
-                      {us.skill_name || us.skill_id}
+                      {skillDisplayName(us.skill_name, undefined, locale) || us.skill_id}
                       <span
                         className="tabular-nums ml-1.5 font-mono"
                         style={{ color: CIV_COLORS.textSecondary }}
@@ -260,7 +261,7 @@ export function SkillDetailPanel({
 
   // ── Skill Detail State ─────────────────────────────────────────
 
-  const skillName = selectedSkill.name;
+  const skillName = skillDisplayName(selectedSkill.name, selectedSkill.name_en, locale);
   const rank = selectedUserSkill?.rank;
 
   return (
@@ -695,7 +696,7 @@ export function SkillDetailPanel({
                       className={rs.userSkill ? "font-bold" : ""}
                       style={{ color: rs.userSkill ? CIV_COLORS.textPrimary : CIV_COLORS.textSecondary }}
                     >
-                      {rs.skill.name}
+                      {skillDisplayName(rs.skill.name, rs.skill.name_en, locale)}
                     </span>
                     {rs.userSkill && (
                       <span

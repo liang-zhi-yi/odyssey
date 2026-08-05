@@ -3,6 +3,7 @@
 import { useLocale } from "@/hooks/useLocale";
 import type { Project } from "@/types/project";
 import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
+import { skillDisplayName } from "@/lib/skillNames";
 
 interface GrowthRelationProps {
   projects: Project[];
@@ -68,10 +69,11 @@ export function GrowthRelation({ projects, isLoading }: GrowthRelationProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-      <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-        <QuestScrollIcon name="scroll" size={18} />
-        {locale === "zh" ? "成长关联" : "Growth Relations"}
+    <div className="relative rounded-lg border border-[oklch(0.72_0.06_80_/_0.18)] bg-gradient-to-br from-[oklch(0.99_0.003_95_/_0.6)] to-[oklch(0.975_0.005_92_/_0.4)] dark:from-[oklch(0.22_0.008_85_/_0.5)] dark:to-[oklch(0.2_0.006_85_/_0.5)] p-5 overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.5)] to-transparent" />
+      <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.9_0.02_85)]">
+        <QuestScrollIcon name="scroll" size={18} className="text-[oklch(0.55_0.10_85)] dark:text-[oklch(0.72_0.12_82)]" />
+        {locale === "zh" ? "文明成长轨迹" : "Civilization Growth"}
       </h3>
 
       <div className="relative">
@@ -156,7 +158,7 @@ export function GrowthRelation({ projects, isLoading }: GrowthRelationProps) {
                       {locale === "zh" ? "关联技能" : "Related skill"}
                     </span>
                     <span className="font-medium text-foreground/70">
-                      {project.related_skill.name}
+                      {skillDisplayName(project.related_skill.name, undefined, locale)}
                     </span>
                   </div>
                 )}

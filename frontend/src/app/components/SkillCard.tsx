@@ -5,6 +5,7 @@ import type { UserSkill } from "@/types/skill";
 import type { SkillGrowthPoint } from "@/types/progress";
 import { RANK_LABELS } from "@/types/skill";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { GrowthRing, masteryColor } from "@/app/components/GrowthRing";
 import { Sparkline } from "@/app/components/Sparkline";
 import { BuildingBadge } from "./BuildingBadge";
@@ -31,7 +32,7 @@ interface SkillCardProps {
  * reflects mastery depth: light sage → deep sage → gold.
  */
 export function SkillCard({ skill, trend, worldBuildings }: SkillCardProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   const dimensions = [
     { key: "knowledge", value: skill.knowledge },
@@ -49,7 +50,7 @@ export function SkillCard({ skill, trend, worldBuildings }: SkillCardProps) {
       <div className="flex items-start justify-between mb-4">
         <div className="min-w-0">
           <h4 className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
-            {skill.skill_name || skill.skill_id}
+            {skillDisplayName(skill.skill_name, undefined, locale) || skill.skill_id}
           </h4>
         </div>
         <span className="flex-shrink-0 ml-2 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">

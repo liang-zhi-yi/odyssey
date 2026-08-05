@@ -31,15 +31,23 @@ export function PathProgressTimeline({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full">
-        <div className="h-5 w-40 rounded-md bg-muted skeleton-shimmer mb-4" />
-        <div className="h-48 w-full rounded-lg bg-muted skeleton-shimmer" />
+      <div
+        className="relative bg-gradient-to-br from-[#F7F2E8]/80 to-[#F0E8D8]/50 dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 h-full"
+        style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
+      >
+        <div className="h-5 w-40 bg-[#C9A45C]/15 skeleton-shimmer mb-4" />
+        <div className="h-48 w-full bg-[#C9A45C]/10 skeleton-shimmer" />
       </div>
     );
   }
 
   return (
-    <div className="group relative rounded-2xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-gradient-to-br from-[#F7F2E8] to-[#F0E8D8] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 shadow-card h-full overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-[oklch(0.7_0.12_85_/_0.3)]">
+    <div
+      className="group relative bg-gradient-to-br from-[#F7F2E8]/70 to-[#F0E8D8]/40 dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] p-6 h-full overflow-hidden transition-all duration-300 hover:from-[#F7F2E8]/90 hover:to-[#F0E8D8]/60"
+      style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
+    >
+      {/* Top accent — gold gradient line */}
+      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent" />
       {/* Subtle grid texture */}
       <div
         className="absolute inset-0 opacity-[0.4] dark:opacity-[0.2] pointer-events-none"
@@ -54,8 +62,13 @@ export function PathProgressTimeline({
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <svg className="w-4 h-4 text-accent flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 17 L9 11 L13 15 L21 7 M21 7 L15 7 M21 7 L21 13" />
+            {/* Star map trajectory icon */}
+            <svg className="w-4 h-4 text-[#C9A45C] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 17 L9 11 L13 15 L21 7" strokeWidth="1.4" />
+              <circle cx="3" cy="17" r="1" fill="currentColor" stroke="none" />
+              <circle cx="9" cy="11" r="0.8" fill="currentColor" stroke="none" opacity="0.7" />
+              <circle cx="13" cy="15" r="0.8" fill="currentColor" stroke="none" opacity="0.7" />
+              <circle cx="21" cy="7" r="1.2" fill="currentColor" stroke="none" />
             </svg>
             <h3 className="text-base font-bold font-civ-serif text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] truncate">
               {selectedPathId ? t("dashboard.pathGrowth") : t("dashboard.growthCurve")}
@@ -68,7 +81,8 @@ export function PathProgressTimeline({
               <select
                 value={selectedPathId || ""}
                 onChange={(e) => onSelectPath(e.target.value || null)}
-                className="appearance-none rounded-xl border border-[#C9A45C]/20 dark:border-[#C9A45C]/25 bg-card pl-9 pr-8 py-1.5 text-sm text-foreground transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 hover:border-accent/30 cursor-pointer font-medium"
+                className="appearance-none bg-[#F7F2E8]/60 dark:bg-[oklch(0.2_0.008_85)] pl-9 pr-8 py-1.5 text-sm text-foreground transition-all duration-300 focus:outline-none hover:bg-[#F7F2E8] dark:hover:bg-[oklch(0.22_0.008_85)] cursor-pointer font-medium border-b border-[#C9A45C]/30"
+                style={{ clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}
               >
                 <option value="">{t("dashboard.selectPath")}</option>
                 {allPaths.map((p) => (
@@ -259,7 +273,8 @@ function FutureBlueprintEmptyState({
       {!hasPaths && (
         <Link
           href="/paths"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-[oklch(0.5_0.09_150)] px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:shadow-[0_4px_16px_-2px_oklch(0.42_0.08_150/0.3)] hover:-translate-y-0.5"
+          className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-[#C9A45C] to-[#A08850] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-[0_4px_16px_-2px_#C9A45C40] hover:-translate-y-0.5"
+          style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

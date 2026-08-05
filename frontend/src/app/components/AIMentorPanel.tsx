@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import type { MentorSuggestion } from "@/types/learningPath";
 
 interface AIMentorPanelProps {
@@ -149,7 +150,7 @@ export function AIMentorPanel({ suggestion, isLoading, pathId }: AIMentorPanelPr
                     </p>
                     {q.skill_name && (
                       <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {q.skill_name} · {q.difficulty}
+                        {skillDisplayName(q.skill_name, undefined, locale)} · {q.difficulty}
                       </p>
                     )}
                   </div>

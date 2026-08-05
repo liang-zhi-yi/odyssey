@@ -6,6 +6,7 @@ import { Navbar } from "./components/Navbar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HtmlLang } from "./components/HtmlLang";
 import { AgentSidebar } from "./components/AgentSidebar";
+import { AchievementToast } from "./components/AchievementToast";
 import { PageGlassWrapper } from "./components/PageGlassWrapper";
 import { MainWrapper } from "./components/MainWrapper";
 
@@ -54,6 +55,7 @@ export default function RootLayout({
             </PageGlassWrapper>
           </MainWrapper>
           <AgentSidebar />
+          <AchievementToast />
         </Providers>
       </body>
     </html>

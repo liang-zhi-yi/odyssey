@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import type { Project } from "@/types/project";
 import type { UserBuilding } from "@/types/world";
 import type { ReactNode } from "react";
@@ -101,7 +102,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
     nodes.push({
       icon: <QuestScrollIcon name="reasoning" size={16} />,
       label: locale === "zh" ? "关联技能" : "Related Skill",
-      detail: project.related_skill.name,
+      detail: skillDisplayName(project.related_skill.name, undefined, locale),
       detailExtra: project.related_skill.category
         ? `${locale === "zh" ? "领域" : "Domain"}: ${project.related_skill.category}`
         : undefined,

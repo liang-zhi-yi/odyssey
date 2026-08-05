@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { CivilizationCompass } from "./CivilizationCompass";
 import { GrowthTimeline } from "./GrowthTimeline";
 import { EmptyState } from "./EmptyState";
@@ -662,7 +663,7 @@ export function CivilizationOverviewTab({
                             }}
                           >
                             <QuestScrollIcon name="application" size={12} className="inline-block" />
-                            {rs.skill_name} Lv.{rs.min_level}
+                            {skillDisplayName(rs.skill_name, undefined, locale)} Lv.{rs.min_level}
                           </span>
                         ))}
                       </div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { skillService } from "@/services/skill.service";
 import { progressService } from "@/services/progress.service";
 import { worldService } from "@/services/world.service";
@@ -931,8 +932,8 @@ export default function HistoryPage() {
 
       const title =
         locale === "en"
-          ? `${evt.skill_name} reached Lv${evt.new_score}`
-          : `${evt.skill_name} 达到 Lv${evt.new_score}`;
+          ? `${skillDisplayName(evt.skill_name, undefined, "en")} reached Lv${evt.new_score}`
+          : `${skillDisplayName(evt.skill_name, undefined, "zh")} 达到 Lv${evt.new_score}`;
       const desc =
         evt.delta > 0
           ? `+${evt.delta} · ${evt.reason}`

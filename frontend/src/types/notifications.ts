@@ -1,6 +1,7 @@
 /** Notification types for the notification system */
 
 export type NotificationType =
+  | "BADGE_EARNED"
   | "CREDENTIAL_EARNED"
   | "TIER_ADVANCE"
   | "MILESTONE_REACHED"

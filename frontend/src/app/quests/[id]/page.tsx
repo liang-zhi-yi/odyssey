@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { questService } from "@/services/quest.service";
 import { submissionService } from "@/services/submission.service";
 import { assessmentService } from "@/services/assessment.service";
@@ -207,7 +208,7 @@ export default function QuestDetailPage() {
           subtitle={subtitle}
           difficulty={quest.difficulty}
           questType={quest.quest_type}
-          skillName={quest.skill_name}
+          skillName={skillDisplayName(quest.skill_name, undefined, locale)}
         />
 
         {/* ── 2. 任务核心区域 ────────────────────────── */}

@@ -22,7 +22,7 @@ import type { World } from "@/types/world";
 
 export default function ProjectsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -76,18 +76,27 @@ export default function ProjectsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-8 relative overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between relative z-10">
+      <div className="flex items-center justify-between relative z-10 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)]">{t("projects.title")}</h1>
           <p className="mt-1 text-sm font-civ-serif text-[oklch(0.5_0.02_85)]">
             {t("projects.subtitle")}
           </p>
         </div>
+        {/* 文明入口按钮 — 金色描边 + 徽章 + 微弱光晕 */}
         <Link
           href="/projects/new"
-          className="rounded-lg bg-[oklch(0.72_0.12_82)] hover:bg-[oklch(0.7_0.12_85)] text-white border border-[oklch(0.72_0.12_82)] px-4 py-2 text-sm font-bold font-civ-serif transition-all hover:opacity-90 shadow-sm"
+          className="group relative inline-flex items-center gap-2.5 rounded-lg border border-[oklch(0.7_0.12_85_/_0.5)] bg-[oklch(0.99_0.003_95_/_0.5)] dark:bg-[oklch(0.22_0.008_85_/_0.5)] px-5 py-2.5 text-sm font-bold font-civ-serif text-[oklch(0.45_0.10_85)] dark:text-[oklch(0.72_0.12_82)] transition-all duration-300 hover:border-[oklch(0.65_0.12_85)] hover:shadow-[0_0_20px_rgba(201,164,92,0.25)] hover:scale-[1.03]"
         >
-          + {t("projects.newProject")}
+          {/* 微弱光晕 */}
+          <span className="absolute inset-0 rounded-lg bg-[oklch(0.7_0.12_85_/_0.08)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* 顶部金色线 */}
+          <span className="absolute top-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.5)] to-transparent" />
+          {/* 小型徽章 */}
+          <span className="relative flex-shrink-0 w-6 h-6 rounded-full border border-[oklch(0.7_0.12_85_/_0.5)] bg-[oklch(0.7_0.12_85_/_0.1)] flex items-center justify-center">
+            <QuestScrollIcon name="seal" size={14} strokeWidth={1.5} />
+          </span>
+          <span className="relative">+ {t("projects.createArchive")}</span>
         </Link>
       </div>
 
@@ -124,57 +133,32 @@ export default function ProjectsPage() {
                 </svg>
               </div>
 
-              {/* Antique Drawing style SVG: Sailing Ship & Island */}
-              <div className="mb-6 relative w-36 h-36 flex items-center justify-center relative z-10">
-                <svg
-                  className="w-full h-full text-[oklch(0.7_0.12_85)] dark:text-[oklch(0.72_0.12_82)] opacity-80"
-                  viewBox="0 0 100 100"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                >
-                  {/* Wave arcs */}
-                  <path d="M 10,75 Q 20,70 30,75 T 50,75 T 70,75 T 90,75" strokeDasharray="2 2" />
-                  <path d="M 5,83 Q 15,78 25,83 T 45,83 T 65,83 T 85,83 T 95,83" />
-                  
-                  {/* Uncharted Island outlines */}
-                  <path d="M 65,75 C 65,65 72,60 80,60 C 85,60 90,68 90,75 Z" fill="currentColor" opacity="0.08" />
-                  <line x1="78" y1="58" x2="78" y2="75" strokeDasharray="3 3" strokeWidth="0.8" />
-                  <circle cx="78" cy="52" r="2.5" fill="none" stroke="currentColor" strokeWidth="0.8" /><circle cx="78" cy="52" r="1" fill="currentColor" /><path d="M78 54.5v3" stroke="currentColor" strokeWidth="0.6" />
-
-                  {/* Sailing Ship / Caravel */}
-                  <g transform="translate(15, 25)">
-                    {/* Hull */}
-                    <path d="M 10,35 L 45,35 L 40,43 C 35,46 20,46 15,43 Z" fill="currentColor" opacity="0.15" />
-                    <path d="M 10,35 L 45,35 L 42,43 C 37,46 18,46 13,43 Z" strokeWidth="1.5" />
-                    <line x1="27" y1="12" x2="27" y2="35" strokeWidth="1.5" />
-                    <line x1="17" y1="18" x2="17" y2="35" />
-                    <line x1="37" y1="20" x2="37" y2="35" />
-                    
-                    {/* Sails */}
-                    <path d="M 27,12 Q 22,20 27,30 Q 32,20 27,12 Z" fill="currentColor" opacity="0.25" stroke="currentColor" />
-                    <path d="M 17,18 Q 13,23 17,31 Q 21,23 17,18 Z" fill="currentColor" opacity="0.2" stroke="currentColor" />
-                    
-                    {/* Flags */}
-                    <path d="M 27,12 L 32,14 L 27,16 Z" fill="currentColor" />
-                  </g>
-                </svg>
+              {/* 文明遗迹石碑图标 */}
+              <div className="mb-6 relative w-28 h-28 flex items-center justify-center relative z-10">
+                <div className="absolute inset-0 rounded-full border border-[oklch(0.7_0.12_85_/_0.2)]" />
+                <div className="absolute inset-0 rounded-full border border-dashed border-[oklch(0.7_0.12_85_/_0.15)] animate-rhumb-spin" style={{ animationDuration: "80s" }} />
+                <span className="w-16 h-16 rounded-full border border-[oklch(0.7_0.12_85_/_0.4)] bg-[oklch(0.7_0.12_85_/_0.08)] dark:bg-[oklch(0.7_0.12_85_/_0.12)] flex items-center justify-center text-[oklch(0.55_0.10_85)] dark:text-[oklch(0.72_0.12_82)]">
+                  <QuestScrollIcon name="seal" size={32} strokeWidth={1.3} />
+                </span>
               </div>
 
               <h3 className="text-xl font-bold font-civ-serif text-[oklch(0.3_0.02_80)] relative z-10">
-                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="inline-block"><circle cx="12" cy="5" r="2" /><path d="M12 7v15M5 12h14M8 12c0 4 2 6 4 6s4-2 4-6" /></svg> {t("projects.noProjects")}
+                {t("projects.noProjects")}
               </h3>
               <p className="mt-2 text-sm font-civ-serif text-[oklch(0.5_0.02_85)] leading-relaxed max-w-md relative z-10">
-                {locale === "zh"
-                  ? "文明的大海平缓而辽阔，你的航行里程碑大本营目前还没有登录作品。一旦你征服任意 Quest 并提报交付成果，它将立刻化为这一张张闪耀的文明拓荒徽章陈列于此！"
-                  : t("projects.noProjectsDesc")}
+                {t("projects.noProjectsDesc")}
               </p>
-              
+
+              {/* 阶梯式探索按钮 */}
               <Link
                 href="/quests"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[oklch(0.72_0.12_82)] hover:bg-[oklch(0.7_0.12_85)] text-white border border-[oklch(0.72_0.12_82)] px-6 py-2.5 text-sm font-bold font-civ-serif transition-all hover:opacity-90 shadow-md relative z-10 btn-press"
+                className="group relative mt-6 inline-flex items-center gap-2 rounded-lg border border-[oklch(0.7_0.12_85_/_0.5)] bg-[oklch(0.99_0.003_95_/_0.5)] dark:bg-[oklch(0.22_0.008_85_/_0.5)] px-6 py-2.5 text-sm font-bold font-civ-serif text-[oklch(0.45_0.10_85)] dark:text-[oklch(0.72_0.12_82)] transition-all duration-300 hover:border-[oklch(0.65_0.12_85)] hover:shadow-[0_0_20px_rgba(201,164,92,0.25)] hover:scale-[1.03] relative z-10"
               >
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="inline-block"><circle cx="12" cy="12" r="9" /><path d="M12 7l2 5-2 5-2-5 2-5z" fill="currentColor" stroke="none" opacity="0.4" /></svg> {t("projects.browseQuests")}
+                <span className="absolute top-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-[oklch(0.7_0.12_85_/_0.5)] to-transparent" />
+                <span className="flex-shrink-0 w-5 h-5 rounded-full border border-[oklch(0.7_0.12_85_/_0.5)] bg-[oklch(0.7_0.12_85_/_0.1)] flex items-center justify-center">
+                  <QuestScrollIcon name="compass" size={12} strokeWidth={1.5} />
+                </span>
+                <span className="relative">{t("projects.browseQuests")}</span>
               </Link>
             </div>
           ) : (
@@ -187,13 +171,14 @@ export default function ProjectsPage() {
 
               {/* Layer 3: Project card grid */}
               <div>
-                <h3 className="text-sm font-semibold mb-3">
-                  {locale === "zh" ? "全部成果" : "All Achievements"}
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <QuestScrollIcon name="scroll" size={16} className="text-[oklch(0.55_0.10_85)] dark:text-[oklch(0.72_0.12_82)]" />
+                  {t("projects.archive_allRecords")}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 animate-stagger">
-                  {projects.map((project) => (
+                  {projects.map((project, idx) => (
                     <div key={project.id} className="card-hover">
-                      <ProjectCard project={project} />
+                      <ProjectCard project={project} index={idx} />
                     </div>
                   ))}
                 </div>

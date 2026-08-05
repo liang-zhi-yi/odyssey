@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CivilizationBadge, CIVILIZATION_META, type CivilizationType } from "./CivilizationBadge";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { skillDisplayName } from "@/lib/skillNames";
 import { useLocale } from "@/hooks/useLocale";
 import type { UserCivilizationQuestGroup, UserCivilizationQuestItem } from "@/types/quest";
 
@@ -259,7 +260,7 @@ function ArchiveQuestRow({
         </p>
         {item.skill_name && (
           <p className="font-civ-serif text-[10px] text-[oklch(0.55_0.03_75)] dark:text-[oklch(0.62_0.04_80)] truncate mt-0.5 italic">
-            {item.skill_name}
+            {skillDisplayName(item.skill_name, undefined, isZh ? "zh" : "en")}
           </p>
         )}
       </div>

@@ -8,6 +8,7 @@ import { Loading } from "./Loading";
 import { EmptyState } from "./EmptyState";
 import { QuestScrollIcon } from "./QuestScrollIcon";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
@@ -27,7 +28,7 @@ export function PassportCard({
   aggregateScores,
   isLoading,
 }: PassportCardProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
 
@@ -164,7 +165,7 @@ export function PassportCard({
                 key={i}
                 className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2.5 transition-all hover:bg-secondary"
               >
-                <span className="text-sm font-medium">{skill.name}</span>
+                <span className="text-sm font-medium">{skillDisplayName(skill.name, undefined, locale)}</span>
                 <div className="flex items-center gap-3">
                   {/* Mini score bar */}
                   <div className="hidden sm:block h-1.5 w-16 rounded-full bg-secondary overflow-hidden">

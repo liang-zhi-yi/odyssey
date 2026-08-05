@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { useLocale } from "@/hooks/useLocale";
 import { useAgent } from "@/hooks/useAgent";
@@ -88,6 +88,85 @@ function normalizeQuestItem(raw: any, idx: number): any | null {
     associated_building: raw.associated_building ?? null,
     reward_preview: raw.reward_preview ?? null,
   };
+}
+
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+/** 自定义下拉组件 — 菜单固定向下展开（原生 select 无法控制弹出方向） */
+function CivDropdown({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled = false,
+  embedIcon,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: DropdownOption[];
+  placeholder: string;
+  disabled?: boolean;
+  embedIcon?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // 点击外部关闭
+  useEffect(() => {
+    if (!open) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <div className="flex items-center gap-2">
+        {embedIcon}
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((o) => !o)}
+          className="flex-1 rounded-lg border border-[oklch(0.72_0.06_80_/_0.20)] bg-[oklch(0.99_0.003_95_/_0.6)] dark:bg-[oklch(0.22_0.008_85_/_0.6)] px-2.5 py-1.5 text-xs font-civ-serif text-left text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] focus:outline-none focus:border-[oklch(0.7_0.12_85)] focus:ring-2 focus:ring-[oklch(0.7_0.12_85_/_0.15)] disabled:opacity-50 flex items-center justify-between gap-2"
+        >
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
+          <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-[oklch(0.5_0.03_75)] transition-transform ${open ? "rotate-180" : ""}`}>
+            <path d="M6 9l6 6l6-6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 z-30 max-h-52 overflow-y-auto rounded-lg border border-[oklch(0.72_0.06_80_/_0.20)] bg-[oklch(0.995_0.004_95)] dark:bg-[oklch(0.24_0.01_85)] shadow-lg">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+              className={`block w-full px-2.5 py-1.5 text-left text-xs font-civ-serif transition-colors ${
+                o.value === value
+                  ? "bg-[oklch(0.60_0.08_145_/_0.12)] text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.72_0.09_145)]"
+                  : "text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] hover:bg-[oklch(0.92_0.02_80_/_0.4)] dark:hover:bg-[oklch(0.22_0.012_78_/_0.35)]"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function AIQuestGenerator() {
@@ -371,29 +450,36 @@ Return ONLY a JSON array, no explanation, wrapped in a \`\`\`json code block.`;
               <label className="block text-[10px] font-bold text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_80)] uppercase tracking-wider mb-1.5 font-civ-serif">
                 {locale === "zh" ? "关联建筑" : "Building"}
               </label>
-              <div className="flex items-center gap-2">
-                {selectedBuilding && selectedBuildingSkillId && (
-                  <div className="flex-shrink-0">
-                    <BuildingSealIcon type={selectedBuildingSkillId} size={28} />
-                  </div>
-                )}
-                <select
-                  value={buildingFilter}
-                  onChange={(e) => setBuildingFilter(e.target.value)}
-                  disabled={isGenerating || buildingOptions.length === 0}
-                  className="flex-1 rounded-lg border border-[oklch(0.72_0.06_80_/_0.20)] bg-[oklch(0.99_0.003_95_/_0.6)] dark:bg-[oklch(0.22_0.008_85_/_0.6)] px-2.5 py-1.5 text-xs font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] focus:outline-none focus:border-[oklch(0.7_0.12_85)] focus:ring-2 focus:ring-[oklch(0.7_0.12_85_/_0.15)] disabled:opacity-50"
-                >
-                  <option value="">{locale === "zh" ? "不限建筑" : "Any Building"}</option>
-                  {buildingOptions.map((b) => {
-                    const displayName = locale === "en" && b.name_en ? b.name_en : b.name;
-                    return (
-                      <option key={b.id} value={b.id}>
-                        {displayName} ({b.node_type === "compound" ? (locale === "zh" ? "复合" : "Compound") : (locale === "zh" ? "基础" : "Basic")})
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
+              <CivDropdown
+                value={buildingFilter}
+                onChange={setBuildingFilter}
+                disabled={isGenerating || buildingOptions.length === 0}
+                placeholder={locale === "zh" ? "不限建筑" : "Any Building"}
+                embedIcon={
+                  selectedBuilding && selectedBuildingSkillId ? (
+                    <div className="flex-shrink-0">
+                      <BuildingSealIcon type={selectedBuildingSkillId} size={28} />
+                    </div>
+                  ) : undefined
+                }
+                options={[
+                  { value: "", label: locale === "zh" ? "不限建筑" : "Any Building" },
+                  ...buildingOptions.map((b) => ({
+                    value: b.id,
+                    label:
+                      (locale === "en" && b.name_en ? b.name_en : b.name) +
+                      " (" +
+                      (b.node_type === "compound"
+                        ? locale === "zh"
+                          ? "复合"
+                          : "Compound"
+                        : locale === "zh"
+                          ? "基础"
+                          : "Basic") +
+                      ")",
+                  })),
+                ]}
+              />
             </div>
 
             {/* Associated Skill */}
@@ -401,41 +487,84 @@ Return ONLY a JSON array, no explanation, wrapped in a \`\`\`json code block.`;
               <label className="block text-[10px] font-bold text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_80)] uppercase tracking-wider mb-1.5 font-civ-serif">
                 {locale === "zh" ? "关联技能" : "Skill"}
               </label>
-              <select
+              <CivDropdown
                 value={skillFilter}
-                onChange={(e) => setSkillFilter(e.target.value)}
+                onChange={setSkillFilter}
                 disabled={isGenerating || filteredSkills.length === 0}
-                className="w-full rounded-lg border border-[oklch(0.72_0.06_80_/_0.20)] bg-[oklch(0.99_0.003_95_/_0.6)] dark:bg-[oklch(0.22_0.008_85_/_0.6)] px-2.5 py-1.5 text-xs font-civ-serif text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)] focus:outline-none focus:border-[oklch(0.7_0.12_85)] focus:ring-2 focus:ring-[oklch(0.7_0.12_85_/_0.15)] disabled:opacity-50"
-              >
-                <option value="">{locale === "zh" ? "不限技能" : "Any Skill"}</option>
-                {filteredSkills.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {locale === "en" && s.name_en ? s.name_en : s.name}
-                  </option>
-                ))}
-              </select>
+                placeholder={locale === "zh" ? "不限技能" : "Any Skill"}
+                options={[
+                  { value: "", label: locale === "zh" ? "不限技能" : "Any Skill" },
+                  ...filteredSkills.map((s) => ({
+                    value: s.id,
+                    label: locale === "en" && s.name_en ? s.name_en : s.name,
+                  })),
+                ]}
+              />
             </div>
           </div>
 
-          {/* Generate button */}
-          <div className="pb-2">
+          {/* 文明智能核心启动入口 — 悬浮式智能核心 */}
+          <div className="relative pb-2 pt-1">
+            {/* 文明遗迹装饰线 */}
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 flex items-center gap-2 w-2/3">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent" />
+              <span className="w-1 h-1 rotate-45 bg-[#C9A45C]/60 flex-shrink-0" />
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent" />
+            </div>
+
             <button
               type="button"
               onClick={handleGenerate}
               disabled={!canGenerate}
-              className="w-full rounded-lg bg-gradient-to-r from-[oklch(0.55_0.10_280)] to-[oklch(0.50_0.09_295)] hover:from-[oklch(0.50_0.10_280)] hover:to-[oklch(0.45_0.09_295)] disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:cursor-not-allowed px-5 py-2.5 text-sm font-bold font-civ-serif text-white tracking-wide transition-all flex items-center justify-center gap-2 shadow-sm border border-[oklch(0.55_0.10_280_/_0.3)]"
+              aria-label={locale === "zh" ? "开启今日探索" : "Begin Today's Exploration"}
+              className={`group relative mx-auto flex flex-col items-center gap-3 overflow-visible py-4 transition-all duration-300 ${
+                canGenerate ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+              }`}
             >
-              {isGenerating ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span>{locale === "zh" ? "智能体推演中..." : "Agent conjuring..."}</span>
-                </>
-              ) : (
-                <>
-                  <QuestScrollIcon name="sparkle" size={16} strokeWidth={1.6} />
-                  <span>{locale === "zh" ? "AI 生成今日推荐" : "AI Generate Recommendations"}</span>
-                </>
-              )}
+              {/* ── 光晕层：缓慢扩散 ── */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full pointer-events-none core-halo" />
+              {/* 内层能量环 */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full pointer-events-none core-halo-inner" />
+
+              {/* ── 核心主体：玻璃质感 + 细金边框 ── */}
+              <div className="relative w-20 h-20 rounded-full border border-[#C9A45C]/60 bg-white/40 dark:bg-white/5 backdrop-blur-md shadow-[0_0_24px_rgba(201,164,92,0.15),inset_0_0_18px_rgba(201,164,92,0.08)] flex items-center justify-center transition-all duration-300 group-hover:bg-white/55 dark:group-hover:bg-white/10 group-hover:shadow-[0_0_40px_rgba(201,164,92,0.35),inset_0_0_26px_rgba(201,164,92,0.18)] group-hover:scale-105">
+                {/* 旋转符文环 */}
+                <svg className="absolute inset-0 w-full h-full text-[#C9A45C]/50 animate-[spin_20s_linear_infinite]" viewBox="0 0 80 80" fill="none">
+                  <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3 5" />
+                  <circle cx="40" cy="40" r="30" stroke="currentColor" strokeWidth="0.4" strokeDasharray="1 4" opacity="0.6" />
+                </svg>
+                {/* 核心闪烁图标 — 祭坛火种 */}
+                <span className="relative text-[#C9A45C]">
+                  {isGenerating ? (
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#C9A45C] border-t-transparent" />
+                  ) : (
+                    <svg width={30} height={30} viewBox="0 0 24 24" fill="none" className="core-flame">
+                      {/* 外焰 */}
+                      <path className="core-flame-outer" d="M12 2 C 8 6 6 10 8 14 C 9 16 11 17 12 17 C 13 17 15 16 16 14 C 18 10 16 6 12 2 Z"
+                        fill="rgba(201,164,92,0.35)" stroke="#C9A45C" strokeWidth="0.9" strokeLinejoin="round" />
+                      {/* 内焰 */}
+                      <path className="core-flame-inner" d="M12 8 C 10 10 10 12 11 14 C 11.5 15 12.5 15 13 14 C 14 12 14 10 12 8 Z"
+                        fill="#E8C87A" stroke="none" />
+                      {/* 火星点缀 */}
+                      <circle className="core-ember" cx="7" cy="13" r="0.7" fill="#E8C87A" />
+                      <circle className="core-ember" cx="17" cy="12" r="0.6" fill="#E8C87A" />
+                      <circle className="core-ember" cx="15" cy="16" r="0.5" fill="#E8C87A" />
+                    </svg>
+                  )}
+                </span>
+              </div>
+
+              {/* 文案 */}
+              <span className={`flex flex-col items-center gap-0.5 transition-colors duration-300 ${canGenerate ? "group-hover:text-[#B8943F]" : ""}`}>
+                <span className="font-civ-serif text-base font-bold text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] italic tracking-wide">
+                  {isGenerating
+                    ? (locale === "zh" ? "智能推演中..." : "Conjuring...")
+                    : (locale === "zh" ? "点燃今日灵感" : "Ignite Today's Insight")}
+                </span>
+                <span className="font-civ-serif text-[10px] text-[#8C7655] dark:text-[oklch(0.62_0.04_80)] italic tracking-wider">
+                  {locale === "zh" ? "火种跃动 · 星火燎原" : "Flame dances · sparks spread"}
+                </span>
+              </span>
             </button>
           </div>
 
@@ -490,14 +619,6 @@ Return ONLY a JSON array, no explanation, wrapped in a \`\`\`json code block.`;
       {!hasGenerated && (
         <div className="relative z-10 rounded-xl scroll-fuse ornamental-border overflow-hidden">
           <div className="px-6 py-12 sm:py-14 text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-[-6px] rounded-full border border-[oklch(0.55_0.10_280_/_0.25)] animate-[spin_60s_linear_infinite]" />
-                <div className="relative w-14 h-14 rounded-full border-2 border-[oklch(0.55_0.10_280_/_0.4)] bg-gradient-to-br from-[oklch(0.99_0.003_95)] to-[oklch(0.92_0.02_80_/_0.5)] dark:from-[oklch(0.22_0.015_78)] dark:to-[oklch(0.2_0.012_78)] flex items-center justify-center shadow-sm">
-                  <QuestScrollIcon name="sparkle" size={26} className="text-[oklch(0.5_0.10_280)] dark:text-[oklch(0.7_0.12_280)]" strokeWidth={1.4} />
-                </div>
-              </div>
-            </div>
             <h3 className="font-civ-serif text-base font-bold text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] mb-2 tracking-wide">
               {locale === "zh" ? "今日卷轴由你召唤" : "Summon Today's Scrolls"}
             </h3>

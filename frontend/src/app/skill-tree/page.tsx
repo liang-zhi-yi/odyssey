@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { skillService } from "@/services/skill.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
@@ -34,7 +35,7 @@ function rankColor(rank: SkillRank): string {
 
 export default function SkillTreePage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -196,7 +197,7 @@ export default function SkillTreePage() {
                             <div className="flex items-center justify-between gap-4">
                               <div className="min-w-0">
                                 <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
-                                  {skill.name}
+                                  {skillDisplayName(skill.name, skill.name_en, locale)}
                                 </h3>
                                 {skill.description && (
                                   <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
@@ -237,7 +238,7 @@ export default function SkillTreePage() {
                             <div className="flex items-center justify-between gap-4">
                               <div className="min-w-0">
                                 <h3 className="font-semibold text-sm text-muted-foreground">
-                                  {skill.name}
+                                  {skillDisplayName(skill.name, skill.name_en, locale)}
                                 </h3>
                                 {skill.description && (
                                   <p className="text-xs text-muted-foreground/60 line-clamp-1 mt-0.5">

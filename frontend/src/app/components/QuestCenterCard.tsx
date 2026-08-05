@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { QuestListItem } from "@/types/quest";
 import { QUEST_TYPE_LABELS } from "@/types/quest";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { StarRating, difficultyToLevel } from "./StarRating";
 import { BuildingBadge } from "./BuildingBadge";
 import { RewardBadge } from "./RewardBadge";
@@ -128,7 +129,7 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
         {quest.skill_name && (
           <>
             <span className="text-muted-foreground/30">·</span>
-            <span className="truncate max-w-[8rem]">{quest.skill_name}</span>
+            <span className="truncate max-w-[8rem]">{skillDisplayName(quest.skill_name, undefined, locale)}</span>
           </>
         )}
         {quest.expected_deliverable && (

@@ -218,6 +218,7 @@ export function ProfileForm() {
                 value={newPlatform}
                 onChange={(e) => setNewPlatform(e.target.value)}
                 placeholder={t("settings.platform")}
+                autoComplete="off"
                 className="flex-1 rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
               />
               <input
@@ -225,6 +226,7 @@ export function ProfileForm() {
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 placeholder={t("settings.url")}
+                autoComplete="off"
                 className="flex-[2] rounded-lg border border-[oklch(0.8_0.05_85)] dark:border-[oklch(0.3_0.02_80)] bg-background/50 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/35 focus:border-[#C4A77D]"
               />
               <button

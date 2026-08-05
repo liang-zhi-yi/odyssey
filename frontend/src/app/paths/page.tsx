@@ -130,7 +130,7 @@ export default function PathsPage() {
           {/* Civilization Stats Overview — only on My Paths tab */}
           <CivilizationStatsBar stats={pathStats ?? null} isLoading={statsLoading} />
           {userPathsLoading ? (
-          <Loading variant="skeleton-cards" cardCount={4} />
+          <Loading variant="skeleton-list" cardCount={4} />
         ) : userPathsError ? (
           <ErrorState message={t("paths.loadMyError")} />
         ) : userPaths.length === 0 ? (
@@ -139,11 +139,9 @@ export default function PathsPage() {
             description={t("paths.noPathsDesc")}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-stagger">
+          <div className="animate-stagger">
             {userPaths.map((path: LearningPath) => (
-              <div key={path.id} className="card-hover h-full">
-                <LearningPathCard path={path} worldBuildings={worldBuildings} />
-              </div>
+              <LearningPathCard key={path.id} path={path} worldBuildings={worldBuildings} />
             ))}
           </div>
         )}

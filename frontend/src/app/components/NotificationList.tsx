@@ -6,6 +6,7 @@ import { notificationsService } from "@/services/notifications.service";
 import type { Notification } from "@/types/notifications";
 
 const TYPE_ICONS: Record<string, string> = {
+  BADGE_EARNED: "\u{1F3C6}",
   CREDENTIAL_EARNED: "\u{1F3C5}",
   TIER_ADVANCE: "\u{1F31F}",
   MILESTONE_REACHED: "\u{1F3C6}",
@@ -15,6 +16,7 @@ const TYPE_ICONS: Record<string, string> = {
 
 function getTypeKey(type: string): string {
   const map: Record<string, string> = {
+    BADGE_EARNED: "notifications.types.badgeEarned",
     CREDENTIAL_EARNED: "notifications.types.credentialEarned",
     TIER_ADVANCE: "notifications.types.tierAdvance",
     MILESTONE_REACHED: "notifications.types.milestoneReached",

@@ -262,13 +262,13 @@ export function Navbar() {
             <LanguageSwitcher />
             <Link
               href="/auth"
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="italic font-civ-serif text-sm text-[#8B6F3C] dark:text-[#C9A45C] tracking-wide transition-all duration-300 hover:text-[#B8943F] dark:hover:text-[#E0B860] hover:scale-110"
             >
               {t("nav.login")}
             </Link>
             <Link
               href="/auth"
-              className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+              className="italic font-civ-serif text-sm text-[#8B6F3C] dark:text-[#C9A45C] tracking-wide transition-all duration-300 hover:text-[#B8943F] dark:hover:text-[#E0B860] hover:scale-110"
             >
               {t("nav.register")}
             </Link>

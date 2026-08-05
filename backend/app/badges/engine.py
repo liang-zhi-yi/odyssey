@@ -94,6 +94,21 @@ def check_and_award_badges(
             db.add(user_badge)
             newly_awarded.append(badge.name)
             logger.info("Badge awarded: %s to user %s", badge.name, user_id)
+            # Create notification for the earned badge
+            try:
+                from app.notifications.service import create_notification
+                create_notification(
+                    db,
+                    user_id=user_id,
+                    type="BADGE_EARNED",
+                    title=f"获得徽章：{badge.name}",
+                    title_en=f"Badge Earned: {badge.name_en or badge.name}",
+                    body=badge.description or "",
+                    body_en=badge.description_en or badge.description or "",
+                    link="/badges",
+                )
+            except Exception as exc:
+                logger.warning("Badge notification failed (non-fatal): %s", exc)
 
     if newly_awarded:
         db.commit()

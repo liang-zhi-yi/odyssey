@@ -83,7 +83,11 @@ function WorldPageContent() {
       ...(world.buildings ?? []),
       ...(world.compound_buildings ?? []),
     ];
-    const found = allBuildings.find((b) => b.id === buildingId);
+    // Match by user-building id (internal navigation) OR by template id
+    // (learning-path building targets use the BuildingTemplate id).
+    const found = allBuildings.find(
+      (b) => b.id === buildingId || b.building_template_id === buildingId
+    );
     if (found) {
       setSelectedBuilding(found);
       setViewMode("map");

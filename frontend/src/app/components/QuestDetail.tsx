@@ -6,6 +6,7 @@ import {
   QUEST_TYPE_LABELS,
 } from "@/types/quest";
 import { useLocale } from "@/hooks/useLocale";
+import { skillDisplayName } from "@/lib/skillNames";
 import { Loading } from "./Loading";
 import { ErrorState } from "./ErrorState";
 
@@ -85,7 +86,7 @@ export function QuestDetail({
         </div>
         <div>
           <span className="text-muted-foreground">{t("quests.relatedSkill")}</span>
-          <p className="font-medium mt-0.5">{quest.skill_name}</p>
+          <p className="font-medium mt-0.5">{skillDisplayName(quest.skill_name, undefined, locale)}</p>
         </div>
       </div>
 
