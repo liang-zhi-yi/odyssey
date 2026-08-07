@@ -78,8 +78,9 @@ export default function QuestDetailPage() {
   const isAssessing = userQuest?.status === "ASSESSING";
 
   // ── Fetch submission history ───────────────────────
+  // 只要有提交记录（≥1 次）即可查看，含单次提交的历史与 AI 评测
   const { data: submissionHistory = [] } = useSWR(
-    userQuest && userQuest.submission_count > 1 && questId
+    userQuest && userQuest.submission_count >= 1 && questId
       ? `submission-history-${questId}`
       : null,
     () => submissionService.getSubmissionHistory(questId)
@@ -472,7 +473,7 @@ export default function QuestDetailPage() {
         </section>
       )}
 
-      {/* Submission History */}
+      {/* Submission History — 提交记录 + AI 评测详情 */}
       {submissionHistory.length > 0 && (
         <section className="rounded-xl scroll-fuse ornamental-border p-6">
           <div className="relative z-10">
@@ -484,35 +485,40 @@ export default function QuestDetailPage() {
               <div className="flex-1 h-px bg-[oklch(0.72_0.06_80_/_0.18)] dark:bg-[oklch(0.55_0.05_80_/_0.20)]" />
             </div>
             <div className="space-y-3">
-              {submissionHistory.map((item: SubmissionHistoryItem, idx: number) => (
-                <div key={item.submission_id}
-                  className="flex items-center justify-between rounded-lg border border-[oklch(0.72_0.06_80_/_0.15)] dark:border-[oklch(0.48_0.04_80_/_0.20)] bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] px-4 py-3">
-                  <div>
-                    <p className="font-civ-serif text-sm font-medium text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.82_0.04_80)]">
-                      {t("quests.attempt", { count: submissionHistory.length - idx })}
-                    </p>
-                    {item.content && (
-                      <p className="text-xs text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.62_0.035_80)] font-civ-serif italic mt-0.5 line-clamp-2">{item.content}</p>
-                    )}
+              {submissionHistory.map((item: SubmissionHistoryItem, idx: number) => {
+                const attemptNo = submissionHistory.length - idx;
+                return (
+                  <div key={item.submission_id}
+                    className="rounded-lg border border-[oklch(0.72_0.06_80_/_0.15)] dark:border-[oklch(0.48_0.04_80_/_0.20)] bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)]">
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="font-civ-serif text-sm font-medium text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.82_0.04_80)]">
+                          {t("quests.attempt", { count: attemptNo })}
+                        </p>
+                        {item.content && (
+                          <p className="text-xs text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.62_0.035_80)] font-civ-serif italic mt-0.5 line-clamp-2">{item.content}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-none items-center gap-2 flex-wrap justify-end">
+                        {item.submitted_at && (
+                          <span className="text-xs text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.62_0.035_80)] font-civ-serif tabular-nums">
+                            {new Date(item.submitted_at).toLocaleDateString()}
+                          </span>
+                        )}
+                        <QuestStatusBadge status={item.status as any} size="sm" />
+                        {item.assessment_id && (
+                          <button
+                            onClick={() => router.push(`/assessment/${item.assessment_id}`)}
+                            className="font-civ-serif text-xs italic tracking-wide text-[oklch(0.50_0.05_75)] dark:text-[oklch(0.62_0.05_80)] hover:text-[oklch(0.35_0.05_70)] dark:hover:text-[oklch(0.78_0.06_82)] underline-offset-2 hover:underline transition-colors"
+                          >
+                            {t("quests.viewDetails")}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {item.submitted_at && (
-                      <span className="text-xs text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.62_0.035_80)] font-civ-serif tabular-nums">
-                        {new Date(item.submitted_at).toLocaleDateString()}
-                      </span>
-                    )}
-                    <QuestStatusBadge status={item.status as any} size="sm" />
-                    {item.assessment_id && (
-                      <button
-                        onClick={() => router.push(`/assessment/${item.assessment_id}`)}
-                        className="font-civ-serif text-xs italic tracking-wide text-[oklch(0.50_0.05_75)] dark:text-[oklch(0.62_0.05_80)] hover:text-[oklch(0.35_0.05_70)] dark:hover:text-[oklch(0.78_0.06_82)] underline-offset-2 hover:underline transition-colors"
-                      >
-                        {locale === "zh" ? "查看详情" : "View Details"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

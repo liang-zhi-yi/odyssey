@@ -355,8 +355,17 @@ def get_user_quests(db: Session, user_id: str) -> list[dict]:
         .all()
     )
 
+    # True submissions only — the auto-created ACCEPTED row (e.g. when a
+    # path-generated quest is auto-accepted) must NOT count as a submission.
+    _history_statuses = {
+        SubmissionStatus.SUBMITTED,
+        SubmissionStatus.ASSESSING,
+        SubmissionStatus.PASSED,
+        SubmissionStatus.FAILED,
+    }
+
     # Group by quest_id: first row is the latest submission (used for status/id),
-    # count tracks total submissions per quest
+    # count tracks only real submissions (not plain accept records)
     seen: dict[str, dict] = {}
     for sub, title, title_en in rows:
         qid = str(sub.quest_id)
@@ -369,7 +378,8 @@ def get_user_quests(db: Session, user_id: str) -> list[dict]:
                 "latest_submission_id": str(sub.id),
                 "submission_count": 0,
             }
-        seen[qid]["submission_count"] += 1
+        if sub.status in _history_statuses:
+            seen[qid]["submission_count"] += 1
 
     return list(seen.values())
 

@@ -1514,6 +1514,162 @@ button:hover .core-flame {
 }
 .civil-motto { animation: civil-motto 10s ease-in-out infinite; }
 
+/* ═══ 东方水墨文明 · 文明档案入口 视觉系统 ═══ */
+
+/* 背景水墨缓慢流动 — 极慢缩放与平移，营造水墨呼吸感 */
+@keyframes ink-drift {
+  0%   { transform: scale(1) translate(0, 0); }
+  33%  { transform: scale(1.035) translate(-1.2%, -0.6%); }
+  66%  { transform: scale(1.02) translate(0.8%, 0.5%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+.ink-drift { animation: ink-drift 46s ease-in-out infinite; will-change: transform; }
+
+/* 背景古文明符号低透明浮现 — 极慢上下漂浮 + 呼吸 */
+@keyframes ink-symbol-float {
+  0%, 100% { opacity: 0.05; transform: translateY(0) rotate(0deg); }
+  25%      { opacity: 0.16; }
+  50%      { opacity: 0.1; transform: translateY(-18px) rotate(6deg); }
+  75%      { opacity: 0.16; }
+}
+.ink-symbol-float { animation: ink-symbol-float 10s ease-in-out infinite; }
+
+/* 文明坐标扫描 — 一条极淡金色扫描线自上而下缓慢移动 */
+@keyframes coord-scan {
+  0%   { top: -4%; opacity: 0; }
+  12%  { opacity: 0.08; }
+  50%  { opacity: 0.08; }
+  60%  { opacity: 0; top: 104%; }
+  100% { opacity: 0; top: 104%; }
+}
+.coord-scan { animation: coord-scan 8s linear infinite; }
+
+/* 文明坐标网格 — 极淡金色细网格缓慢漂移 */
+@keyframes coord-grid-drift {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 60px 60px, 60px 60px; }
+}
+.coord-grid { animation: coord-grid-drift 40s linear infinite; }
+
+/* 登录入口线条绘制 — 四角金线从中心向外绘制出现 */
+@keyframes entry-draw {
+  from { stroke-dashoffset: 260; opacity: 0; }
+  60%  { opacity: 1; }
+  to   { stroke-dashoffset: 0; opacity: 1; }
+}
+.entry-draw path {
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  animation: entry-draw 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* 登录入口四角金线 — 从四个角向内绘制出现 */
+@keyframes corner-in {
+  from { transform: scale(0, 0); opacity: 0; }
+  to   { transform: scale(1, 1); opacity: 1; }
+}
+.entry-corner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  opacity: 0;
+  animation: corner-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.entry-corner.tl { left: 0; top: 0; border-left: 1px solid oklch(0.66 0.12 80 / 0.75); border-top: 1px solid oklch(0.66 0.12 80 / 0.75); transform-origin: top left; animation-delay: 0.15s; }
+.entry-corner.tr { right: 0; top: 0; border-right: 1px solid oklch(0.66 0.12 80 / 0.75); border-top: 1px solid oklch(0.66 0.12 80 / 0.75); transform-origin: top right; animation-delay: 0.3s; }
+.entry-corner.bl { left: 0; bottom: 0; border-left: 1px solid oklch(0.66 0.12 80 / 0.75); border-bottom: 1px solid oklch(0.66 0.12 80 / 0.75); transform-origin: bottom left; animation-delay: 0.45s; }
+.entry-corner.br { right: 0; bottom: 0; border-right: 1px solid oklch(0.66 0.12 80 / 0.75); border-bottom: 1px solid oklch(0.66 0.12 80 / 0.75); transform-origin: bottom right; animation-delay: 0.6s; }
+
+/* 文明光圈扩散 — 点击按钮后金色光圈向外扩散 */
+@keyframes civil-aperture {
+  0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+}
+.civil-aperture { animation: civil-aperture 0.9s ease-out both; }
+
+/* 宣言标题逐字浮现 */
+@keyframes manifest-char {
+  0%   { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.manifest-char { animation: manifest-char 0.7s ease-out both; }
+
+/* 文明刻痕线 — 宣言下方淡金细线缓慢显现 */
+@keyframes engrave-line {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+.engrave-line { transform-origin: left center; animation: engrave-line 1.2s ease-out 0.6s both; }
+
+/* 水墨玻璃 — 与背景融合的半透明玻璃质感（无明显矩形边界） */
+.ink-glass {
+  position: relative;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 20%, oklch(0.985 0.01 88 / 0.34) 0%, oklch(0.97 0.02 84 / 0.20) 45%, oklch(0.94 0.03 80 / 0.16) 100%);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+}
+
+/* 水墨玻璃顶部淡金呼吸光晕 */
+@keyframes ink-glow-breathe {
+  0%, 100% { opacity: 0.16; }
+  50%      { opacity: 0.32; }
+}
+.ink-glow { animation: ink-glow-breathe 7s ease-in-out infinite; }
+
+/* ═══ 文明能力档案 视觉系统 ═══ */
+
+/* 文明徽章 — 轻微呼吸发光 */
+@keyframes badge-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.68 0.12 85 / 0); filter: brightness(1); }
+  50%      { box-shadow: 0 0 30px 3px oklch(0.7 0.12 85 / 0.26); filter: brightness(1.04); }
+}
+.badge-breathe { animation: badge-breathe 4.5s ease-in-out infinite; }
+
+/* 技能节点 — 逐个出现 */
+@keyframes skill-node-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.skill-node { animation: skill-node-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* 技能图标 — 轻微激活（hover 时轻浮 + 微放大 + 金光） */
+@keyframes icon-activate {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-2px) scale(1.08); }
+}
+.skill-icon-act { transition: color 0.3s ease, filter 0.3s ease; }
+.skill-node:hover .skill-icon-act {
+  color: oklch(0.5 0.11 82);
+  filter: drop-shadow(0 0 4px oklch(0.7 0.12 85 / 0.35));
+  animation: icon-activate 0.9s ease-in-out infinite;
+}
+
+/* 文明测绘 — 雷达周边细线渐现 */
+@keyframes survey-line {
+  from { opacity: 0; }
+  to   { opacity: 0.5; }
+}
+.survey-line { animation: survey-line 1.2s ease-out 0.4s both; }
+@keyframes survey-node {
+  0%   { opacity: 0; transform: scale(0); }
+  70%  { opacity: 0.9; transform: scale(1.15); }
+  100% { opacity: 0.8; transform: scale(1); }
+}
+.survey-node { transform-origin: center; animation: survey-node 0.6s ease-out both; }
+
+/* 档案条目 — 分隔细线与逐条显现 */
+@keyframes archive-row-in {
+  0%   { opacity: 0; transform: translateX(-6px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.archive-row { animation: archive-row-in 0.5s ease-out both; }
+@keyframes archive-line-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.archive-line { transform-origin: left center; animation: archive-line-grow 0.7s ease-out 0.5s both; }
+
 @keyframes achievement-toast-in {
   from { opacity: 0; transform: translateX(24px) scale(0.97); }
   to { opacity: 1; transform: translateX(0) scale(1); }
@@ -1540,6 +1696,25 @@ button:hover .core-flame {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ─── 档案细滚动条 — 极细金色卷轴滚动条 ────────────────── */
+.scroll-archive {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.62 0.09 80 / 0.35) transparent;
+}
+.scroll-archive::-webkit-scrollbar {
+  width: 4px;
+}
+.scroll-archive::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-archive::-webkit-scrollbar-thumb {
+  background: oklch(0.62 0.09 80 / 0.35);
+  border-radius: 9999px;
+}
+.scroll-archive::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.62 0.09 80 / 0.55);
 }
 
 /* ─── Frosted glass page container ─────────────────────── */

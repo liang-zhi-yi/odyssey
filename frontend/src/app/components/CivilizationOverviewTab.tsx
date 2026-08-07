@@ -8,6 +8,7 @@ import { CivilizationCompass } from "./CivilizationCompass";
 import { GrowthTimeline } from "./GrowthTimeline";
 import { EmptyState } from "./EmptyState";
 import { QuestScrollIcon, resolveScrollIconName } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import {
   CIV_COLORS,
   CopperDivider,
@@ -307,7 +308,12 @@ export function CivilizationOverviewTab({
               className="flex items-center gap-3 px-3.5 py-2.5 transition-all duration-300 hover:scale-[1.02] flex-1 min-w-[140px]"
               style={{ backgroundColor: "transparent" }}
             >
-              <EraStoneIcon era={world.era} size={36} />
+              <CivIcon
+                type="era"
+                name={world.era}
+                size={36}
+                fallback={<EraStoneIcon era={world.era} size={36} />}
+              />
               <div className="leading-tight">
                 <p
                   className="text-[9px] font-bold uppercase tracking-wider"
@@ -524,12 +530,20 @@ export function CivilizationOverviewTab({
           <div className="relative flex items-start gap-5 z-10">
             {/* Building seal icon — unique per building using inferSkillId */}
             <div className="shrink-0 civ-archive-seal-hover">
-              <BuildingSealIcon
-                type={inferSkillId(
-                  coreBuilding.template?.name ?? "",
-                  coreBuilding.id
-                )}
+              <CivIcon
+                type="building"
+                name={coreBuilding.template?.name ?? ""}
                 size={64}
+                alt={coreBuilding.template?.name ?? ""}
+                fallback={
+                  <BuildingSealIcon
+                    type={inferSkillId(
+                      coreBuilding.template?.name ?? "",
+                      coreBuilding.id
+                    )}
+                    size={64}
+                  />
+                }
               />
             </div>
             <div className="flex-1 min-w-0">

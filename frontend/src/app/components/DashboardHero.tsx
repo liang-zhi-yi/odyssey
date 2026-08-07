@@ -168,7 +168,7 @@ export function DashboardHero({
             {currentPath ? (
               <Link
                 href="/paths?tab=checkpoint"
-                className="group inline-flex items-center gap-2 rounded-xl border border-[#C9A45C]/30 bg-gradient-to-br from-[#F7F2E8] to-[#F5EFE3] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] px-5 py-2.5 text-sm font-semibold text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] shadow-sm transition-all duration-300 hover:border-[#C9A45C]/60 hover:shadow-[0_4px_16px_-2px_#C9A45C30] hover:-translate-y-0.5"
+                className="group inline-flex items-center gap-2 px-1 py-1 text-sm font-semibold font-civ-serif italic text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] transition-colors duration-300 hover:text-[#C9A45C]"
               >
                 <svg className="h-4 w-4 text-[#C9A45C] transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -192,7 +192,7 @@ export function DashboardHero({
 
             <Link
               href="/quests"
-              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-[#8C7655] dark:text-[oklch(0.6_0.012_80)] transition-all duration-300 hover:text-[#4A3825] dark:text-[oklch(0.85_0.04_80)] hover:bg-[#C9A45C]/8"
+              className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium font-civ-serif italic text-[#8C7655] dark:text-[oklch(0.6_0.012_80)] transition-colors duration-300 hover:text-[#4A3825] dark:hover:text-[oklch(0.85_0.04_80)]"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />

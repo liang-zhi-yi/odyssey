@@ -100,13 +100,6 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Right: Brand mark (subtle) */}
-          <Link
-            href="/"
-            className="text-lg font-bold font-civ-serif tracking-wide text-[oklch(0.35_0.12_85)] transition-colors hover:opacity-80 flex items-center gap-1.5"
-          >
-            <span className="text-base select-none" role="img" aria-label="compass">🧭</span> Odyssey
-          </Link>
         </nav>
       </header>
     );

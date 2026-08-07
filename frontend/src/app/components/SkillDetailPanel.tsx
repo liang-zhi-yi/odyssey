@@ -12,6 +12,7 @@ import { computeAggregateScores } from "@/lib/scores";
 import { useLocale } from "@/hooks/useLocale";
 import { skillDisplayName } from "@/lib/skillNames";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import type { DimensionScores } from "@/types/assessment";
 import {
   CIV_COLORS,
@@ -287,7 +288,13 @@ export function SkillDetailPanel({
                 href={`/skills/civilization/${domainInfo.civKey}`}
                 className="hover:opacity-70 transition-opacity cursor-pointer inline-flex items-center gap-1"
               >
-                <QuestScrollIcon name={domainInfo.icon} size={12} className="inline-block align-middle" />
+                <CivIcon
+                  type="type"
+                  name={domainInfo.civKey}
+                  size={12}
+                  className="inline-block align-middle"
+                  fallback={<QuestScrollIcon name={domainInfo.icon} size={12} className="inline-block align-middle" />}
+                />
                 {locale === "en" ? domainInfo.labelEn : domainInfo.label}
               </Link>
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -331,10 +338,19 @@ export function SkillDetailPanel({
                     border: `1.5px solid ${CIV_COLORS.darkRed}`,
                   }}
                 >
-                  <QuestScrollIcon
-                    name={domainInfo?.icon ?? "seal"}
+                  <CivIcon
+                    type="type"
+                    name={domainInfo?.civKey ?? ""}
                     size={48}
+                    alt={skillName}
                     className="relative z-10"
+                    fallback={
+                      <QuestScrollIcon
+                        name={domainInfo?.icon ?? "seal"}
+                        size={48}
+                        className="relative z-10"
+                      />
+                    }
                   />
                 </div>
               </div>
@@ -566,7 +582,13 @@ export function SkillDetailPanel({
                     <div className="flex items-start gap-4">
                       {/* Building seal icon */}
                       <div className="shrink-0 civ-archive-seal-hover">
-                        <BuildingSealIcon type={domainType} size={56} />
+                        <CivIcon
+                          type="building"
+                          name={tpl?.name ?? ""}
+                          size={56}
+                          alt={tpl?.name ?? ""}
+                          fallback={<BuildingSealIcon type={domainType} size={56} />}
+                        />
                       </div>
                       {/* Building info */}
                       <div className="flex-1 min-w-0">

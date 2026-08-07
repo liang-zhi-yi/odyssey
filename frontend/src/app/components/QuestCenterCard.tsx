@@ -10,6 +10,7 @@ import { BuildingBadge } from "./BuildingBadge";
 import { RewardBadge } from "./RewardBadge";
 import { QuestStatusBadge } from "./QuestStatusBadge";
 import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import type { UserQuest } from "@/types/quest";
 
 interface QuestCenterCardProps {
@@ -91,7 +92,13 @@ export function QuestCenterCard({ quest, userQuest, worldBuildings, className = 
         {/* Building pill — prominent */}
         {building && buildingDisplayName ? (
           <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#C4A77D]/12 border border-[#C4A77D]/20 px-2.5 py-1.5 max-w-[70%]">
-            <QuestScrollIcon name={resolveScrollIconName(building.icon || "building")} size={16} className="flex-shrink-0" />
+            <CivIcon
+              type="building"
+              name={building?.name}
+              size={16}
+              alt={building?.name}
+              fallback={<QuestScrollIcon name={resolveScrollIconName(building.icon || "building")} size={16} className="flex-shrink-0" />}
+            />
             <span className="text-[11px] font-semibold text-[#8B7355] truncate">
               {buildingDisplayName}
             </span>

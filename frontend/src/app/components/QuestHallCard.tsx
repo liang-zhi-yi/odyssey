@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import { StarRating, difficultyToLevel } from "./StarRating";
 import { QuestStatusBadge } from "./QuestStatusBadge";
+import { CivIcon } from "./CivIcon";
 import type { QuestListItem, UserQuest } from "@/types/quest";
 
 /** Flexible quest type — accepts nullable skill_name and optional description */
@@ -195,12 +196,20 @@ export function QuestHallCard({ quest, userQuest, civType, className = "" }: Que
         {/* Building reward */}
         {buildingName && (
           <div className="flex items-center gap-1.5 min-w-0">
-            {/* Building icon — geometric SVG (replaces emoji) */}
-            <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="oklch(0.55 0.08 150)" strokeWidth="1.5">
-              <path d="M4 16 L 4 8 L 10 4 L 16 8 L 16 16 Z" />
-              <path d="M8 16 L 8 11 L 12 11 L 12 16" strokeWidth="1" />
-              <line x1="4" y1="16" x2="16" y2="16" strokeWidth="1.5" />
-            </svg>
+            {/* Building icon — PNG asset or geometric SVG fallback */}
+            <CivIcon
+              type="building"
+              name={building?.name}
+              size={12}
+              alt={building?.name}
+              fallback={
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="oklch(0.55 0.08 150)" strokeWidth="1.5">
+                  <path d="M4 16 L 4 8 L 10 4 L 16 8 L 16 16 Z" />
+                  <path d="M8 16 L 8 11 L 12 11 L 12 16" strokeWidth="1" />
+                  <line x1="4" y1="16" x2="16" y2="16" strokeWidth="1.5" />
+                </svg>
+              }
+            />
             <span className="text-[10px] text-[#6B7D63] font-medium truncate max-w-[6rem]">
               {buildingName}
             </span>

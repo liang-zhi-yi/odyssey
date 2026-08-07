@@ -4,16 +4,17 @@ import { useMemo } from "react";
 import { useLocale } from "@/hooks/useLocale";
 
 /*
- * AI CORE —— AI 文明鉴定核心扫描动画 (v2 · 使用真实美术资产)
+ * AI CORE —— 文明核心苏醒 · 解析仪式 (v3 · 仪式化视觉重设计)
  *
- *  视觉构成：
- *  1. 中心核心：AI文明核心.png（主体 220-260px，占容器 20%-30%，不压迫文字）
- *              + 轻微呼吸动画 + 温和能量光晕
- *  2. 扫描环：  文明扫描环.png（覆盖在核心外，缓慢匀速旋转 + 扫光脉冲）
- *  3. 档案纹理：半透明 档案背景纹理.png（作为整卡 background-image）
- *  4. 5 阶段：  读取任务目标 → 解析知识结构 → 评估推理能力
- *              → 判断创造能力 → 生成文明报告
- *  5. 时间信息：古文明档案风格（羊皮纸卷轴式标签，非纯文本UI）
+ *  视觉构成（仅前端，无任何业务逻辑改动）：
+ *  1. 中心核心：AI文明核心.png（主体 220-260px）+ 苏醒进场 + 呼吸光效
+ *  2. 金色光环扩散：多层同心光环缓慢扩散 / 呼吸脉动
+ *  3. 数据线与古文明符号扫描：虚线数据环匀速旋转 + 扫描弧 + 光束扫描 + 符号低透明浮现
+ *  4. 卷轴式解析流程：竖向时间轴（节点 + 细线连接），状态以印记展示
+ *     （已完成 / 解析中 / 待解析），取消圆角卡片列表
+ *  5. 解析能量刻度：取消普通进度条，改为带刻度的能量条 + 流动标记
+ *  6. 底部悬浮信息：解析时间 · 预计完成（取消卡片式计时器）
+ *  7. 色彩统一 Odyssey 体系：古金 / 墨灰 / 暖白，禁用高饱和绿紫科技蓝
  */
 
 interface AICoreProps {
@@ -32,13 +33,24 @@ interface AICoreProps {
 const ASSETS = {
   core: "/art-assets/AI文明核心.png",
   scanRing: "/art-assets/文明扫描环.png",
-  archiveBg: "/art-assets/档案背景纹理.png",
 };
+
+/* 古文明扫描符号 — 低透明浮现 */
+const SCAN_SYMBOLS: { left: string; top: string; glyph: string; delay: string }[] = [
+  { left: "94%", top: "50%", glyph: "◈", delay: "0s" },
+  { left: "78%", top: "12%", glyph: "❖", delay: "0.4s" },
+  { left: "50%", top: "1%", glyph: "✦", delay: "0.8s" },
+  { left: "22%", top: "12%", glyph: "✒", delay: "1.2s" },
+  { left: "6%", top: "50%", glyph: "☰", delay: "1.6s" },
+  { left: "22%", top: "88%", glyph: "◇", delay: "2s" },
+  { left: "50%", top: "99%", glyph: "△", delay: "2.4s" },
+  { left: "78%", top: "88%", glyph: "☯", delay: "2.8s" },
+];
 
 export function AICore({ elapsed, backendPhase }: AICoreProps) {
   const { t, locale } = useLocale();
 
-  /* ── 5 个鉴定阶段 ───────────────────────────────────── */
+  /* ── 5 个鉴定阶段（逻辑不变） ─────────────────────────── */
 
   const phases = useMemo(
     () =>
@@ -75,8 +87,6 @@ export function AICore({ elapsed, backendPhase }: AICoreProps) {
   let inPhaseProgress: number;
   if (isBackendPhaseValid) {
     currentPhase = backendPhase as number;
-    // 当后端明确告诉我们阶段时：该阶段显示为"进行中"且 progress 固定为 0.65
-    // （后端通常不会下发 sub-phase 进度，避免跳变视觉）
     inPhaseProgress = 0.65;
   } else {
     currentPhase = Math.min(
@@ -86,20 +96,53 @@ export function AICore({ elapsed, backendPhase }: AICoreProps) {
     inPhaseProgress = Math.min((sec % PHASE_DURATION) / PHASE_DURATION, 1);
   }
 
-  // 时间标签
+  // 整体解析能量比例（用于能量刻度）
+  const energyPct = Math.min(
+    Math.round(((currentPhase - 1 + inPhaseProgress) / phases.length) * 100),
+    100
+  );
+
+  // 预计完成时间（展示用估算，不改逻辑）
+  const fractionDone = (currentPhase - 1 + inPhaseProgress) / phases.length;
+  const estimatedTotal = fractionDone > 0.001 ? elapsed / fractionDone : elapsed;
+  const remainingSeconds = Math.max(0, Math.ceil((estimatedTotal - elapsed) / 1000));
+  const remMin = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
+  const remSec = (remainingSeconds % 60).toString().padStart(2, "0");
+
+  // 时间标签（解析时间）
   const elapsedSeconds = Math.floor(elapsed / 1000);
   const minutes = Math.floor(elapsedSeconds / 60).toString().padStart(2, "0");
   const seconds = (elapsedSeconds % 60).toString().padStart(2, "0");
+
+  const GOLD = "oklch(0.68 0.10 80)";
+  const INK = "oklch(0.42 0.02 80)";
 
   return (
     <div className="relative flex flex-col items-center">
       <style>{aICoreKeyframes}</style>
 
-      {/* ── 核心视觉区：扫描环 + AI核心 ────────────────────── */}
+      {/* ── 文明核心苏醒区 ─────────────────────────────── */}
       <div className="relative h-72 w-72 sm:h-80 sm:w-80 flex items-center justify-center">
-        {/* (a) 呼吸光晕层 —— 温和的能量脉动，不引入鲜艳渐变 */}
+        {/* (a) 金色光环扩散 —— 多层同心环缓慢扩张 + 呼吸 */}
         <div
-          className="absolute inset-4 rounded-full animate-aicore-aura"
+          className="absolute inset-1 rounded-full aicore-halo-ring"
+          style={{ border: `1px solid ${GOLD}40` }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-4 rounded-full aicore-halo-ring"
+          style={{ border: `1px solid ${GOLD}33`, animationDelay: "0.6s" }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-8 rounded-full aicore-halo-ring"
+          style={{ border: `1px solid ${GOLD}26`, animationDelay: "1.2s" }}
+          aria-hidden
+        />
+
+        {/* (b) 呼吸光晕层 —— 温和能量脉动 */}
+        <div
+          className="absolute inset-5 rounded-full animate-aicore-aura"
           aria-hidden
           style={{
             background:
@@ -107,7 +150,7 @@ export function AICore({ elapsed, backendPhase }: AICoreProps) {
           }}
         />
 
-        {/* (b) 文明扫描环 —— 真实资产，缓慢逆时针旋转 + 渐进透明 */}
+        {/* (c) 文明扫描环 —— 真实资产，缓慢旋转 */}
         <div
           className="absolute inset-0 animate-aicore-ring-rotate pointer-events-none"
           aria-hidden
@@ -122,251 +165,252 @@ export function AICore({ elapsed, backendPhase }: AICoreProps) {
           />
         </div>
 
-        {/* (c) 第二扫描层 —— 同心环的扫光脉冲（不用光效渐变，用透明度） */}
+        {/* (d) 数据线扫描环 —— 虚线环旋转 + 扫描弧 */}
+        <svg
+          className="absolute inset-2 animate-aicore-dataring pointer-events-none"
+          viewBox="0 0 100 100"
+          fill="none"
+          aria-hidden
+        >
+          <circle cx="50" cy="50" r="48" stroke={`${GOLD}55`} strokeWidth="0.6" strokeDasharray="2 7" />
+          <circle cx="50" cy="50" r="45" stroke={`${GOLD}40`} strokeWidth="0.5" strokeDasharray="1 5" />
+          <path
+            d="M50 4 A46 46 0 0 1 87 22"
+            stroke={GOLD}
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            className="aicore-arc"
+          />
+        </svg>
+
+        {/* (e) 光束扫描 —— 旋转的金色扇形光 */}
         <div
-          className="absolute h-[92%] w-[92%] rounded-full animate-aicore-ring-pulse pointer-events-none"
+          className="absolute inset-0 rounded-full animate-aicore-beam pointer-events-none"
           aria-hidden
           style={{
-            boxShadow:
-              "inset 0 0 0 1.5px oklch(0.62 0.09 80 / 0.35)",
+            background:
+              "conic-gradient(from 0deg, transparent 0deg, oklch(0.82 0.12 85 / 0.10) 42deg, transparent 80deg)",
           }}
         />
 
-        {/* (d) AI 文明核心 —— 真实资产，主体尺寸 ≤ 260px，呼吸缩放 */}
+        {/* (f) 古文明符号低透明浮现 */}
+        {SCAN_SYMBOLS.map((s, i) => (
+          <span
+            key={i}
+            aria-hidden
+            className="absolute flex items-center justify-center font-civ-serif animate-aicore-symbol select-none"
+            style={{
+              left: s.left,
+              top: s.top,
+              transform: "translate(-50%, -50%)",
+              color: GOLD,
+              fontSize: "16px",
+              textShadow: `0 0 10px ${GOLD}55`,
+              animationDelay: s.delay,
+            }}
+          >
+            {s.glyph}
+          </span>
+        ))}
+
+        {/* (g) AI 文明核心 —— 苏醒进场 + 呼吸 */}
         <div
-          className="relative z-10 animate-aicore-core-breathe flex items-center justify-center"
-          style={{
-            // 主体宽度约 220px（容器 72/80 * 4 = 288/320，这里占 76% 左右）
-            width: "76%",
-            height: "76%",
-          }}
+          className="relative z-10 aicore-core-enter flex items-center justify-center"
+          style={{ width: "70%", height: "70%" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={ASSETS.core}
             alt={locale === "zh" ? "AI文明核心" : "AI Civilization Core"}
-            className="h-full w-full object-contain drop-shadow-[0_6px_16px_rgba(74,64,53,0.12)]"
+            className="h-full w-full object-contain animate-aicore-core-breathe"
             draggable={false}
           />
-          {/* 核心中心的微光符号（不压过图片主体） */}
-          <span
-            aria-hidden
-            className="absolute inset-0 flex items-center justify-center font-civ-serif text-2xl font-bold animate-aicore-symbol"
-            style={{
-              color: "oklch(0.98 0.02 85 / 0.55)",
-              textShadow: "0 0 10px oklch(0.85 0.10 80 / 0.35)",
-              letterSpacing: "0.1em",
-            }}
-          >
-            ◈
-          </span>
         </div>
       </div>
 
-      {/* ── 核心标签：档案标题格式 ───────────────────────── */}
-      <div className="mt-2 text-center">
+      {/* ── 核心标签：仪式档案标题 ───────────────────────── */}
+      <div className="mt-3 text-center">
         <p
           className="font-civ-serif text-base font-semibold tracking-[0.3em]"
-          style={{ color: "oklch(0.50 0.08 75)" }}
+          style={{ color: INK }}
         >
-          {locale === "zh" ? "AI · 文明鉴定核心" : "AI · CIVILIZATION CORE"}
+          {locale === "zh" ? "文明解析核心" : "CIVILIZATION CORE"}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           {locale === "zh"
-            ? "正在解读你的创造痕迹..."
-            : "Interpreting your creation traces..."}
+            ? "正在读取你的文明成长轨迹..."
+            : "Reading your civilization growth trajectory..."}
         </p>
       </div>
 
-      {/* ── 5 阶段指示器 ──────────────────────────────────── */}
-      <div
-        role="list"
-        aria-label={locale === "zh" ? "鉴定进度" : "Appraisal progress"}
-        className="mt-6 w-full max-w-sm space-y-2"
-      >
-        {phases.map((phase) => {
-          const isDone = phase.id < currentPhase;
-          const isActive = phase.id === currentPhase;
-          return (
-            <div
-              key={phase.id}
-              role="listitem"
-              className="group flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-500"
-              style={{
-                borderColor: isActive
-                  ? "oklch(0.72 0.10 80 / 0.5)"
-                  : isDone
-                  ? "oklch(0.55 0.08 145 / 0.30)"
-                  : "var(--border)",
-                backgroundColor: isActive
-                  ? "oklch(0.72 0.08 80 / 0.07)"
-                  : isDone
-                  ? "oklch(0.55 0.08 145 / 0.04)"
-                  : "transparent",
-              }}
-            >
-              {/* 阶段古符号 */}
+      {/* ── 解析能量刻度（取消普通进度条） ───────────────── */}
+      <div className="mt-7 w-full max-w-sm">
+        <div className="flex items-center justify-between text-[10px] font-civ-serif tracking-[0.25em] text-muted-foreground">
+          <span>{locale === "zh" ? "文明解析能量" : "PARSE ENERGY"}</span>
+          <span className="font-mono tabular-nums" style={{ color: GOLD }}>
+            {energyPct}%
+          </span>
+        </div>
+        <div className="relative mt-2 h-2.5">
+          {/* 刻度 */}
+          <div className="absolute inset-0 flex items-center justify-between" aria-hidden>
+            {Array.from({ length: 21 }).map((_, i) => (
               <span
-                aria-hidden
-                className="flex h-6 w-6 flex-none items-center justify-center rounded-md border text-xs font-bold"
-                style={{
-                  borderColor: isActive
-                    ? "oklch(0.72 0.10 80 / 0.45)"
-                    : "var(--border)",
-                  backgroundColor: isActive
-                    ? "oklch(0.72 0.08 80 / 0.12)"
-                    : isDone
-                    ? "oklch(0.55 0.08 145 / 0.10)"
-                    : "transparent",
-                  color: isActive
-                    ? "oklch(0.58 0.10 80)"
-                    : isDone
-                    ? "oklch(0.50 0.10 145)"
-                    : "oklch(0.60 0.02 75 / 0.55)",
-                }}
-              >
-                {isDone ? <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 7" /></svg> : phase.glyph}
-              </span>
+                key={i}
+                className="h-1.5 w-px"
+                style={{ background: `${GOLD}30` }}
+              />
+            ))}
+          </div>
+          {/* 能量填充 */}
+          <div
+            className="absolute left-0 top-0 h-full"
+            style={{
+              width: `${energyPct}%`,
+              background: `linear-gradient(90deg, ${INK}, ${GOLD})`,
+              boxShadow: `0 0 12px ${GOLD}66`,
+              transition: "width 700ms ease-out",
+            }}
+          />
+          {/* 流动标记 */}
+          <div
+            className="absolute -top-[3px] h-5 w-[3px] animate-aicore-marker"
+            style={{ left: `calc(${energyPct}% - 1px)`, background: GOLD, boxShadow: `0 0 8px ${GOLD}` }}
+          />
+        </div>
+      </div>
 
-              {/* 阶段文本（档案式小标签） */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2">
+      {/* ── 卷轴式解析流程（竖向时间轴） ─────────────────── */}
+      <div className="relative mt-9 w-full max-w-sm">
+        {/* 竖向脊柱细线 */}
+        <div
+          className="absolute left-5 top-2 bottom-2 w-px"
+          style={{
+            background: `linear-gradient(180deg, transparent, ${GOLD}66 15%, ${GOLD}33 85%, transparent)`,
+          }}
+          aria-hidden
+        />
+        <div role="list" aria-label={locale === "zh" ? "解析流程" : "Analysis flow"}>
+          {phases.map((phase) => {
+            const isDone = phase.id < currentPhase;
+            const isActive = phase.id === currentPhase;
+            return (
+              <div
+                key={phase.id}
+                role="listitem"
+                className="relative flex items-start gap-4 py-2.5"
+              >
+                {/* 节点印记 */}
+                <div
+                  className="relative z-10 mt-0.5 flex h-10 w-10 flex-none items-center justify-center rounded-full border font-civ-serif"
+                  style={{
+                    borderColor: isActive
+                      ? `${GOLD}90`
+                      : isDone
+                      ? `${GOLD}55`
+                      : "oklch(0.82 0.02 85 / 0.6)",
+                    background: isActive
+                      ? "radial-gradient(circle, oklch(0.82 0.12 85 / 0.18), transparent 70%)"
+                      : isDone
+                      ? "oklch(0.98 0.01 90 / 0.5)"
+                      : "transparent",
+                    color: isActive ? GOLD : isDone ? INK : "oklch(0.62 0.02 80 / 0.5)",
+                    boxShadow: isActive ? `0 0 16px ${GOLD}44` : "none",
+                  }}
+                >
+                  {isDone ? (
+                    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12l5 5L20 7" />
+                    </svg>
+                  ) : (
+                    <span className={isActive ? "aicore-active-glyph" : ""}>{phase.glyph}</span>
+                  )}
+                </div>
+
+                {/* 阶段内容 */}
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className="text-[10px] font-civ-serif tracking-[0.2em]"
+                      style={{ color: isDone ? `${INK}90` : isActive ? GOLD : "oklch(0.62 0.02 80 / 0.45)" }}
+                    >
+                      {locale === "zh" ? `第 ${phase.id} 卷` : `Vol.${phase.id}`}
+                    </span>
+                    <span
+                      className={`text-sm truncate ${
+                        isDone ? "line-through decoration-1" : ""
+                      }`}
+                      style={{
+                        color: isDone
+                          ? "oklch(0.55 0.02 80 / 0.7)"
+                          : isActive
+                          ? "oklch(0.30 0.03 80)"
+                          : "oklch(0.5 0.02 80 / 0.6)",
+                        textDecorationColor: isDone ? `${GOLD}55` : undefined,
+                        fontWeight: isActive ? 600 : 400,
+                      }}
+                    >
+                      {phase.label}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 状态印记（右侧） */}
+                <div className="flex-none self-center text-right">
                   <span
-                    className={`text-[11px] font-civ-serif font-medium tracking-wider ${
-                      isDone
-                        ? "text-muted-foreground"
-                        : isActive
-                        ? "text-foreground"
-                        : "text-muted-foreground/50"
-                    }`}
+                    className="inline-flex items-center gap-1 text-[10px] font-civ-serif tracking-[0.15em]"
+                    style={{
+                      color: isActive
+                        ? GOLD
+                        : isDone
+                        ? "oklch(0.55 0.04 75)"
+                        : "oklch(0.6 0.02 80 / 0.4)",
+                    }}
                   >
-                    {locale === "zh" ? `第 ${phase.id} 卷` : `Vol.${phase.id}`}
-                  </span>
-                  <span
-                    className={`text-sm truncate ${
-                      isDone
-                        ? "text-foreground/65 line-through decoration-1"
-                        : isActive
-                        ? "font-medium text-foreground"
-                        : "text-muted-foreground/60"
-                    }`}
-                    style={
-                      isDone
-                        ? {
-                            textDecorationColor:
-                              "oklch(0.55 0.08 145 / 0.4)",
-                          }
-                        : undefined
-                    }
-                  >
-                    {phase.label}
+                    {isActive && (
+                      <span className="h-1.5 w-1.5 rounded-full animate-aicore-dot" style={{ background: GOLD }} />
+                    )}
+                    {isDone
+                      ? locale === "zh"
+                        ? "已完成"
+                        : "Complete"
+                      : isActive
+                      ? locale === "zh"
+                        ? "解析中"
+                        : "Parsing"
+                      : locale === "zh"
+                      ? "待解析"
+                      : "Pending"}
                   </span>
                 </div>
               </div>
-
-              {/* 阶段状态：进度条（仅进行中） / 对勾占位 */}
-              {isActive ? (
-                <div className="flex-none w-20 h-1.5 overflow-hidden rounded-full bg-secondary/70">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.round(inPhaseProgress * 100)}%`,
-                      background:
-                        "linear-gradient(90deg, oklch(0.68 0.12 80 / 0.85), oklch(0.78 0.12 85 / 0.95))",
-                    }}
-                  />
-                </div>
-              ) : (
-                <span
-                  className={`flex-none w-20 text-right text-[10px] font-civ-serif tracking-wider ${
-                    isDone
-                      ? "text-[oklch(0.50 0.10 145)]"
-                      : "text-muted-foreground/40"
-                  }`}
-                >
-                  {isDone
-                    ? locale === "zh"
-                      ? "已归档"
-                      : "Archived"
-                    : locale === "zh"
-                    ? "待解读"
-                    : "Pending"}
-                </span>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      {/* ── 时间信息：古文明档案风格 ──────────────────────── */}
-      {/*    不是「已用时 12s · 最大等待 180s」的纯文本，      */}
-      {/*    而是卷轴式标签：左侧已用时间卷轴 + 分隔符 + 右侧时限标签  */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        {/* (a) 已用时间卷轴 */}
-        <div
-          className="relative flex items-center gap-2 rounded-lg border px-3.5 py-2 shadow-sm"
-          style={{
-            borderColor: "oklch(0.80 0.05 75 / 0.7)",
-            backgroundColor: "oklch(0.96 0.015 80 / 0.85)",
-            backgroundImage: `url(${ASSETS.archiveBg})`,
-            backgroundSize: "cover",
-            backgroundBlendMode: "soft-light" as const,
-          }}
-          aria-label={t("assessment.elapsed", { seconds: elapsedSeconds })}
-        >
-          {/* 卷轴两端装饰 */}
-          <span
-            aria-hidden
-            className="h-5 w-1 rounded-sm"
-            style={{ backgroundColor: "oklch(0.55 0.10 75 / 0.55)" }}
-          />
-          <span className="flex flex-col leading-tight">
-            <span
-              className="font-civ-serif text-[10px] font-medium tracking-[0.2em] text-muted-foreground"
-            >
-              {locale === "zh" ? "已用纪年" : "ELAPSED"}
-            </span>
-            <span className="font-civ-serif text-sm font-semibold tabular-nums text-[oklch(0.50 0.08 75)]">
-              {minutes}:{seconds}
-            </span>
+      {/* ── 底部悬浮信息：解析时间 · 预计完成 ─────────────── */}
+      <div
+        className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground"
+        aria-label={t("assessment.elapsed", { seconds: elapsedSeconds })}
+      >
+        <span className="inline-flex items-center gap-2">
+          <span className="font-civ-serif tracking-[0.2em]">
+            {locale === "zh" ? "解析时间" : "ELAPSED"}
           </span>
-          <span
-            aria-hidden
-            className="h-5 w-1 rounded-sm"
-            style={{ backgroundColor: "oklch(0.55 0.10 75 / 0.55)" }}
-          />
-        </div>
-
-        {/* (b) 分隔符：古文明分隔线 */}
-        <span
-          aria-hidden
-          className="hidden sm:inline-flex items-center text-xs tracking-[0.2em] text-muted-foreground/60"
-        >
-          · · ◈ · ·
+          <span className="font-mono tabular-nums" style={{ color: INK }}>
+            {minutes}:{seconds}
+          </span>
         </span>
-
-        {/* (c) 最大等待时限标签 */}
-        <div
-          className="relative flex items-center gap-2 rounded-lg border px-3.5 py-2 shadow-sm"
-          style={{
-            borderColor: "oklch(0.80 0.05 75 / 0.55)",
-            backgroundColor: "oklch(0.955 0.012 80 / 0.6)",
-          }}
-        >
-          <span
-            aria-hidden
-            className="h-3 w-3 rounded-full border-2 border-dashed"
-            style={{ borderColor: "oklch(0.62 0.10 80 / 0.6)" }}
-          />
-          <span className="flex flex-col leading-tight">
-            <span className="font-civ-serif text-[10px] font-medium tracking-[0.2em] text-muted-foreground">
-              {locale === "zh" ? "鉴定时限" : "MAX WAIT"}
-            </span>
-            <span className="font-civ-serif text-sm font-semibold tabular-nums text-muted-foreground/80">
-              {t("assessment.maxWait")}
-            </span>
+        <span aria-hidden style={{ color: `${GOLD}77` }}>◆</span>
+        <span className="inline-flex items-center gap-2">
+          <span className="font-civ-serif tracking-[0.2em]">
+            {locale === "zh" ? "预计完成" : "EST. COMPLETE"}
           </span>
-        </div>
+          <span className="font-mono tabular-nums" style={{ color: INK }}>
+            {remMin}:{remSec}
+          </span>
+        </span>
       </div>
     </div>
   );
@@ -379,9 +423,9 @@ const aICoreKeyframes = `
   0%, 100% { transform: scale(1); filter: drop-shadow(0 6px 16px rgba(74,64,53,0.10)); }
   50%      { transform: scale(1.035); filter: drop-shadow(0 10px 22px rgba(74,64,53,0.16)); }
 }
-@keyframes aicore-symbol {
-  0%, 100% { opacity: 0.45; }
-  50%      { opacity: 0.85; }
+@keyframes aicore-core-enter {
+  from { opacity: 0; transform: scale(0.8); filter: blur(3px); }
+  to   { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 @keyframes aicore-aura {
   0%, 100% { opacity: 0.55; transform: scale(1); }
@@ -391,14 +435,48 @@ const aICoreKeyframes = `
   from { transform: rotate(0deg); }
   to   { transform: rotate(-360deg); }
 }
-@keyframes aicore-ring-pulse {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50%      { opacity: 0.75; transform: scale(1.015); }
+@keyframes aicore-halo-ring {
+  0%, 100% { opacity: 0.25; transform: scale(0.92); }
+  50%      { opacity: 0.65; transform: scale(1.02); }
+}
+@keyframes aicore-dataring {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes aicore-arc {
+  to { stroke-dashoffset: -120; }
+}
+@keyframes aicore-beam {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes aicore-symbol {
+  0%, 100% { opacity: 0.08; }
+  50%      { opacity: 0.5; }
+}
+@keyframes aicore-marker {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+@keyframes aicore-active-glyph {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.2); }
+}
+@keyframes aicore-dot {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
 }
 
 .animate-aicore-core-breathe { animation: aicore-core-breathe 4.2s ease-in-out infinite; transform-origin: center; }
-.animate-aicore-symbol       { animation: aicore-symbol       3.0s ease-in-out infinite; }
-.animate-aicore-aura         { animation: aicore-aura         3.8s ease-in-out infinite; }
-.animate-aicore-ring-rotate  { animation: aicore-ring-rotate 28s linear infinite; transform-origin: center; will-change: transform; }
-.animate-aicore-ring-pulse   { animation: aicore-ring-pulse  3.4s ease-in-out infinite; }
+.aicore-core-enter          { animation: aicore-core-enter 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.2s both; }
+.animate-aicore-aura        { animation: aicore-aura 3.8s ease-in-out infinite; }
+.animate-aicore-ring-rotate { animation: aicore-ring-rotate 28s linear infinite; transform-origin: center; will-change: transform; }
+.aicore-halo-ring           { animation: aicore-halo-ring 4.2s ease-in-out infinite; }
+.animate-aicore-dataring    { animation: aicore-dataring 16s linear infinite; transform-origin: center; }
+.aicore-arc                 { stroke-dasharray: 18 80; animation: aicore-arc 3.2s linear infinite; }
+.animate-aicore-beam        { animation: aicore-beam 9s linear infinite; }
+.animate-aicore-symbol      { animation: aicore-symbol 4.4s ease-in-out infinite; }
+.animate-aicore-marker      { animation: aicore-marker 2.2s ease-in-out infinite; }
+.aicore-active-glyph        { display: inline-block; animation: aicore-active-glyph 1.6s ease-in-out infinite; }
+.animate-aicore-dot         { animation: aicore-dot 1.2s ease-in-out infinite; }
 `;

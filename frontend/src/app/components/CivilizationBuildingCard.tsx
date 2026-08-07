@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/hooks/useLocale";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import type { AssociatedBuilding, QuestRewardPreview } from "@/types/quest";
 
 interface CivilizationBuildingCardProps {
@@ -57,7 +58,13 @@ export function CivilizationBuildingCard({
       <div className="flex items-center gap-4 mb-4">
         {/* Building emblem */}
         <div className="badge-emblem flex items-center justify-center w-14 h-14 rounded-lg flex-shrink-0">
-          <QuestScrollIcon name="building-emblem" size={28} strokeWidth={1.3} />
+          <CivIcon
+          type="building"
+          name={building.name}
+          size={28}
+          alt={buildingName}
+          fallback={<QuestScrollIcon name="building-emblem" size={28} strokeWidth={1.3} />}
+        />
         </div>
 
         {/* Name */}

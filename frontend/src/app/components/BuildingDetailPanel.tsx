@@ -12,6 +12,7 @@ import { StarRating, difficultyToLevel } from "./StarRating";
 import type { UserBuilding, UserCompoundBuilding, BuildingTemplate, BuildingDetail, CompoundBuildingDetail } from "@/types/world";
 import type { QuestListItem } from "@/types/quest";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import {
   CIV_COLORS,
   CopperDivider,
@@ -24,6 +25,8 @@ import {
 interface BuildingDetailPanelProps {
   building: UserBuilding | UserCompoundBuilding;
   onClose: () => void;
+  /** 嵌入模式：融入右侧档案碑栏，去掉独立页面的 min-height / 整页背景 */
+  embedded?: boolean;
 }
 
 /**
@@ -36,7 +39,7 @@ interface BuildingDetailPanelProps {
  *   - 局部 civ-archive-* 样式，不污染全局
  *   - 自包含档案，不跳出至技能页
  */
-export function BuildingDetailPanel({ building, onClose }: BuildingDetailPanelProps) {
+export function BuildingDetailPanel({ building, onClose, embedded = false }: BuildingDetailPanelProps) {
   const { t, locale } = useLocale();
   const isCompound = building.building_type === "compound";
 
@@ -60,7 +63,7 @@ export function BuildingDetailPanel({ building, onClose }: BuildingDetailPanelPr
   const isLocked = building.status === "LOCKED";
 
   return (
-    <div className="civ-archive-page relative">
+    <div className={`civ-archive-page relative ${embedded ? "civ-archive-embedded" : ""}`}>
       <CivArchiveStyles />
 
       <div
@@ -91,9 +94,12 @@ export function BuildingDetailPanel({ building, onClose }: BuildingDetailPanelPr
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {/* 建筑印章 SVG（替代 emoji） */}
               <div className="shrink-0 civ-archive-seal-hover">
-                <BuildingSealIcon
-                  type={(tpl as any)?.skill_id ?? "default"}
+                <CivIcon
+                  type="building"
+                  name={tpl?.name ?? ""}
                   size={56}
+                  alt={displayName}
+                  fallback={<BuildingSealIcon type={(tpl as any)?.skill_id ?? "default"} size={56} />}
                 />
               </div>
               <div className="flex-1 min-w-0">

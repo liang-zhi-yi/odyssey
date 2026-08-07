@@ -601,6 +601,10 @@ export function CivArchiveStyles() {
         background-color: ${CIV_COLORS.bgMain};
         min-height: calc(100vh - 3.5rem);
       }
+      .civ-archive-page.civ-archive-embedded {
+        background-color: transparent;
+        min-height: 0;
+      }
       .civ-archive-page * {
         box-sizing: border-box;
       }

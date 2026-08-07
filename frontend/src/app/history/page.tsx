@@ -15,6 +15,7 @@ import { badgeService } from "@/services/badge.service";
 import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "@/app/components/CivIcon";
 import {
   CIV_COLORS,
   CopperDivider,
@@ -272,7 +273,12 @@ function EraEvolutionScroll({
                       : "none",
                   }}
                 >
-                  <EraStoneIcon era={era} size={48} />
+                  <CivIcon
+                    type="era"
+                    name={era}
+                    size={48}
+                    fallback={<EraStoneIcon era={era} size={48} />}
+                  />
                 </div>
 
                 {/* Era content */}
@@ -707,7 +713,13 @@ function BuildingRuinsCatalog({
             className="civ-archive-card p-3 flex items-center gap-3"
           >
             <div className="shrink-0 civ-archive-seal-hover">
-              <BuildingSealIcon type={b.skillId} size={48} />
+              <CivIcon
+                type="building"
+                name={b.name}
+                size={48}
+                alt={b.name}
+                fallback={<BuildingSealIcon type={b.skillId} size={48} />}
+              />
             </div>
             <div className="min-w-0 flex-1">
               <p
@@ -747,7 +759,13 @@ function BuildingRuinsCatalog({
           >
             <div className="flex items-start gap-3 mb-2">
               <div className="shrink-0 civ-archive-seal-hover">
-                <BuildingSealIcon type={skillId} size={48} />
+                <CivIcon
+                  type="building"
+                  name={name}
+                  size={48}
+                  alt={name}
+                  fallback={<BuildingSealIcon type={skillId} size={48} />}
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <p

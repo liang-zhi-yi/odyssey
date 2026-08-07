@@ -5,6 +5,7 @@ import { useLocale } from "@/hooks/useLocale";
 import type { CivilizationDirection, TargetedBuilding } from "@/types/world";
 import { CIVILIZATION_TIER_LABELS } from "@/types/world";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import { BuildingSealIcon, CIV_COLORS, inferSkillId } from "./CivArchiveTheme";
 
 interface CivilizationCompassProps {
@@ -319,7 +320,13 @@ export function CivilizationCompass({
                 className="relative civ-archive-seal-hover"
                 style={{ filter: hasGrowth ? `drop-shadow(0 0 4px ${color}80)` : "none" }}
               >
-                <BuildingSealIcon type={skillId} size={nodeSize} />
+                <CivIcon
+                  type="building"
+                  name={b.building_name}
+                  size={nodeSize}
+                  alt={b.building_name}
+                  fallback={<BuildingSealIcon type={skillId} size={nodeSize} />}
+                />
               </div>
               {/* 等级徽章 */}
               <span

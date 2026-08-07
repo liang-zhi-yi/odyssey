@@ -10,6 +10,7 @@ import { questService } from "@/services/quest.service";
 import { BuildingSealIcon, inferSkillId } from "./CivArchiveTheme";
 import { QuestHallCard } from "./QuestHallCard";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 import { CIVILIZATION_TYPE_LABELS } from "@/types/world";
 import type { Skill } from "@/types/skill";
 import type { TechTreeData, TechTreeNode } from "@/types/world";
@@ -458,7 +459,13 @@ Return ONLY a JSON array, no explanation, wrapped in a \`\`\`json code block.`;
                 embedIcon={
                   selectedBuilding && selectedBuildingSkillId ? (
                     <div className="flex-shrink-0">
-                      <BuildingSealIcon type={selectedBuildingSkillId} size={28} />
+                      <CivIcon
+                        type="building"
+                        name={selectedBuilding.name}
+                        size={28}
+                        alt={selectedBuilding.name}
+                        fallback={<BuildingSealIcon type={selectedBuildingSkillId} size={28} />}
+                      />
                     </div>
                   ) : undefined
                 }

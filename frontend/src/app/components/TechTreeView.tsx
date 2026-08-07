@@ -8,6 +8,7 @@ import type { TechTreeNode, TechTreeData } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
 import { skillDisplayName } from "@/lib/skillNames";
 import { BuildingSealIcon, CIV_COLORS, inferSkillId } from "./CivArchiveTheme";
+import { CivIcon } from "./CivIcon";
 import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 
 interface TechTreeViewProps {
@@ -286,7 +287,13 @@ function TechTreeNodeCard({
       {/* Icon + Name */}
       <div className="flex items-center gap-3">
         <div className={isLocked ? "grayscale opacity-50 civ-archive-seal-hover" : "civ-archive-seal-hover"}>
-          <BuildingSealIcon type={inferSkillId(name, node.id)} size={40} />
+          <CivIcon
+          type="building"
+          name={name}
+          size={40}
+          alt={name}
+          fallback={<BuildingSealIcon type={inferSkillId(name, node.id)} size={40} />}
+        />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] truncate">

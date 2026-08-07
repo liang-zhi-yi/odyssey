@@ -516,6 +516,49 @@ function segmentByText(text: string): {
   return result;
 }
 
+/**
+ * 去除组内重复条目（精确匹配，保留首次出现顺序）。
+ * AI 反馈中同一观点可能在同区块重复列出，去重避免卡片内容重复。
+ */
+function dedupeItems(items: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const it of items) {
+    const key = it.trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(it.trim());
+  }
+  return out;
+}
+
+/**
+ * 跨组去重 — 同一观点若在多个分组（优势/挑战/建议）重复出现，
+ * 仅保留最早出现的分组，其余组移除，避免三张卡片内容互相重复。
+ */
+function dedupeAcrossGroups(
+  advantages: string[],
+  improvements: string[],
+  suggestions: string[]
+): { advantages: string[]; improvements: string[]; suggestions: string[] } {
+  const seen = new Set<string>();
+  const pick = (items: string[]) => {
+    const out: string[] = [];
+    for (const it of items) {
+      const key = it.trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(it.trim());
+    }
+    return out;
+  };
+  return {
+    advantages: pick(advantages),
+    improvements: pick(improvements),
+    suggestions: pick(suggestions),
+  };
+}
+
 /* ──────────────────────────────────────────────────────── */
 /*  7. 摘要生成                                             */
 /* ──────────────────────────────────────────────────────── */
@@ -600,6 +643,13 @@ export function parseFeedback(
     // 条目 ≤ 3 时不强行分组，保持卡片为空，由 fullText 承载完整内容
   }
 
+  // 去重：组内精确重复 + 跨组重复（保留最早分组），避免三张卡片内容重复
+  const deduped = dedupeAcrossGroups(
+    dedupeItems(segmented.advantages),
+    dedupeItems(segmented.improvements),
+    dedupeItems(segmented.suggestions)
+  );
+
   // 展示用纯文本（去 Markdown 标记）
   const mergedClean = [cleanedFeedback, cleanedSuggestions]
     .filter(Boolean)
@@ -613,9 +663,9 @@ export function parseFeedback(
   const hasDetails = fullText.length > summary.length + 4;
 
   return {
-    advantages: segmented.advantages,
-    improvements: segmented.improvements,
-    suggestions: segmented.suggestions,
+    advantages: deduped.advantages,
+    improvements: deduped.improvements,
+    suggestions: deduped.suggestions,
     summary,
     fullText,
     safeHtml,

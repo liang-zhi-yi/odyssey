@@ -17,6 +17,7 @@ import { resolveAvatarSrc } from "@/lib/avatar";
 import { Loading } from "@/app/components/Loading";
 import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
 import type { ScrollIconName } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "@/app/components/CivIcon";
 import {
   AbilityEmblem,
   BuildingSealIcon,
@@ -358,7 +359,12 @@ export default function PersonalPage() {
           >
             {worldData?.era && (
               <div className="flex items-center gap-4 mb-5">
-                <EraStoneIcon era={worldData.era} size={56} />
+                <CivIcon
+                  type="era"
+                  name={worldData.era}
+                  size={56}
+                  fallback={<EraStoneIcon era={worldData.era} size={56} />}
+                />
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: CIV_COLORS.textSecondary }}>
                     {locale === "en" ? "Current Era" : "当前时代"}
@@ -411,7 +417,7 @@ export default function PersonalPage() {
                 <div className="hidden md:block absolute top-6 left-4 right-4 h-px" style={{ background: `linear-gradient(90deg, transparent, ${CIV_COLORS.gold}50, transparent)` }} />
                 <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                   {domainOverview.map((d) => (
-                    <ContinentNode key={d.key} icon={d.icon} label={d.label} labelEn={d.labelEn} level={d.level} avgScore={d.avgScore} locale={locale} />
+                    <ContinentNode key={d.key} civKey={d.key} label={d.label} labelEn={d.labelEn} level={d.level} avgScore={d.avgScore} locale={locale} />
                   ))}
                 </div>
               </div>
@@ -722,15 +728,15 @@ function ChronicleRow({ icon, label, value, href }: { icon: ReactNode; label: st
   );
 }
 
-function ContinentNode({ icon, label, labelEn, level, avgScore, locale }: {
-  icon: string; label: string; labelEn: string; level: number; avgScore: number; locale: string;
+function ContinentNode({ civKey, label, labelEn, level, avgScore, locale }: {
+  civKey: string; label: string; labelEn: string; level: number; avgScore: number; locale: string;
 }) {
   const size = 34 + level * 4;
   return (
     <div className="relative flex flex-col items-center gap-2 py-1">
       <div className="relative flex items-center justify-center rounded-full border transition-transform duration-300 hover:scale-110"
         style={{ width: size, height: size, borderColor: `${CIV_COLORS.gold}66`, background: `${CIV_COLORS.gold}14` }}>
-        <CivGlyph name={icon} size={18} />
+        <CivIcon type="type" name={civKey} size={Math.round(size * 0.5)} alt={label} />
         <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border text-[8px] font-bold font-mono"
           style={{ borderColor: CIV_COLORS.gold, background: "#FBF4E4", color: CIV_COLORS.darkRed }}>
           {level}
@@ -785,33 +791,6 @@ function EntranceRow({ iconName, title, desc, href }: { iconName: ScrollIconName
         <QuestScrollIcon name="arrow-right" size={16} />
       </span>
     </Link>
-  );
-}
-
-/** Map a domain/civilization icon string to a glyph. */
-function CivGlyph({ name, size = 18 }: { name: string; size?: number }) {
-  const scrollIcons = new Set<ScrollIconName>([
-    "knowledge", "reasoning", "application", "creation", "building", "building-emblem",
-    "civilization", "world-core", "quest", "mission", "checklist", "scroll", "shield",
-    "arrow-left", "arrow-right", "star", "star-outline", "lock", "sparkle", "seal",
-  ]);
-  if (scrollIcons.has(name as ScrollIconName)) {
-    return <QuestScrollIcon name={name as ScrollIconName} size={size} />;
-  }
-  const customPaths: Record<string, ReactNode> = {
-    robot: <><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 4v4M9 4h6" /><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none" /><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none" /></>,
-    business: <><rect x="3" y="7" width="18" height="13" rx="1" /><path d="M9 7V4h6v3" /><path d="M3 12h18" strokeWidth="1" opacity="0.6" /></>,
-    language: <path d="M3 5h12M9 5v14M7 19h4M14 9h7M14 9l3.5 8M14 9l-3 6M19 13h-4" strokeWidth="1.2" />,
-    science: <path d="M9 3v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 9V3M9 3h6" />,
-    health: <path d="M12 21s-7-5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6-7 11-7 11z" />,
-    finance: <><circle cx="12" cy="12" r="9" /><path d="M12 7v10M14.5 9c0-1-1-2-2.5-2s-2.5 1-2.5 2 1 1.5 2.5 2 2.5 1 2.5 2-1 2-2.5 2-2.5-1-2.5-2" strokeWidth="1.2" /></>,
-  };
-  const content = customPaths[name];
-  if (!content) return <QuestScrollIcon name="sparkle" size={size} />;
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      {content}
-    </svg>
   );
 }
 

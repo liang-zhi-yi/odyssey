@@ -615,81 +615,87 @@ export function AssessmentResult({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {/* 优势 */}
-          <article className="relative rounded-lg bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] p-4 pl-5">
+          <article className="relative flex h-full flex-col rounded-lg bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] p-4 pl-5">
             <div className="absolute left-0 top-2 bottom-2 w-px" aria-hidden
               style={{ background: "oklch(0.50 0.08 150 / 0.12)" }} />
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex flex-none items-center gap-2">
               <ObservationMark type="advantage" />
               <h3 className="font-civ-serif text-[14px] font-bold tracking-wide text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">
                 {locale === "zh" ? "优势" : "Strengths"}
               </h3>
             </div>
-            {parsed.advantages.length > 0 ? (
-              <ul className="space-y-1.5">
-                {parsed.advantages.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.50 0.08 150 / 0.35)" }} aria-hidden />
-                    <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-[13px] italic text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)] break-words">
-                {locale === "zh" ? "继续完成任务以积累优势记录。" : "Complete more quests to build your strengths."}
-              </p>
-            )}
+            <div className="scroll-archive min-h-0 flex-1 max-h-[220px] overflow-y-auto pr-1.5">
+              {parsed.advantages.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {parsed.advantages.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.50 0.08 150 / 0.35)" }} aria-hidden />
+                      <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[13px] italic text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)] break-words">
+                  {locale === "zh" ? "继续完成任务以积累优势记录。" : "Complete more quests to build your strengths."}
+                </p>
+              )}
+            </div>
           </article>
 
           {/* 挑战 */}
-          <article className="relative rounded-lg bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] p-4 pl-5">
+          <article className="relative flex h-full flex-col rounded-lg bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] p-4 pl-5">
             <div className="absolute left-0 top-2 bottom-2 w-px" aria-hidden
               style={{ background: "oklch(0.55 0.10 65 / 0.12)" }} />
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex flex-none items-center gap-2">
               <ObservationMark type="challenge" />
               <h3 className="font-civ-serif text-[14px] font-bold tracking-wide text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">
                 {locale === "zh" ? "挑战" : "Challenges"}
               </h3>
             </div>
-            {parsed.improvements.length > 0 ? (
-              <ul className="space-y-1.5">
-                {parsed.improvements.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.55 0.10 65 / 0.35)" }} aria-hidden />
-                    <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-[13px] italic text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)] break-words">
-                {locale === "zh" ? "当前未检测到显著挑战。" : "No significant challenges detected."}
-              </p>
-            )}
+            <div className="scroll-archive min-h-0 flex-1 max-h-[220px] overflow-y-auto pr-1.5">
+              {parsed.improvements.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {parsed.improvements.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.55 0.10 65 / 0.35)" }} aria-hidden />
+                      <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[13px] italic text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)] break-words">
+                  {locale === "zh" ? "当前未检测到显著挑战。" : "No significant challenges detected."}
+                </p>
+              )}
+            </div>
           </article>
 
           {/* 建议 */}
-          <article className="relative rounded-lg bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] p-4 pl-5">
+          <article className="relative flex h-full flex-col rounded-lg bg-[oklch(0.95_0.018_82_/_0.40)] dark:bg-[oklch(0.22_0.013_78_/_0.40)] p-4 pl-5">
             <div className="absolute left-0 top-2 bottom-2 w-px" aria-hidden
               style={{ background: "oklch(0.45 0.05 45 / 0.12)" }} />
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex flex-none items-center gap-2">
               <ObservationMark type="advice" />
               <h3 className="font-civ-serif text-[14px] font-bold tracking-wide text-[oklch(0.35_0.03_70)] dark:text-[oklch(0.85_0.04_80)]">
                 {locale === "zh" ? "建议" : "Suggestions"}
               </h3>
             </div>
-            {parsed.suggestions.length > 0 ? (
-              <ul className="space-y-1.5">
-                {parsed.suggestions.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.45 0.05 45 / 0.35)" }} aria-hidden />
-                    <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-[13px] italic text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)] break-words">
-                {locale === "zh" ? "关注能力得分较低的维度持续提升。" : "Focus on lower-scoring dimensions."}
-              </p>
-            )}
+            <div className="scroll-archive min-h-0 flex-1 max-h-[220px] overflow-y-auto pr-1.5">
+              {parsed.suggestions.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {parsed.suggestions.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1 w-1 flex-none rounded-full" style={{ background: "oklch(0.45 0.05 45 / 0.35)" }} aria-hidden />
+                      <p className="text-[13px] leading-[1.7] text-[oklch(0.50_0.03_72)] dark:text-[oklch(0.65_0.035_80)] break-words">{item}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[13px] italic text-[oklch(0.45_0.03_72)] dark:text-[oklch(0.68_0.035_80)] break-words">
+                  {locale === "zh" ? "关注能力得分较低的维度持续提升。" : "Focus on lower-scoring dimensions."}
+                </p>
+              )}
+            </div>
           </article>
         </div>
       </section>

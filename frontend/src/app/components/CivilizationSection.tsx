@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { CivilizationBadge, CIVILIZATION_META, type CivilizationType } from "./CivilizationBadge";
+import { CivIcon } from "./CivIcon";
 import { useLocale } from "@/hooks/useLocale";
 
 const PAGE_SIZE = 12; // 4 rows × 3 columns (desktop)
@@ -72,7 +73,13 @@ export function CivilizationSection({
       >
         {/* Civilization badge with glow */}
         <div className="flex-shrink-0">
-          <CivilizationBadge type={type} size={40} glow={expanded} />
+          <CivIcon
+            type="type"
+            name={type}
+            size={40}
+            alt={type}
+            fallback={<CivilizationBadge type={type} size={40} glow={expanded} />}
+          />
         </div>
 
         {/* Civilization name + level */}

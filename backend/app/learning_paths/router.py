@@ -102,7 +102,7 @@ def get_mentor_suggestions(
     from app.quests.models import Quest
     from app.world.upgrade_engine import score_to_level
 
-    path = service.get_learning_path(db, path_id)
+    path = service.get_learning_path(db, path_id, str(current_user.id))
     user_id = str(current_user.id)
 
     # Find the next incomplete milestone
@@ -446,10 +446,11 @@ def get_next_checkpoint(
 @router.get("/learning-paths/{path_id}", response_model=LearningPathDetailResponse)
 def get_learning_path(
     path_id: str,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get a single learning path with milestones and checkpoints."""
-    path = service.get_learning_path(db, path_id)
+    path = service.get_learning_path(db, path_id, str(current_user.id))
     return _build_detail_response(path, db)
 
 
@@ -512,7 +513,9 @@ def regenerate_path(
     db: Session = Depends(get_db),
 ):
     """Re-generate milestones and checkpoints (replaces existing structure)."""
-    result = service.generate_path_structure(db, path_id, str(current_user.id))
+    result = service.generate_path_structure(
+        db, path_id, str(current_user.id), force=True
+    )
     return GeneratePathResponse(**result)
 
 

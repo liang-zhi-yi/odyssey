@@ -12,6 +12,7 @@ import { Loading } from "@/app/components/Loading";
 import { ErrorState } from "@/app/components/ErrorState";
 import { EmptyState } from "@/app/components/EmptyState";
 import { QuestScrollIcon, type ScrollIconName } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "@/app/components/CivIcon";
 import {
   PATH_STATUS_LABELS,
   PATH_STATUS_LABELS_ZH,
@@ -34,6 +35,21 @@ const CIV_INFO: Record<string, { zh: string; en: string; icon: ScrollIconName }>
   FINANCE: { zh: "金融文明", en: "Finance", icon: "seal" },
 };
 
+/** True once the path structure (milestones + checkpoints) exists.
+ *
+ * Completion is judged on structure presence, NOT on every checkpoint's
+ * quest_generation_status leaving PENDING — a checkpoint whose background
+ * quest generation failed would otherwise keep the loading overlay stuck
+ * forever. Once structure exists the page can render; quests that are still
+ * generating appear via revalidation. */
+function isPathFullyGenerated(p: LearningPathDetail): boolean {
+  return (
+    !!p.milestones &&
+    p.milestones.length > 0 &&
+    p.milestones.every((m) => !!m.checkpoints && m.checkpoints.length > 0)
+  );
+}
+
 export default function PathDetailPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { locale, t } = useLocale();
@@ -50,6 +66,7 @@ export default function PathDetailPage() {
   const [regenerating, setRegenerating] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [pollingGeneration, setPollingGeneration] = useState(false);
   const autoGenTriggered = useRef(false);
 
   useEffect(() => {
@@ -89,19 +106,66 @@ export default function PathDetailPage() {
       setGenerationError(null);
       learningPathService
         .generatePath(pathId)
-        .then(() => {
-          mutate(`learning-path-${pathId}`);
-          mutate("user-learning-paths");
-          setGeneratingAI(false);
+        .then(async () => {
+          // 即使 generatePath 成功返回，子任务(quests)仍可能在后台并发生成，
+          // 后端返回时结构可能尚未写全。刷新路径详情，若仍不完整则进入轮询，
+          // 避免回到页面时看到空的子任务/关联建筑。
+          const p = await learningPathService.getPath(pathId).catch(() => null);
+          if (p && isPathFullyGenerated(p)) {
+            mutate(`learning-path-${pathId}`);
+            mutate("user-learning-paths");
+            setGeneratingAI(false);
+          } else {
+            setGeneratingAI(false);
+            setPollingGeneration(true);
+          }
         })
-        .catch((err: any) => {
-          setGenerationError(err?.message || "Generation failed");
+        .catch(() => {
+          // 生成请求可能因后端长耗时（AI 生成 + 并发任务）超过代理超时而中断，
+          // 但后端 worker 仍会继续执行并保存路径结构。因此不直接报错，
+          // 而是进入轮询等待生成真正完成。若确实失败，轮询超时后再提示重试。
           setGeneratingAI(false);
-          // Still revalidate in case partial generation succeeded
-          mutate(`learning-path-${pathId}`);
+          setPollingGeneration(true);
         });
     }
   }, [path, pathId, generatingAI, mutate]);
+
+  // ── Poll for AI generation completion ─────────────────────────
+  // 当 generatePath 因超时中断但后端仍在后台生成时，轮询路径详情，
+  // 直到里程碑出现（生成完成）或达到最大等待时长。
+  useEffect(() => {
+    if (!pollingGeneration || !pathId) return;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 60; // 60 * 3s = 180s
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const p = await learningPathService.getPath(pathId);
+        // 生成完成的标准：所有里程碑都有检查点，且所有检查点的子任务
+        // 都已生成（quest_generation_status 离开 PENDING）。仅里程碑出现
+        // 还不够——子任务可能是后台并发生成，需一并等待避免显示为空。
+        if (isPathFullyGenerated(p)) {
+          clearInterval(interval);
+          setPollingGeneration(false);
+          mutate(`learning-path-${pathId}`);
+          mutate("user-learning-paths");
+          return;
+        }
+      } catch {
+        // transient error — keep polling
+      }
+      if (attempts >= MAX_ATTEMPTS) {
+        clearInterval(interval);
+        setPollingGeneration(false);
+        setGenerationError(
+          locale === "zh"
+            ? "生成超时，请在下面点击重试。"
+            : "Generation timed out. Please retry below."
+        );
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [pollingGeneration, pathId, mutate, locale]);
 
   // ── Derived data ─────────────────────────────────────────────
   const civInfo = useMemo(() => {
@@ -214,7 +278,7 @@ export default function PathDetailPage() {
   if (isLoading) return <Loading />;
 
   // ── AI generation loading overlay ────────────────────────────
-  if (generatingAI) {
+  if (generatingAI || pollingGeneration) {
     return (
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
         <button
@@ -659,9 +723,15 @@ export default function PathDetailPage() {
                 {targetedBuildings.map((tb, idx) => (
                   <div key={tb.building_id} className="relative flex gap-3">
                     <div className="flex flex-col items-center">
-                      <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[oklch(0.6_0.10_85_/_0.4)] bg-[#F7EFE0] text-sm dark:bg-[oklch(0.2_0.008_85)]">
-                        {tb.building_icon || <QuestScrollIcon name="building" size={15} />}
-                      </span>
+                      <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[oklch(0.6_0.10_85_/_0.4)] bg-[#F7EFE0] dark:bg-[oklch(0.2_0.008_85)]">
+                          <CivIcon
+                            type="building"
+                            name={tb.building_name}
+                            size={18}
+                            alt={tb.building_name}
+                            fallback={tb.building_icon || <QuestScrollIcon name="building" size={15} />}
+                          />
+                        </span>
                       {idx < targetedBuildings.length - 1 && (
                         <div className="w-px flex-1 min-h-[1.25rem] bg-gradient-to-b from-[oklch(0.6_0.10_85_/_0.4)] to-[oklch(0.6_0.10_85_/_0.08)]" />
                       )}

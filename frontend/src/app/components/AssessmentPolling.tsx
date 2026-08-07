@@ -39,31 +39,30 @@ export function AssessmentPolling({
 }: AssessmentPollingProps) {
   const { t, locale } = useLocale();
 
-  // 错误态（且尚无结果）
+  // 错误态（且尚无结果）—— 悬浮仪式提示，无卡片
   if (error && !result) {
     return (
       <div
-        className="scroll-fuse scroll-paper rounded-2xl p-8 text-center"
+        className="mx-auto max-w-md text-center"
         role="alert"
       >
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="mb-3 mx-auto"
-        >
-          <path d="M12 3L2 21h20L12 3z" />
-          <path d="M12 10v5" strokeWidth="1.8" />
-          <circle cx="12" cy="18" r="0.5" fill="currentColor" stroke="none" />
-        </svg>
-        <p className="font-civ-serif text-sm font-semibold text-destructive">
+        <div className="inline-flex items-center justify-center gap-2 font-civ-serif text-sm font-semibold text-destructive/85">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 3L2 21h20L12 3z" />
+            <path d="M12 10v5" strokeWidth="1.8" />
+            <circle cx="12" cy="18" r="0.5" fill="currentColor" stroke="none" />
+          </svg>
           {locale === "zh" ? "鉴定中断" : "Appraisal Interrupted"}
-        </p>
+        </div>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
           {error}
         </p>
@@ -74,10 +73,10 @@ export function AssessmentPolling({
     );
   }
 
-  // 等待态 —— AI CORE 扫描
+  // 等待态 —— 文明核心苏醒解析
   if (isPolling || (!result && !error)) {
     return (
-      <div className="scroll-paper scroll-enter rounded-2xl p-6 sm:p-10">
+      <div className="relative">
         <AICore elapsed={elapsed} backendPhase={backendPhase} />
       </div>
     );

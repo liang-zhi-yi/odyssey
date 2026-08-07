@@ -6,25 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 
 // ═══════════════════════════════════════════════════════
-// ICONS — warm gold / parchment tone
+// ICONS — 东方水墨文明 · 暖金印记
 // ═══════════════════════════════════════════════════════
-function CompassLogo() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
-      <circle cx="24" cy="24" r="22" stroke="oklch(0.62 0.12 80)" strokeWidth="1.2" opacity="0.65" />
-      <circle cx="24" cy="24" r="16" stroke="oklch(0.66 0.14 75)" strokeWidth="0.8" opacity="0.55" strokeDasharray="2 2" />
-      <path d="M24 6 L27 24 L24 42 L21 24 Z" fill="oklch(0.62 0.12 80)" opacity="0.85" />
-      <path d="M6 24 L24 21 L42 24 L24 27 Z" fill="oklch(0.66 0.14 75)" opacity="0.6" />
-      <circle cx="24" cy="24" r="3.5" fill="oklch(0.58 0.14 78)" />
-      <circle cx="24" cy="24" r="1.2" fill="oklch(0.97 0.01 95)" />
-      <circle cx="24" cy="6" r="1.2" fill="oklch(0.62 0.12 80)" />
-      <circle cx="24" cy="42" r="1.2" fill="oklch(0.62 0.12 80)" />
-      <circle cx="6" cy="24" r="1.2" fill="oklch(0.66 0.14 75)" />
-      <circle cx="42" cy="24" r="1.2" fill="oklch(0.66 0.14 75)" />
-    </svg>
-  );
-}
-
 function MailIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
@@ -63,128 +46,85 @@ function CompassNode({ size = 18 }: { size?: number }) {
   );
 }
 
-function FeatureGlyph({ glyph }: { glyph: "book" | "crown" | "compass" }) {
-  const common = {
-    width: 13,
-    height: 13,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-  if (glyph === "book")
-    return (
-      <svg {...common}>
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z" />
-        <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" />
-      </svg>
-    );
-  if (glyph === "crown")
-    return (
-      <svg {...common}>
-        <path d="M3 11l4-4 5 5 5-5 4 4v7H3v-7z" />
-        <path d="M7 21h10" />
-      </svg>
-    );
-  return (
-    <svg {...common}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a7 7 0 0 1 0 14M2 12h20" />
-    </svg>
-  );
-}
-
 // ═══════════════════════════════════════════════════════
-// DECORATIVE GOLDEN NODES WITH CONNECTING LINES
+// 文明坐标网格 + 扫描 — 未来文明档案坐标感
 // ═══════════════════════════════════════════════════════
-function GoldenNodes() {
+function CoordGrid() {
   return (
     <svg
-      className="pointer-events-none absolute inset-0 h-full w-full"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]"
       preserveAspectRatio="none"
-      viewBox="0 0 1000 900"
+      viewBox="0 0 100 100"
       aria-hidden="true"
     >
       <defs>
-        <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="oklch(0.78 0.12 75)" stopOpacity="0.5" />
-          <stop offset="60%" stopColor="oklch(0.7 0.12 80)" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="oklch(0.65 0.12 78)" stopOpacity="0" />
-        </radialGradient>
+        <pattern id="coordGrid" width="6.25" height="6.25" patternUnits="userSpaceOnUse">
+          <path d="M6.25 0 H0 V6.25" fill="none" stroke="oklch(0.7 0.12 80)" strokeWidth="0.05" />
+        </pattern>
       </defs>
-
-      <g stroke="oklch(0.62 0.12 78)" strokeWidth="0.6" fill="none" opacity="0.55">
-        <path d="M180 720 Q220 680 260 640 Q300 600 360 560 Q420 520 470 470 Q520 430 560 390 Q600 355 620 325" strokeDasharray="3 5" />
-        <path d="M180 720 Q150 780 170 830 Q190 860 230 870" strokeDasharray="3 5" />
-        <path d="M620 325 Q640 280 660 230 Q670 200 655 160" strokeDasharray="3 5" />
-      </g>
-      <g stroke="oklch(0.62 0.12 78)" strokeWidth="0.35" fill="none" opacity="0.4">
-        <path d="M180 720 L260 640 M260 640 L360 560 M360 560 L470 470 M470 470 L560 390 M560 390 L620 325 M620 325 L655 160" />
-      </g>
-
-      <circle cx="180" cy="720" r="28" fill="url(#nodeGlow)" />
-      <circle cx="360" cy="560" r="24" fill="url(#nodeGlow)" />
-      <circle cx="560" cy="390" r="22" fill="url(#nodeGlow)" />
-      <circle cx="655" cy="160" r="26" fill="url(#nodeGlow)" />
+      <rect width="100" height="100" fill="url(#coordGrid)" />
+      <circle cx="12" cy="18" r="0.28" fill="oklch(0.8 0.12 80)" />
+      <circle cx="88" cy="82" r="0.28" fill="oklch(0.8 0.12 80)" />
+      <circle cx="74" cy="26" r="0.22" fill="oklch(0.8 0.12 80)" />
+      <circle cx="24" cy="74" r="0.22" fill="oklch(0.8 0.12 80)" />
     </svg>
   );
 }
 
 // ═══════════════════════════════════════════════════════
-// BACKGROUND LAYER — uses the reference fantasy city image
+// 背景 — 东方水墨文明 · 缓慢流动 + 坐标扫描
 // ═══════════════════════════════════════════════════════
 function AuthBackground() {
   return (
     <div aria-hidden="true" className="fixed inset-0 overflow-hidden">
-      {/* Layer 1: The actual reference image — fantasy city with golden constellations */}
+      {/* Layer 1: 水墨背景 — 缓慢流动 */}
       <div
-        className="absolute inset-0"
+        className="ink-drift absolute -inset-8"
         style={{
-          backgroundImage: "url('/bg/odyssey-auth-bg.png')",
+          backgroundImage: "url('/bg/ink-auth-bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       />
 
-      {/* Layer 2: Warm golden tint overlay — unifies the image tone with the UI palette */}
+      {/* Layer 2: 暖金水墨调色覆盖 — 统一画面与 UI 色调 */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(135deg, oklch(0.78 0.08 80 / 0.18) 0%, oklch(0.7 0.07 78 / 0.10) 50%, oklch(0.65 0.06 75 / 0.15) 100%)",
+            "linear-gradient(150deg, oklch(0.72 0.05 78 / 0.16) 0%, oklch(0.5 0.03 70 / 0.10) 50%, oklch(0.4 0.03 62 / 0.18) 100%)",
         }}
       />
 
-      {/* Layer 3: Soft radial haze — center warm highlight from the sun */}
+      {/* Layer 3: 中央柔和光晕 — 文明苏醒的光 */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 70% 50% at 65% 35%, oklch(0.85 0.08 80 / 0.22) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 15% 80%, oklch(0.6 0.05 75 / 0.18) 0%, transparent 65%)",
+            "radial-gradient(ellipse 62% 48% at 62% 34%, oklch(0.85 0.07 82 / 0.18) 0%, transparent 62%), radial-gradient(ellipse 70% 90% at 18% 82%, oklch(0.5 0.04 68 / 0.16) 0%, transparent 65%)",
         }}
       />
 
-      {/* Layer 4: Vignette — edges gently darkened to focus attention on content */}
+      {/* Layer 4: 文明坐标网格 — 缓慢漂移 */}
+      <div className="coord-grid absolute inset-0" style={{ backgroundImage: "radial-gradient(oklch(0.7 0.1 80 / 0.5) 1px, transparent 1.5px)", backgroundSize: "60px 60px" }} />
+      <CoordGrid />
+
+      {/* Layer 5: 文明坐标扫描线 — 自上而下缓慢移动 */}
+      <div
+        className="coord-scan pointer-events-none absolute inset-x-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, oklch(0.75 0.12 82 / 0.6), transparent)",
+        }}
+      />
+
+      {/* Layer 6: 边缘暗角 — 聚焦中心内容 */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 45%, oklch(0.25 0.02 60 / 0.35) 100%)",
-        }}
-      />
-
-      {/* Layer 5: Golden node decorative overlay (the signature constellation glow) */}
-      <GoldenNodes />
-
-      {/* Layer 6: Ambient golden scan line — very faint, slow cycle for lingering life */}
-      <div
-        className="civil-scanline pointer-events-none absolute inset-x-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, oklch(0.78 0.12 80 / 0.55), transparent)",
+            "radial-gradient(ellipse at center, transparent 42%, oklch(0.16 0.015 55 / 0.42) 100%)",
         }}
       />
     </div>
@@ -192,7 +132,7 @@ function AuthBackground() {
 }
 
 // ═══════════════════════════════════════════════════════
-// SPACED CIDD LANDS — "O D Y S S E Y" 字符逐个唤醒
+// SPACED ODYSSEY — "O D Y S S E Y" 字符逐个唤醒
 // ═══════════════════════════════════════════════════════
 function SpacedLetters({
   text,
@@ -221,6 +161,25 @@ function SpacedLetters({
 }
 
 // ═══════════════════════════════════════════════════════
+// 文明宣言标题 — 逐字浮现
+// ═══════════════════════════════════════════════════════
+function ManifestTitle({ text }: { text: string }) {
+  return (
+    <h2 className="font-civ-serif text-[40px] font-semibold leading-[1.28] tracking-[0.05em] text-[oklch(0.2 0.02 55)] md:text-[44px]">
+      {text.split("").map((ch, i) => (
+        <span
+          key={i}
+          className={`manifest-char inline-block ${ch === " " ? "w-[0.32em]" : ""}`}
+          style={{ animationDelay: `${0.4 + i * 0.12}s` }}
+        >
+          {ch === " " ? "\u00A0" : ch}
+        </span>
+      ))}
+    </h2>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
 // CIVILIZATION MOTTO — 底部文明箴言 淡入淡出轮换
 // ═══════════════════════════════════════════════════════
 function CivilMotto({ t }: { t: (k: string) => string }) {
@@ -235,7 +194,7 @@ function CivilMotto({ t }: { t: (k: string) => string }) {
   return (
     <p
       key={idx}
-      className="civil-motto max-w-[480px] font-civ-serif text-[14px] italic leading-relaxed text-[oklch(0.3 0.03 65)]"
+      className="civil-motto max-w-[480px] font-civ-serif text-[14px] italic leading-relaxed text-[oklch(0.32 0.03 58)]"
       style={{ textShadow: "0 1px 2px oklch(1 0.02 90 / 0.4)" }}
     >
       {mottos[idx]}
@@ -244,7 +203,7 @@ function CivilMotto({ t }: { t: (k: string) => string }) {
 }
 
 // ═══════════════════════════════════════════════════════
-// AUTH INPUT — 下划线形式 · 极细金色线条 · 无填充背景
+// AUTH INPUT — 文明刻线 · 极细金色线条 · 无填充背景
 // ═══════════════════════════════════════════════════════
 function AuthInput({
   id,
@@ -282,21 +241,21 @@ function AuthInput({
       <div className="flex items-baseline justify-between gap-3">
         <label
           htmlFor={id}
-          className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[oklch(0.45 0.05 70)]"
+          className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[oklch(0.45 0.05 65)]"
         >
           {label}
         </label>
         {value.length > 0 && (
-          <span className="flex items-center gap-1.5 text-[10px] normal-case tracking-normal text-[oklch(0.55 0.1 80)]">
-            <span className="inline-block h-1 w-1 rounded-full bg-[oklch(0.62 0.12 80)]" />
+          <span className="flex items-center gap-1.5 text-[10px] normal-case tracking-normal text-[oklch(0.58 0.1 78)]">
+            <span className="inline-block h-1 w-1 rounded-full bg-[oklch(0.64 0.12 80)]" />
             {connectedText}
           </span>
         )}
       </div>
 
       <div className="group relative">
-        {/* symbol assist */}
-        <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 70)] transition-colors duration-300 group-focus-within:text-[oklch(0.68 0.1 80)]">
+        {/* 符号辅助 */}
+        <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 68)] transition-colors duration-300 group-focus-within:text-[oklch(0.68 0.1 80)]">
           {icon}
         </div>
 
@@ -311,21 +270,21 @@ function AuthInput({
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="h-[44px] w-full border-0 border-b bg-transparent pl-7 pr-9 text-[14px] text-[oklch(0.25 0.03 70)] outline-none transition-colors duration-300 placeholder:text-[oklch(0.55 0.02 75)]"
+          className="h-[44px] w-full border-0 border-b bg-transparent pl-7 pr-9 text-[14px] text-[oklch(0.22 0.02 60)] outline-none transition-colors duration-300 placeholder:text-[oklch(0.55 0.02 70)]"
           style={{ borderBottomColor: "transparent" }}
         />
 
-        {/* base thin line */}
-        <span className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-[oklch(0.6 0.04 80 / 0.35)]" />
-        {/* active gold line */}
+        {/* 基底刻线 */}
+        <span className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-[oklch(0.6 0.04 75 / 0.4)]" />
+        {/* 激活金线 */}
         <span
           className={`pointer-events-none absolute bottom-0 left-0 h-px bg-[#C9A45C] transition-all duration-500 ${
             focused ? "w-full" : "w-0"
           }`}
         />
-        {/* moving light */}
+        {/* 微弱金光流动 */}
         <span
-          className={`civil-flow pointer-events-none absolute bottom-0 left-0 h-px w-1/3 bg-gradient-to-r from-transparent via-[oklch(0.95 0.05 90)] to-transparent transition-opacity duration-300 ${
+          className={`civil-flow pointer-events-none absolute bottom-0 left-0 h-px w-1/3 bg-gradient-to-r from-transparent via-[oklch(0.95 0.05 88)] to-transparent transition-opacity duration-300 ${
             focused ? "opacity-70" : "opacity-0"
           }`}
         />
@@ -334,7 +293,7 @@ function AuthInput({
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 75)] hover:text-[oklch(0.35 0.08 80)] transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-[oklch(0.55 0.05 72)] hover:text-[oklch(0.35 0.08 80)] transition-colors"
             aria-label={show ? "隐藏密码" : "显示密码"}
             tabIndex={-1}
           >
@@ -359,7 +318,7 @@ function AuthInput({
 }
 
 // ═══════════════════════════════════════════════════════
-// AUTH CARD — 文明认证终端 · 半透明 · 金色细线 · 微弱光晕
+// AUTH ENTRY — 文明档案入口 · 水墨玻璃 · 四角金线绘制
 // ═══════════════════════════════════════════════════════
 function AuthCard({
   mode,
@@ -421,13 +380,15 @@ function AuthCard({
         return;
       }
     }
-    // 短暂启动反馈：金色光线扩散
+    // 短暂启动反馈：金色光圈扩散
     setActivating(true);
-    setTimeout(() => setActivating(false), 650);
+    setTimeout(() => setActivating(false), 850);
     try {
       const redirectTo = isLogin
         ? await login({ email, password })
         : await register({ email, username, password });
+      // 文明光芒扩散后再进入开场视频 / 首页
+      await new Promise((r) => setTimeout(r, 700));
       router.push(redirectTo);
     } catch {
       // Error handled in AuthContext
@@ -437,50 +398,47 @@ function AuthCard({
   const displayError = localError || error;
 
   return (
-    <div className="w-full max-w-[440px] civil-terminal-in">
-      {/* 文明认证终端 — translucent, frosted, thin gold line, faint glow */}
-      <div
-        className="relative overflow-hidden rounded-[6px] border border-[#C9A45C]/45"
-        style={{
-          background:
-            "linear-gradient(165deg, oklch(0.98 0.02 86 / 0.3) 0%, oklch(0.96 0.02 84 / 0.22) 50%, oklch(0.94 0.03 82 / 0.26) 100%)",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-          boxShadow:
-            "0 20px 50px oklch(0.3 0.04 70 / 0.22), 0 0 0 1px oklch(0.4 0.03 70 / 0.06), 0 0 44px oklch(0.7 0.12 80 / 0.07)",
-        }}
-      >
-        {/* edge gold scan — 认证终端启动时扫描一次 */}
+    <div className="w-full max-w-[420px] civil-terminal-in">
+      {/* 文明档案入口 — 水墨玻璃 · 无明显矩形边界 · 四角金线 */}
+      <div className="ink-glass relative px-9 py-9 md:px-10 md:py-10">
+        {/* 四角金线绘制出现 */}
+        <div className="pointer-events-none absolute inset-0">
+          <span className="entry-corner tl" />
+          <span className="entry-corner tr" />
+          <span className="entry-corner bl" />
+          <span className="entry-corner br" />
+        </div>
+        {/* 顶部淡金呼吸光晕 */}
         <span
-          className="civil-terminal-scan pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, oklch(0.78 0.12 80 / 0.45), transparent) 0% 0% / 200% 100%",
-            backgroundRepeat: "no-repeat",
-          }}
+          className="ink-glow pointer-events-none absolute inset-x-10 top-0 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, oklch(0.72 0.12 80 / 0.55), transparent)" }}
         />
+        {/* 顶部坐标标签 */}
+        <div className="pointer-events-none absolute left-10 top-5 text-[9px] uppercase tracking-[0.3em] text-[oklch(0.5 0.06 72)]">
+          {t("auth.manifestCoord")}
+        </div>
 
-        <div className="relative px-8 py-8">
+        <div className="relative px-1 pt-6">
           {/* 档案翻页内容：标题 + 表单 */}
           <div key={mode} className={switching ? "civil-page-out" : "civil-page-in"}>
             {/* Title */}
             <div className="mb-6 text-center">
               <div className="flex items-center justify-center gap-3 text-[oklch(0.6 0.1 80)]">
-                <span className="h-px w-8 bg-[oklch(0.6 0.08 80 / 0.4)]" />
+                <span className="h-px w-8 bg-[oklch(0.6 0.08 78 / 0.45)]" />
                 <CompassNode size={18} />
-                <span className="h-px w-8 bg-[oklch(0.6 0.08 80 / 0.4)]" />
+                <span className="h-px w-8 bg-[oklch(0.6 0.08 78 / 0.45)]" />
               </div>
-              <h1 className="mt-3 font-civ-serif text-[22px] font-semibold tracking-[0.14em] text-[oklch(0.28 0.03 72)]">
+              <h1 className="mt-3 font-civ-serif text-[22px] font-semibold tracking-[0.14em] text-[oklch(0.26 0.02 62)]">
                 {isLogin ? t("auth.explorerTitle") : t("auth.establishTitle")}
               </h1>
-              <p className="mt-1.5 text-[12px] tracking-wide text-[oklch(0.5 0.03 75)]">
+              <p className="mt-1.5 text-[12px] tracking-wide text-[oklch(0.5 0.03 70)]">
                 {isLogin ? t("auth.loginSub") : t("auth.registerSub")}
               </p>
             </div>
 
             {/* Error banner */}
             {displayError && (
-              <div className="mb-5 rounded-[4px] border border-[oklch(0.6 0.1 25 / 0.2)] bg-[oklch(0.6 0.1 25 / 0.06)] px-4 py-3 text-[13px] text-[oklch(0.45 0.1 30)]">
+              <div className="mb-5 border border-[oklch(0.6 0.1 25 / 0.25)] bg-[oklch(0.6 0.1 25 / 0.06)] px-4 py-3 text-[13px] text-[oklch(0.45 0.1 30)]">
                 <div className="flex items-center justify-between gap-3">
                   <span>{displayError}</span>
                   <button
@@ -488,7 +446,7 @@ function AuthCard({
                       setLocalError(null);
                       clearError();
                     }}
-                    className="text-[oklch(0.52 0.02 78)] hover:text-[oklch(0.4 0.02 76)]"
+                    className="text-[oklch(0.52 0.02 74)] hover:text-[oklch(0.4 0.02 72)]"
                     aria-label={t("auth.dismiss")}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -564,41 +522,39 @@ function AuthCard({
               {/* Forgot password hint (login only) */}
               {isLogin && (
                 <div className="-mt-1 text-right">
-                  <span className="text-[11px] text-[oklch(0.5 0.03 75)]">
+                  <span className="text-[11px] text-[oklch(0.5 0.03 70)]">
                     {t("auth.forgotPassword")}
                   </span>
                 </div>
               )}
 
-              {/* 文明启动按钮 — 金色描边 · 半透明内部 · 微弱光效 */}
+              {/* 文明启动按钮 — 金色描边 · 透明背景 · 点击文明光圈扩散 */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative mt-2 h-[54px] w-full overflow-hidden rounded-[6px] border border-[#C9A45C]/70 text-[14px] font-semibold tracking-[0.2em] text-[oklch(0.42 0.09 75)] transition-all duration-300 hover:border-[#C9A45C] hover:text-[oklch(0.3 0.09 70)] hover:shadow-[inset_0_0_0_1px_oklch(0.72_0.12_80_/_0.35),0_0_24px_oklch(0.7_0.12_80_/_0.18)] disabled:cursor-not-allowed disabled:opacity-55"
-                style={{
-                  background:
-                    "linear-gradient(120deg, oklch(0.98 0.02 86 / 0.12) 0%, oklch(0.96 0.03 82 / 0.2) 100%)",
-                }}
+                className="group relative mt-2 h-[54px] w-full overflow-hidden border border-[#C9A45C]/70 bg-transparent text-[14px] font-semibold tracking-[0.22em] text-[oklch(0.42 0.09 72)] transition-all duration-300 hover:border-[#C9A45C] hover:text-[oklch(0.3 0.09 68)] hover:shadow-[inset_0_0_0_1px_oklch(0.72_0.12_80_/_0.35),0_0_24px_oklch(0.7_0.12_80_/_0.18)] disabled:cursor-not-allowed disabled:opacity-55"
               >
                 {/* hover 金色能量流动 */}
                 <span className="civil-flow pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-transparent via-[#C9A45C]/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                {/* click 短暂启动反馈 — 金色光线扩散 */}
+                {/* click 文明光圈扩散 */}
                 {activating && (
-                  <span className="civil-ray pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 rounded-full border border-[#C9A45C]/80" />
+                  <span className="civil-aperture pointer-events-none absolute left-1/2 top-1/2 h-28 w-28 rounded-full border border-[#C9A45C]/80" />
                 )}
                 <span className="relative flex items-center justify-center gap-2">
                   {isLoading
                     ? isLogin
                       ? t("auth.loggingIn")
                       : t("auth.creatingAccount")
-                    : t("auth.beginJourney")}
+                    : isLogin
+                      ? t("auth.continueExplore")
+                      : t("auth.beginEra")}
                 </span>
               </button>
             </form>
           </div>
 
           {/* 底部切换提示 */}
-          <p className="mt-6 text-center text-[12px] text-[oklch(0.5 0.03 75)]">
+          <p className="mt-6 text-center text-[12px] text-[oklch(0.5 0.03 70)]">
             {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}
             <button
               onClick={() => switchMode(isLogin ? "register" : "login")}
@@ -614,7 +570,7 @@ function AuthCard({
 }
 
 // ═══════════════════════════════════════════════════════
-// MAIN AUTH PAGE — two-column (brand + certification terminal)
+// MAIN AUTH PAGE — 文明宣言 (左) + 文明档案入口 (右)
 // ═══════════════════════════════════════════════════════
 export default function AuthPage() {
   const { login, register, isLoading, error, clearError } = useAuth();
@@ -627,97 +583,85 @@ export default function AuthPage() {
     <div className="relative flex min-h-[calc(100vh-56px)] w-full overflow-hidden">
       <AuthBackground />
 
-      {/* LEFT — Brand / Story panel (~55-60% width) — warm gradient overlay for text contrast on photo */}
-      <div className="relative hidden flex-[3] flex-col justify-between px-12 py-10 md:flex lg:px-16 xl:px-20">
-        {/* Soft parchment gradient panel — ensures text contrast on top of the city image */}
+      {/* LEFT — 文明宣言 / Manifesto */}
+      <div className="relative hidden flex-[3] flex-col justify-between px-12 py-12 md:flex lg:px-16 xl:px-24">
+        {/* 柔和米白宣纸光晕 — 保证文字在墨色背景上可读，无明显矩形 */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "linear-gradient(100deg, oklch(0.96 0.02 85 / 0.72) 0%, oklch(0.94 0.025 82 / 0.6) 40%, oklch(0.92 0.03 80 / 0.42) 70%, oklch(0.9 0.03 78 / 0.18) 90%, transparent 100%)",
+              "radial-gradient(ellipse 90% 70% at 30% 40%, oklch(0.96 0.02 86 / 0.30) 0%, oklch(0.93 0.03 82 / 0.16) 45%, transparent 72%)",
           }}
         />
 
         {/* Top — Logo + spaced brand */}
-        <div>
+        <div className="relative">
           <div className="flex items-center gap-4">
             <div
-              className="flex h-11 w-11 items-center justify-center rounded-[6px] border border-[oklch(0.6 0.1 80 / 0.5)]"
+              className="flex h-11 w-11 items-center justify-center border border-[oklch(0.62 0.1 80 / 0.55)]"
               style={{
-                background: "oklch(0.98 0.02 86 / 0.35)",
-                boxShadow: "0 0 24px oklch(0.7 0.12 80 / 0.12)",
+                background: "oklch(0.97 0.02 86 / 0.22)",
+                boxShadow: "0 0 24px oklch(0.7 0.12 80 / 0.1)",
               }}
             >
-              <CompassLogo />
+              <img
+                src="/Odyssey_logo.png"
+                alt="Odyssey"
+                width={34}
+                height={34}
+                draggable={false}
+                className="select-none object-contain"
+              />
             </div>
             <div>
               <SpacedLetters
                 text="O D Y S S E Y"
-                className="font-civ-serif text-[18px] font-semibold tracking-[0.18em] text-[oklch(0.18 0.025 60)]"
+                className="font-civ-serif text-[18px] font-semibold tracking-[0.18em] text-[oklch(0.2 0.02 58)]"
               />
-              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-[oklch(0.45 0.07 78)]">
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-[oklch(0.5 0.07 76)]">
                 {t("auth.brandTagline")}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Middle — Main headline (文明刻录效果) */}
-        <div className="max-w-[520px]">
+        {/* Middle — 文明宣言 */}
+        <div className="relative max-w-[540px]">
           <p
-            className="civil-engrave mb-3 text-[12px] font-semibold uppercase tracking-[0.32em] text-[oklch(0.55 0.12 82)]"
+            className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.3em] text-[oklch(0.58 0.12 80)]"
             style={{ animationDelay: "0.9s" }}
           >
-            {t("auth.heroEyebrow")}
+            <span className="inline-block h-px w-7 bg-[oklch(0.6 0.1 80 / 0.6)]" />
+            {t("auth.manifestCoord")}
           </p>
-          <h2
-            className="civil-engrave font-civ-serif text-[42px] font-semibold leading-[1.2] tracking-[0.06em] text-[oklch(0.18 0.025 60)]"
-            style={{ animationDelay: "1.1s" }}
-          >
-            {t("auth.heroTitle")}
-          </h2>
+          <ManifestTitle text={t("auth.manifestTitle")} />
+          <div className="engrave-line mt-5 h-px w-24 bg-gradient-to-r from-[#C9A45C] to-transparent" />
           <p
-            className="mt-5 text-[15px] leading-[1.8] text-[oklch(0.3 0.02 65)]"
-            style={{ textShadow: "0 1px 3px oklch(1 0.02 90 / 0.4)" }}
+            className="mt-5 max-w-[420px] text-[15px] leading-[1.9] text-[oklch(0.3 0.02 58)]"
+            style={{ textShadow: "0 1px 3px oklch(1 0.02 88 / 0.45)" }}
           >
-            {t("auth.heroDesc")}
+            {t("auth.manifestSub")}
           </p>
-
-          {/* Feature markers — thin-line, translucent (no white pills) */}
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
-            {[
-              { glyph: "book" as const, text: t("auth.featureJournals") },
-              { glyph: "crown" as const, text: t("auth.featureMilestones") },
-              { glyph: "compass" as const, text: t("auth.featureMaps") },
-            ].map((f) => (
-              <div key={f.glyph} className="flex items-center gap-2 text-[oklch(0.4 0.04 72)]">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-[oklch(0.6 0.1 80 / 0.4)] text-[oklch(0.6 0.1 80)]">
-                  <FeatureGlyph glyph={f.glyph} />
-                </span>
-                <span className="font-civ-serif text-[12.5px] italic">{f.text}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Bottom — civilization motto rotation */}
-        <div className="flex items-center gap-4">
-          <div className="h-8 w-px" style={{ background: "oklch(0.7 0.05 80)" }} />
+        <div className="relative flex items-center gap-4">
+          <div className="h-8 w-px" style={{ background: "oklch(0.7 0.05 78 / 0.7)" }} />
           <div className="min-h-[44px]">
             <CivilMotto t={t} />
           </div>
         </div>
       </div>
 
-      {/* RIGHT — 文明认证终端 (~40-45% width) */}
+      {/* RIGHT — 文明档案入口 */}
       <div className="relative flex flex-[2] items-center justify-center px-5 py-10 md:px-10 md:py-16">
         {/* Mobile brand — condensed */}
         <div className="mb-6 block text-center md:hidden">
           <SpacedLetters
             text="O D Y S S E Y"
-            className="font-civ-serif text-[20px] font-semibold tracking-[0.18em] text-[oklch(0.28 0.03 72)]"
+            className="font-civ-serif text-[20px] font-semibold tracking-[0.18em] text-[oklch(0.24 0.02 60)]"
           />
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.28em] text-[oklch(0.55 0.04 78)]">
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.28em] text-[oklch(0.5 0.04 74)]">
             {t("auth.brandTagline")}
           </p>
         </div>

@@ -10,6 +10,7 @@ import { masteryColor } from "@/app/components/GrowthRing";
 import { useLocale } from "@/hooks/useLocale";
 import { skillDisplayName } from "@/lib/skillNames";
 import { QuestScrollIcon } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 
 /**
  * 文明分类图标 — 使用对应 SVG 图标（QuestScrollIcon），取消背景，
@@ -52,7 +53,13 @@ function MiniShieldIcon({ icon, groupKey }: { icon: string; groupKey: string }) 
       className={`flex items-center justify-center w-6 h-6 shrink-0 transition-all duration-300 group-hover:scale-125 group-hover:drop-shadow-[0_0_6px_oklch(0.7_0.12_80_/_0.45)] ${tone}`}
       aria-hidden
     >
-      <QuestScrollIcon name={icon as any} size={18} strokeWidth={1.4} />
+      <CivIcon
+        type="type"
+        name={groupKey}
+        size={18}
+        alt={groupKey}
+        fallback={<QuestScrollIcon name={icon as any} size={18} strokeWidth={1.4} />}
+      />
     </span>
   );
 }

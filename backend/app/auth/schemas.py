@@ -8,6 +8,21 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
 
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 2:
+            raise ValueError("用户名至少需要 2 个字符")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("密码至少需要 6 个字符")
+        return v
+
 
 class LoginRequest(BaseModel):
     # Accept username or email — backend resolves via _user_by_login

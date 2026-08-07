@@ -4,6 +4,7 @@ import type { UserBuilding } from "@/types/world";
 import { getBuildingLevelLabel } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
 import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "@/app/components/CivIcon";
 
 interface BuildingTileProps {
   building: UserBuilding;
@@ -198,7 +199,13 @@ export function BuildingTile({ building, isSelected, onClick }: BuildingTileProp
         `}
         style={{ filter: !isLocked ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" : undefined }}
       >
-        <QuestScrollIcon name={resolveScrollIconName(tpl?.icon || "building")} size={iconSize} />
+        <CivIcon
+          type="building"
+          name={tpl?.name ?? ""}
+          size={iconSize}
+          alt={displayName}
+          fallback={<QuestScrollIcon name={resolveScrollIconName(tpl?.icon || "building")} size={iconSize} />}
+        />
       </span>
 
       {/* ── Building name ── */}

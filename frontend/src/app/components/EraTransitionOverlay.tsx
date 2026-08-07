@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@/hooks/useLocale";
 import { ERA_LABELS, type CivilizationEra } from "@/types/world";
 import { QuestScrollIcon, resolveScrollIconName } from "./QuestScrollIcon";
+import { CivIcon } from "./CivIcon";
 
 interface EraTransitionOverlayProps {
   /** Previous era (may be undefined if first transition) */
@@ -136,10 +137,18 @@ export function EraTransitionOverlay({
               className="text-8xl drop-shadow-[0_0_40px_oklch(0.72_0.12_85_/_0.5)] inline-flex text-[oklch(0.85_0.12_90)]"
               aria-label={toEraIcon}
             >
-              <QuestScrollIcon
-                name={resolveScrollIconName(toEraIcon)}
+              <CivIcon
+                type="era"
+                name={toEra}
                 size={120}
-                strokeWidth={1.2}
+                alt={toLabel}
+                fallback={
+                  <QuestScrollIcon
+                    name={resolveScrollIconName(toEraIcon)}
+                    size={120}
+                    strokeWidth={1.2}
+                  />
+                }
               />
             </span>
           ) : (

@@ -1,7 +1,10 @@
 """Project request / response schemas."""
 
+import re
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+_URL_RE = re.compile(r"^https?://", re.IGNORECASE)
 
 
 class CreateProjectRequest(BaseModel):
@@ -11,6 +14,26 @@ class CreateProjectRequest(BaseModel):
     demo_url: str | None = None
     related_skill_id: str | None = None
     quest_submission_id: str | None = None
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("项目标题不能为空")
+        return v
+
+    @field_validator("github_url", "demo_url")
+    @classmethod
+    def validate_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        v = v.strip()
+        if not v:
+            return None
+        if not _URL_RE.match(v):
+            raise ValueError("URL 必须以 http:// 或 https:// 开头")
+        return v
 
 
 # ── Nested info types for enriched responses ──────────────────────────

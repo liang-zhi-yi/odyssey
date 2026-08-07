@@ -47,6 +47,7 @@ class UserBuildingResponse(BaseModel):
 class RegionResponse(BaseModel):
     key: str
     name: str
+    name_en: str | None = None
     buildings: int
     highest_level: int
     unlocked: bool

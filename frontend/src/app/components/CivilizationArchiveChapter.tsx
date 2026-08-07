@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CivilizationBadge, CIVILIZATION_META, type CivilizationType } from "./CivilizationBadge";
+import { CivIcon } from "./CivIcon";
 import { QuestScrollIcon } from "./QuestScrollIcon";
 import { skillDisplayName } from "@/lib/skillNames";
 import { useLocale } from "@/hooks/useLocale";
@@ -104,7 +105,13 @@ export function CivilizationArchiveChapter({
       >
         {/* Civilization emblem */}
         <div className="flex-shrink-0">
-          <CivilizationBadge type={civType} size={40} glow={expanded} />
+          <CivIcon
+            type="type"
+            name={civType}
+            size={40}
+            alt={displayName}
+            fallback={<CivilizationBadge type={civType} size={40} glow={expanded} />}
+          />
         </div>
 
         {/* Name + level + progress */}

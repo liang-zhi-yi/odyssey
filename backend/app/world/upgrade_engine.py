@@ -153,6 +153,9 @@ def sync_buildings_after_assessment(
 
     # ── A. Sync regular buildings (existing logic) ─────────────────────
     previous_regions_unlocked = _count_unlocked_regions(db, user_id)
+    # Snapshot the set of regions unlocked BEFORE this sync, so we can later
+    # detect which regions were newly unlocked (vs. those already unlocked).
+    unlocked_regions_before = _get_unlocked_region_names(db, user_id)
 
     for tpl in templates:
         ub = existing.get(tpl.id)
@@ -224,15 +227,24 @@ def sync_buildings_after_assessment(
     try:
         current_regions = _count_unlocked_regions(db, user_id)
         if current_regions > previous_regions_unlocked:
-            # Find which region just unlocked
-            regions_before = _get_unlocked_region_names(db, user_id, previous_regions_unlocked)
-            for ub in existing.values():
-                if ub.status != BuildingStatus.LOCKED and ub.level >= 3 and ub.building_template:
-                    region = ub.building_template.region
-                    if region not in regions_before:
-                        event_service.event_region_unlock(
-                            db, user_id, region, ub.building_template.region_en
-                        )
+            # Find which regions just unlocked
+            unlocked_regions_now = _get_unlocked_region_names(db, user_id)
+            newly_unlocked = unlocked_regions_now - unlocked_regions_before
+            for region in newly_unlocked:
+                ub = next(
+                    (
+                        u for u in existing.values()
+                        if u.status != BuildingStatus.LOCKED
+                        and u.level >= 3
+                        and u.building_template
+                        and u.building_template.region == region
+                    ),
+                    None,
+                )
+                if ub is not None:
+                    event_service.event_region_unlock(
+                        db, user_id, region, ub.building_template.region_en
+                    )
     except Exception as exc:
         logger.warning("Region unlock event failed (non-fatal): %s", exc)
 
@@ -404,8 +416,8 @@ def _count_unlocked_regions(db: Session, user_id: UUID) -> int:
     return len(regions)
 
 
-def _get_unlocked_region_names(db: Session, user_id: UUID, count: int) -> set[str]:
-    """Get region names for the first N unlocked regions."""
+def _get_unlocked_region_names(db: Session, user_id: UUID) -> set[str]:
+    """Get the set of region names that have at least one building >= Lv.3."""
     user_buildings = (
         db.query(UserBuilding)
         .filter(UserBuilding.user_id == user_id)
@@ -415,7 +427,6 @@ def _get_unlocked_region_names(db: Session, user_id: UUID, count: int) -> set[st
     for ub in user_buildings:
         if ub.level >= 3 and ub.building_template:
             regions.add(ub.building_template.region)
-    # Return the first `count` regions (arbitrary order is fine since we count)
     return regions
 
 

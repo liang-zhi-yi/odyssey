@@ -241,6 +241,7 @@ def get_world_state(db: Session, user_id: UUID) -> dict:
             regions_map[region_key] = {
                 "key": region_key,
                 "name": region_key,
+                "name_en": tpl.region_en or f"{region_key} Region",
                 "buildings": 0,
                 "highest_level": 0,
                 "unlocked": False,
@@ -259,6 +260,7 @@ def get_world_state(db: Session, user_id: UUID) -> dict:
             regions_map[syn_key] = {
                 "key": syn_key,
                 "name": syn_key,
+                "name_en": "Synthesis Region",
                 "buildings": 0,
                 "highest_level": 0,
                 "unlocked": False,

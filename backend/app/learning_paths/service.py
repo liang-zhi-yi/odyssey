@@ -52,11 +52,22 @@ def list_preset_paths(db: Session) -> list[LearningPath]:
     )
 
 
-def get_learning_path(db: Session, path_id: str) -> LearningPath:
-    """Get a single learning path with milestones and checkpoints."""
+def get_learning_path(
+    db: Session,
+    path_id: str,
+    user_id: str | None = None,
+) -> LearningPath:
+    """Get a single learning path with milestones and checkpoints.
+
+    Ownership is enforced for non-official paths: a user may only read
+    their own paths, or anywhere official (preset) paths. Without a
+    user_id, only existence is checked (internal callers).
+    """
     path = db.query(LearningPath).filter(LearningPath.id == path_id).first()
     if not path:
-        raise NotFoundException(detail=f"Learning path '{path_id}' not found")
+        raise NotFoundException("LearningPath", path_id)
+    if user_id is not None and str(path.user_id) != str(user_id) and not path.is_official:
+        raise NotFoundException("LearningPath", path_id)
     return path
 
 
@@ -105,14 +116,44 @@ def delete_learning_path(
 # -- AI Generation --
 
 def generate_path_structure(
-    db: Session, path_id: str, user_id: str
+    db: Session, path_id: str, user_id: str, force: bool = False
 ) -> dict:
     """Use LLM to generate a full milestone + checkpoint structure for a path.
 
     Loads per-user LLM config from UserSettings and memory context from
     the memory bank. Falls back to generic structure if LLM fails.
+
+    Idempotency: if the path already has milestones (structure generated) and
+    ``force`` is False, it returns the current state instead of regenerating.
+    This prevents duplicate/in-flight generate calls (e.g. a timed-out request
+    followed by a retry) from wiping an already-built structure mid-flight.
     """
     path = _get_user_path(db, path_id, user_id)
+
+    # Idempotency guard — skip regeneration when structure already exists.
+    if not force:
+        existing_ms = db.query(LearningPathMilestone).filter(
+            LearningPathMilestone.learning_path_id == path.id
+        ).count()
+        if existing_ms > 0:
+            total_cp = (
+                db.query(PathCheckpoint)
+                .join(
+                    LearningPathMilestone,
+                    PathCheckpoint.milestone_id == LearningPathMilestone.id,
+                )
+                .filter(LearningPathMilestone.learning_path_id == path.id)
+                .count()
+            )
+            return {
+                "path_id": str(path.id),
+                "path_summary": (path.path_metadata or {}).get("path_summary", ""),
+                "difficulty": path.difficulty,
+                "estimated_weeks": (path.path_metadata or {}).get("estimated_weeks", 0),
+                "milestone_count": existing_ms,
+                "total_checkpoints": total_cp,
+                "quests_generated": 0,
+            }
 
     # Load per-user LLM config for path generation
     user_settings = (
@@ -273,7 +314,7 @@ def _generate_checkpoint_quests_internal(
     """
     path = db.query(LearningPath).filter(LearningPath.id == path_id).first()
     if not path:
-        raise NotFoundException(detail=f"Learning path '{path_id}' not found")
+        raise NotFoundException("LearningPath", path_id)
 
     checkpoint = (
         db.query(PathCheckpoint)
@@ -284,7 +325,7 @@ def _generate_checkpoint_quests_internal(
         .first()
     )
     if not checkpoint:
-        raise NotFoundException(detail="Checkpoint not found")
+        raise NotFoundException("PathCheckpoint", checkpoint_id)
 
     # Guard: skip if quests were already generated for this checkpoint.
     # This prevents duplicate quest creation when the generation endpoint
@@ -424,7 +465,7 @@ def toggle_milestone(
         .first()
     )
     if not milestone:
-        raise NotFoundException(detail="Milestone not found")
+        raise NotFoundException("LearningPathMilestone", milestone_id)
 
     milestone.is_completed = not milestone.is_completed
     milestone.completed_at = (
@@ -654,7 +695,7 @@ def _get_user_path(db: Session, path_id: str, user_id: str) -> LearningPath:
         LearningPath.id == path_id, LearningPath.user_id == user_id
     ).first()
     if not path:
-        raise NotFoundException(detail=f"Learning path '{path_id}' not found")
+        raise NotFoundException("LearningPath", path_id)
     return path
 
 

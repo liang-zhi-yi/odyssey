@@ -4,6 +4,7 @@ import type { UserCompoundBuilding } from "@/types/world";
 import { getBuildingLevelLabel } from "@/types/world";
 import { useLocale } from "@/hooks/useLocale";
 import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "@/app/components/CivIcon";
 
 interface CompoundBuildingTileProps {
   building: UserCompoundBuilding;
@@ -113,7 +114,13 @@ export function CompoundBuildingTile({
         `}
         style={{ filter: !isLocked ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" : undefined }}
       >
-        <QuestScrollIcon name={resolveScrollIconName(tpl?.icon || "building")} size={30} />
+        <CivIcon
+          type="building"
+          name={tpl?.name ?? ""}
+          size={30}
+          alt={displayName}
+          fallback={<QuestScrollIcon name={resolveScrollIconName(tpl?.icon || "building")} size={30} />}
+        />
       </span>
 
       {/* ── Building name ── */}

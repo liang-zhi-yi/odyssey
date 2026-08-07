@@ -269,15 +269,16 @@ function WorldPageContent() {
                   world={world}
                   selectedBuildingId={selectedBuilding?.id}
                   onSelectBuilding={setSelectedBuilding}
+                  detailSlot={
+                    selectedBuilding ? (
+                      <BuildingDetailPanel
+                        building={selectedBuilding}
+                        embedded
+                        onClose={() => setSelectedBuilding(null)}
+                      />
+                    ) : undefined
+                  }
                 />
-                {selectedBuilding && (
-                  <div className="max-w-lg">
-                    <BuildingDetailPanel
-                      building={selectedBuilding}
-                      onClose={() => setSelectedBuilding(null)}
-                    />
-                  </div>
-                )}
               </div>
             )}
 

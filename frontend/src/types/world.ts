@@ -79,6 +79,7 @@ export interface UserBuilding {
 export interface RegionInfo {
   key: string;
   name: string;
+  name_en?: string | null;
   buildings: number;
   highest_level: number;
   unlocked: boolean;

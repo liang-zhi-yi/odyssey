@@ -53,6 +53,8 @@ def mark_notification_read(
     if notification is None:
         from app.core.exceptions import NotFoundException
         raise NotFoundException("Notification", notification_id)
+    db.commit()
+    db.refresh(notification)
     return NotificationResponse.model_validate(notification)
 
 
@@ -63,4 +65,5 @@ def mark_all_notifications_read(
 ):
     """Mark all unread notifications as read for the authenticated user."""
     count = service.mark_all_read(db, str(current_user.id))
+    db.commit()
     return {"updated": count}

@@ -3,10 +3,35 @@
 import { DIMENSION_LABELS, type DimensionScores } from "@/types/assessment";
 import { useLocale } from "@/hooks/useLocale";
 
+interface RadarChartTone {
+  grid: string;
+  fill: string;
+  stroke: string;
+  dot: string;
+}
+
+/* 默认能力绿（共享组件既有风格，勿污染其它页面） */
+const DEFAULT_TONE: RadarChartTone = {
+  grid: "oklch(0.9 0.008 100)",
+  fill: "oklch(0.55 0.08 160 / 0.25)",
+  stroke: "oklch(0.55 0.08 160)",
+  dot: "oklch(0.55 0.08 160)",
+};
+
+/* 文明档案金（能力档案页使用，配合测绘线条） */
+const ARCHIVE_TONE: RadarChartTone = {
+  grid: "oklch(0.82 0.04 90)",
+  fill: "oklch(0.6 0.12 85 / 0.2)",
+  stroke: "oklch(0.52 0.12 82)",
+  dot: "oklch(0.55 0.12 84)",
+};
+
 interface RadarChartProps {
   scores: DimensionScores;
   size?: number;
   showLabels?: boolean;
+  /** 可选配色：archive 使用文明档案金；缺省保持原有能力绿 */
+  tone?: "default" | "archive";
 }
 
 const DIMENSIONS: (keyof DimensionScores)[] = [
@@ -22,12 +47,13 @@ const DIMENSIONS: (keyof DimensionScores)[] = [
  * Scores are expected to be in 0–100 range.
  * Features animated polygon fill-in and staggered data-point reveal.
  */
-export function RadarChart({ scores, size = 200, showLabels = true }: RadarChartProps) {
+export function RadarChart({ scores, size = 200, showLabels = true, tone = "default" }: RadarChartProps) {
   const { t } = useLocale();
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.38;
   const levels = 5;
+  const T = tone === "archive" ? ARCHIVE_TONE : DEFAULT_TONE;
 
   return (
     <svg
@@ -58,6 +84,14 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             transform-origin: ${cx}px ${cy}px;
             animation: radar-fill-in 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
+          .radar-draw {
+            stroke-dasharray: 100;
+            animation: radar-draw 1.1s ease-out 0.25s both;
+          }
+          @keyframes radar-draw {
+            from { stroke-dashoffset: 100; }
+            to { stroke-dashoffset: 0; }
+          }
           .radar-dot {
             opacity: 0;
             animation: radar-dot-pop 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -81,7 +115,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             key={`ring-${i}`}
             points={ringPoints}
             fill="none"
-            stroke="oklch(0.9 0.008 100)"
+            stroke={T.grid}
             strokeWidth={1}
           />
         );
@@ -97,7 +131,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             y1={cy}
             x2={cx + radius * Math.cos(angle)}
             y2={cy + radius * Math.sin(angle)}
-            stroke="oklch(0.9 0.008 100)"
+            stroke={T.grid}
             strokeWidth={1}
           />
         );
@@ -105,14 +139,15 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
 
       {/* Score data polygon with animation */}
       <polygon
-        className="radar-polygon"
+        className="radar-polygon radar-draw"
+        pathLength={100}
         points={DIMENSIONS.map((_, i) => {
           const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
           const r = (scores[DIMENSIONS[i]] / 100) * radius;
           return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
         }).join(" ")}
-        fill="oklch(0.55 0.08 160 / 0.25)"
-        stroke="oklch(0.55 0.08 160)"
+        fill={T.fill}
+        stroke={T.stroke}
         strokeWidth={2}
       />
 
@@ -127,7 +162,7 @@ export function RadarChart({ scores, size = 200, showLabels = true }: RadarChart
             cx={cx + r * Math.cos(angle)}
             cy={cy + r * Math.sin(angle)}
             r={4}
-            fill="oklch(0.55 0.08 160)"
+            fill={T.dot}
             stroke="white"
             strokeWidth={2}
             style={{ animationDelay: `${500 + i * 100}ms` }}

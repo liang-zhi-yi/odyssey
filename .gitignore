@@ -110,6 +110,9 @@ CLAUDE.md.md
 .codegraph/
 uploads/
 
+# Source art assets (keep repo lean; scripts reference the optimized copies in frontend/public/)
+美术资产/
+
 # Python egg-info
 *.egg-info/
 

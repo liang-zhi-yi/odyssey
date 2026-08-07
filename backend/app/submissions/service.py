@@ -135,13 +135,27 @@ def get_submission_history(
 
     Ordered by submitted_at descending (newest first).
     Includes full submission content and assessment results when available.
+
+    Only true submissions are included — ACCEPTED / IN_PROGRESS / ABANDONED
+    rows (e.g. the auto-created "accept" record for path-linked quests) are
+    NOT part of the submission history.
     """
     from app.assessments.models import Assessment
+
+    _history_statuses = {
+        SubmissionStatus.SUBMITTED,
+        SubmissionStatus.ASSESSING,
+        SubmissionStatus.PASSED,
+        SubmissionStatus.FAILED,
+    }
 
     query = (
         db.query(QuestSubmission, Quest.title)
         .join(Quest, QuestSubmission.quest_id == Quest.id)
-        .filter(QuestSubmission.user_id == user_id)
+        .filter(
+            QuestSubmission.user_id == user_id,
+            QuestSubmission.status.in_(_history_statuses),
+        )
     )
 
     if quest_id:
