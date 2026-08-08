@@ -129,8 +129,10 @@ export function AgentSidebar() {
 
       {/* Sidebar panel */}
       <aside
-        className={`fixed right-0 top-0 z-50 flex h-screen w-full md:w-[380px] md:max-w-[380px] border-l-2 border-double border-[oklch(0.7_0.12_85_/_0.55)] bg-gradient-to-b from-[oklch(0.995_0.003_95)] to-[oklch(0.98_0.003_95)] dark:from-[oklch(0.24_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-2xl transition-all duration-300 ease-in-out ${
-          isExpanded ? "md:max-w-[50vw]" : ""
+        className={`fixed right-0 top-0 z-50 flex h-screen w-full border-l-2 border-double border-[oklch(0.7_0.12_85_/_0.55)] bg-gradient-to-b from-[oklch(0.995_0.003_95)] to-[oklch(0.98_0.003_95)] dark:from-[oklch(0.24_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-2xl transition-all duration-300 ease-in-out ${
+          isExpanded
+            ? "md:w-[50vw] md:max-w-[50vw]"
+            : "md:w-[380px] md:max-w-[380px]"
         } ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}

@@ -17,5 +17,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=10s --retries=5 --start-period=60s \
     CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/api/v1/health')" || exit 1
 
-# Run migrations then start server (PORT env var for Railway compatibility)
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run migrations, seed reference data (idempotent), then start server
+# (PORT env var for Railway compatibility)
+CMD ["sh", "-c", "alembic upgrade head && python run_seed.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
