@@ -129,8 +129,8 @@ export function AgentSidebar() {
 
       {/* Sidebar panel */}
       <aside
-        className={`fixed right-0 top-0 z-50 flex h-screen w-full border-l-2 border-double border-[oklch(0.7_0.12_85_/_0.55)] bg-gradient-to-b from-[oklch(0.995_0.003_95)] to-[oklch(0.98_0.003_95)] dark:from-[oklch(0.24_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-2xl transition-all duration-300 ease-in-out ${
-          isExpanded ? "max-w-[50vw]" : "max-w-[380px]"
+        className={`fixed right-0 top-0 z-50 flex h-screen w-full md:w-[380px] md:max-w-[380px] border-l-2 border-double border-[oklch(0.7_0.12_85_/_0.55)] bg-gradient-to-b from-[oklch(0.995_0.003_95)] to-[oklch(0.98_0.003_95)] dark:from-[oklch(0.24_0.008_85)] dark:to-[oklch(0.2_0.006_85)] shadow-2xl transition-all duration-300 ease-in-out ${
+          isExpanded ? "md:max-w-[50vw]" : ""
         } ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
@@ -234,10 +234,10 @@ export function AgentSidebar() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <button
                 onClick={startNewChat}
-                className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground border border-transparent hover:border-border"
+                className="rounded-lg p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground border border-transparent hover:border-border"
                 title={t("agent.newChat")}
                 aria-label={t("agent.newChat")}
               >
@@ -245,7 +245,7 @@ export function AgentSidebar() {
               </button>
               <button
                 onClick={() => setIsExpanded((prev) => !prev)}
-                className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground border border-transparent hover:border-border"
+                className="hidden md:flex rounded-lg p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground border border-transparent hover:border-border"
                 title={isExpanded ? t("agent.collapse") : t("agent.expand")}
                 aria-label={isExpanded ? t("agent.collapse") : t("agent.expand")}
               >
@@ -253,7 +253,7 @@ export function AgentSidebar() {
               </button>
               <button
                 onClick={close}
-                className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground border border-transparent hover:border-border"
+                className="rounded-lg p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground border border-transparent hover:border-border"
                 title={t("agent.toggleClose")}
                 aria-label={t("agent.toggleClose")}
               >

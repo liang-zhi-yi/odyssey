@@ -141,28 +141,28 @@ function WorldPageContent() {
           borderBottom: `2px solid ${CIV_COLORS.gold}66`,
         }}
       >
-        <div className="mx-auto max-w-5xl px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-5xl px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Left: Title + tab toggle */}
-            <div className="flex items-center gap-4 shrink-0 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-wrap">
               <div className="flex flex-col">
                 <h1
-                  className="civ-archive-title text-2xl tracking-wide flex items-center gap-2"
+                  className="civ-archive-title text-lg sm:text-2xl tracking-wide flex items-center gap-2"
                   style={{ color: CIV_COLORS.textPrimary }}
                 >
                   <span
                     className="inline-flex"
                     style={{ color: CIV_COLORS.gold }}
                   >
-                    <QuestScrollIcon name="compass" size={20} />
+                    <QuestScrollIcon name="compass" size={18} />
                   </span>
                   {t("world.myWorld")}
                 </h1>
                 <span
-                  className="text-[10px] font-bold uppercase tracking-widest mt-0.5"
+                  className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5"
                   style={{ color: CIV_COLORS.textSecondary }}
                 >
-                  {t("world.civilizationLevel")}: Lv.{world?.civilization_level ?? "—"} ·{" "}
+                  Lv.{world?.civilization_level ?? "—"} ·{" "}
                   {world?.era_name ?? "—"}
                 </span>
               </div>
@@ -183,7 +183,7 @@ function WorldPageContent() {
                         setViewMode(tab.key);
                         setSelectedBuilding(null);
                       }}
-                      className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-civ-serif italic font-semibold transition-all duration-200"
+                      className="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs font-civ-serif italic font-semibold transition-all duration-200"
                       style={{
                         background: active
                           ? `linear-gradient(to bottom, ${CIV_COLORS.bgCard}, ${CIV_COLORS.bgContent})`
@@ -208,7 +208,7 @@ function WorldPageContent() {
 
             {/* Right: Quick stats */}
             {world && (
-              <div className="hidden lg:flex items-center gap-3 text-xs shrink-0">
+              <div className="hidden md:flex items-center gap-2 sm:gap-3 text-xs shrink-0">
                 <QuickStat icon="building" label={t("world.activeBuildings")} value={String(world.stats.active_buildings)} />
                 <QuickStat icon="star" label={t("world.compoundBuildings")} value={String(world.stats.active_compound_buildings)} />
                 <QuickStat icon="chart-up" label={t("world.civilizationLevel")} value={`Lv.${world.civilization_level}`} isLevel />
@@ -234,7 +234,7 @@ function WorldPageContent() {
       )}
 
       {/* ── Main Content ── */}
-      <div className="mx-auto max-w-5xl px-4 py-6 relative z-10">
+      <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 relative z-10">
         {isLoading && (
           <div className="flex items-center justify-center py-32">
             <div

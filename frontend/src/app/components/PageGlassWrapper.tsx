@@ -11,5 +11,5 @@ export function PageGlassWrapper({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  return <div className="page-glass p-6">{children}</div>;
+  return <div className="page-glass p-4 sm:p-6 md:p-6">{children}</div>;
 }

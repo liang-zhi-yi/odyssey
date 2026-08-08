@@ -398,9 +398,9 @@ function AuthCard({
   const displayError = localError || error;
 
   return (
-    <div className="w-full max-w-[420px] civil-terminal-in">
+    <div className="w-full max-w-[420px] civil-terminal-in px-2 sm:px-0">
       {/* 文明档案入口 — 水墨玻璃 · 无明显矩形边界 · 四角金线 */}
-      <div className="ink-glass relative px-9 py-9 md:px-10 md:py-10">
+      <div className="ink-glass relative px-6 py-7 sm:px-9 sm:py-9 md:px-10 md:py-10">
         {/* 四角金线绘制出现 */}
         <div className="pointer-events-none absolute inset-0">
           <span className="entry-corner tl" />

@@ -9,6 +9,7 @@ import { AgentSidebar } from "./components/AgentSidebar";
 import { AchievementToast } from "./components/AchievementToast";
 import { PageGlassWrapper } from "./components/PageGlassWrapper";
 import { MainWrapper } from "./components/MainWrapper";
+import { MobileBottomNav } from "./components/MobileBottomNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +37,9 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -56,6 +60,7 @@ export default function RootLayout({
           </MainWrapper>
           <AgentSidebar />
           <AchievementToast />
+          <MobileBottomNav />
         </Providers>
       </body>
     </html>

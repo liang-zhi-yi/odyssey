@@ -1740,3 +1740,154 @@ button:hover .core-flame {
     0 8px 32px -4px oklch(0 0 0 / 0.2),
     0 0 0 1px oklch(0.22 0.008 85 / 0.5) inset;
 }
+
+/* ─── Mobile Responsive Optimizations ──────────────────── */
+
+/* Safe area padding for mobile devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Mobile touch target minimum size */
+@media (max-width: 767px) {
+  /* Reduce page padding on mobile */
+  .page-glass {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  /* Ensure touch targets are at least 44px */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent horizontal scroll on mobile */
+  html, body {
+    overflow-x: hidden;
+  }
+
+  /* Adjust font sizes for mobile readability */
+  h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+  h2 {
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
+  }
+  h3 {
+    font-size: clamp(1.1rem, 3.5vw, 1.25rem);
+  }
+
+  /* Stack flex containers on mobile */
+  .mobile-stack {
+    flex-direction: column;
+  }
+
+  /* Hide elements on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Show elements only on mobile */
+  .show-mobile {
+    display: flex !important;
+  }
+
+  /* Mobile bottom navigation spacing */
+  .pb-safe {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Better text wrapping on mobile */
+  .text-balance-mobile {
+    text-wrap: balance;
+  }
+
+  /* Mobile grid helpers */
+  .grid-mobile-1 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Show mobile-only elements by default hidden */
+.show-mobile {
+  display: none;
+}
+
+/* Hide scrollbars on mobile but keep scroll */
+@media (max-width: 767px) {
+  .scrollbar-hide-mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide-mobile::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Mobile bottom navigation bar */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 45;
+    background: oklch(0.985 0.003 95 / 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid oklch(0.7 0.12 85 / 0.3);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 20px -4px oklch(0 0 0 / 0.08);
+  }
+
+  .dark .mobile-bottom-nav {
+    background: oklch(0.22 0.008 85 / 0.95);
+    border-top-color: oklch(0.5 0.04 80 / 0.3);
+  }
+
+  .mobile-bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.25rem;
+    min-height: 4rem;
+    color: oklch(0.5 0.02 85);
+    transition: color 0.2s ease;
+    text-decoration: none;
+    gap: 0.2rem;
+  }
+
+  .mobile-bottom-nav-item.active {
+    color: oklch(0.5 0.12 82);
+  }
+
+  .mobile-bottom-nav-item:active {
+    transform: scale(0.95);
+  }
+
+  .mobile-bottom-nav-label {
+    font-size: 0.65rem;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "思源宋体", Georgia, serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .mobile-bottom-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+}

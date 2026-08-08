@@ -98,20 +98,20 @@ export default function QuestsPage() {
   ];
 
   return (
-    <div className="quest-scroll-page px-4 py-6 sm:px-8 sm:py-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="quest-scroll-page px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8">
+      <div className="mx-auto max-w-7xl space-y-5 sm:space-y-6">
       {/* ── Page Header — 文明任务档案馆 ─────────────────── */}
       <div className="relative z-10 page-enter">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-2 sm:gap-3 mb-2">
           {/* Hall emblem — world-core icon */}
           <div className="flex-shrink-0 text-[oklch(0.50_0.08_150)] dark:text-[oklch(0.62_0.08_150)]">
-            <QuestScrollIcon name="world-core" size={30} strokeWidth={1.2} />
+            <QuestScrollIcon name="world-core" size={26} strokeWidth={1.2} />
           </div>
-          <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
+          <h1 className="text-xl sm:text-2xl font-bold font-civ-serif text-[oklch(0.30_0.025_70)] dark:text-[oklch(0.88_0.04_80)] tracking-wide">
             {t("quests.title")}
           </h1>
         </div>
-        <p className="text-sm font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_82)] ml-11 italic tracking-[0.08em]">
+        <p className="text-sm font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.65_0.035_82)] ml-9 sm:ml-11 italic tracking-[0.08em]">
           {locale === "zh" ? "探索文明，解锁能力" : "Explore civilizations, unlock abilities"}
         </p>
       </div>

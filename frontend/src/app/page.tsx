@@ -218,8 +218,8 @@ function AgentChatBubble({
       : "bg-card/95 border-border/60";
 
   const arrowMap: Record<string, string> = {
-    bottom: "absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-r-[7px] border-t-[7px] border-l-transparent border-r-transparent",
-    top: "absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-r-[7px] border-b-[7px] border-l-transparent border-r-transparent border-b-transparent",
+    bottom: "absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] sm:border-l-[7px] border-r-[6px] sm:border-r-[7px] border-t-[6px] sm:border-t-[7px] border-l-transparent border-r-transparent",
+    top: "absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] sm:border-l-[7px] border-r-[6px] sm:border-r-[7px] border-b-[6px] sm:border-b-[7px] border-l-transparent border-r-transparent border-b-transparent",
     right: "absolute top-1/2 -right-1.5 -translate-y-1/2 w-0 h-0 border-t-[7px] border-b-[7px] border-l-[7px] border-t-transparent border-b-transparent",
     left: "absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-t-[7px] border-b-[7px] border-r-[7px] border-t-transparent border-b-transparent border-r-transparent",
   };
@@ -245,7 +245,7 @@ function AgentChatBubble({
       style={{ animationDelay: `${delay}ms`, animationFillMode: "backwards" }}
     >
       <div
-        className={`relative rounded-2xl border ${bgClass} backdrop-blur-sm shadow-md px-3.5 py-2.5 max-w-[200px] sm:max-w-[220px]`}
+        className={`relative rounded-xl sm:rounded-2xl border ${bgClass} backdrop-blur-sm shadow-md px-2.5 py-2 sm:px-3.5 sm:py-2.5`}
       >
         {children}
         <div className={`${arrowMap[arrowSide]} ${arrowColorClass[arrowSide]}`} />
@@ -381,7 +381,7 @@ export default function Home() {
   }
 
   return (
-    <div className="-mx-6 -mt-8">
+    <div className="-mt-6 sm:-mt-8">
       {/* ═══════════════════════════════════════════════════════════
           SCREEN 1 — HERO
           ═══════════════════════════════════════════════════════════ */}
@@ -424,8 +424,8 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="relative z-10 w-full mx-auto max-w-6xl px-6 py-12 lg:py-16">
-          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14 xl:gap-16">
+        <div className="relative z-10 w-full mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-10 lg:gap-14 xl:gap-16">
             {/* ── LEFT: Brand Identity ──────────────────────────── */}
             <div className="lg:w-[50%] text-center lg:text-left">
               {/* Logo + Name row — logo prominent, name beside it */}
@@ -496,16 +496,16 @@ export default function Home() {
             </div>
 
             {/* ── RIGHT: Agent with Chat Bubbles AROUND ──── */}
-            <div className="lg:w-[50%] flex justify-center">
-              <div className="relative w-full" style={{ maxWidth: "460px", height: "480px" }}>
+            <div className="lg:w-[50%] flex justify-center w-full">
+              <div className="relative w-full max-w-[460px] h-[320px] sm:h-[400px] lg:h-[480px]">
                 {/* ── Agent center ── */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                  <div className="relative w-40 h-40 sm:w-48 sm:h-48">
+                  <div className="relative w-28 h-28 sm:w-40 sm:h-40 lg:w-48 lg:h-48">
                     {/* Radial glows */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-accent/[0.08] blur-2xl animate-glow-pulse" />
+                      <div className="w-24 h-24 sm:w-36 sm:h-36 lg:w-44 lg:h-44 rounded-full bg-accent/[0.08] blur-2xl animate-glow-pulse" />
                     </div>
-                    <div className="absolute inset-4 flex items-center justify-center pointer-events-none">
+                    <div className="absolute inset-4 flex items-center justify-center pointer-events-none hidden sm:block">
                       <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/[0.06] to-accent/[0.06] blur-xl" />
                     </div>
                     {/* Sparkles */}
@@ -519,7 +519,7 @@ export default function Home() {
                     />
                   </div>
                   {/* Pedestal */}
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[120%] h-20 pointer-events-none">
+                  <div className="absolute -bottom-2 sm:-bottom-4 left-1/2 -translate-x-1/2 w-[120%] h-12 sm:h-20 pointer-events-none">
                     <svg viewBox="0 0 300 60" className="w-full h-full" preserveAspectRatio="none">
                       <ellipse cx="150" cy="50" rx="130" ry="10" fill="none" stroke="oklch(0.7 0.12 85 / 0.2)" strokeWidth="1" />
                       <polygon points="150,30 180,37 180,48 150,54 120,48 120,37" fill="oklch(0.7 0.12 85 / 0.06)" stroke="oklch(0.7 0.12 85 / 0.22)" strokeWidth="1" />
@@ -529,31 +529,31 @@ export default function Home() {
                 </div>
 
                 {/* ── Bubble 1: Top-Left — Round 1 AI Mentor Greeting ── */}
-                <div className="absolute top-4 left-[-15px] z-10" style={{ maxWidth: "195px" }}>
-                  <AgentChatBubble arrowSide="right" delay={200} color="sage">
-                    <p className="text-[9px] font-bold text-[#C4A77D] uppercase tracking-wider mb-0.5">
+                <div className="absolute top-0 left-0 sm:top-4 sm:left-[-15px] z-10 max-w-[140px] sm:max-w-[195px]">
+                  <AgentChatBubble arrowSide="bottom" delay={200} color="sage">
+                    <p className="text-[8px] sm:text-[9px] font-bold text-[#C4A77D] uppercase tracking-wider mb-0.5">
                       {t("landing.bubble1Title")}
                     </p>
-                    <p className="text-[11px] leading-relaxed text-foreground">
+                    <p className="text-[9px] sm:text-[11px] leading-relaxed text-foreground">
                       {t("landing.bubble1Text")}
                     </p>
                   </AgentChatBubble>
                 </div>
 
                 {/* ── Bubble 2: Top-Right — Round 2 User Goal ── */}
-                <div className="absolute top-4 right-[-15px] z-10" style={{ maxWidth: "195px" }}>
-                  <AgentChatBubble arrowSide="left" delay={500} color="gold">
-                    <p className="text-[9px] font-bold text-[#8B9D83] uppercase tracking-wider mb-0.5">
+                <div className="absolute top-0 right-0 sm:top-4 sm:right-[-15px] z-10 max-w-[140px] sm:max-w-[195px]">
+                  <AgentChatBubble arrowSide="bottom" delay={500} color="gold">
+                    <p className="text-[8px] sm:text-[9px] font-bold text-[#8B9D83] uppercase tracking-wider mb-0.5">
                       {t("landing.bubble2Title")}
                     </p>
-                    <p className="text-[11px] leading-relaxed text-foreground">
+                    <p className="text-[9px] sm:text-[11px] leading-relaxed text-foreground">
                       {t("landing.bubble2Text")}
                     </p>
                   </AgentChatBubble>
                 </div>
 
                 {/* ── Bubble 3: Middle-Left — Round 3 Path Planned ── */}
-                <div className="absolute top-[44%] left-[-25px] z-10" style={{ maxWidth: "190px" }}>
+                <div className="hidden sm:block absolute top-[44%] left-[-25px] z-10" style={{ maxWidth: "190px" }}>
                   <AgentChatBubble arrowSide="right" delay={800} color="sage">
                     <p className="text-[9px] font-bold text-[#C4A77D] uppercase tracking-wider mb-0.5">
                       {t("landing.bubble3Title")}
@@ -565,7 +565,7 @@ export default function Home() {
                 </div>
 
                 {/* ── Bubble 4: Middle-Right — Round 4 Quest Complete ── */}
-                <div className="absolute top-[44%] right-[-25px] z-10" style={{ maxWidth: "190px" }}>
+                <div className="hidden sm:block absolute top-[44%] right-[-25px] z-10" style={{ maxWidth: "190px" }}>
                   <AgentChatBubble arrowSide="left" delay={1100} color="sage">
                     <p className="text-[9px] font-bold text-[#8B9D83] uppercase tracking-wider mb-0.5">
                       {t("landing.bubble4Title")}
@@ -577,12 +577,12 @@ export default function Home() {
                 </div>
 
                 {/* ── Bubble 5: Bottom-Center — Round 5 Next target ── */}
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-10" style={{ maxWidth: "210px" }}>
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 sm:bottom-1 z-10 max-w-[170px] sm:max-w-[210px]">
                   <AgentChatBubble arrowSide="top" delay={1400} color="gold">
-                    <p className="text-[9px] font-bold text-[#C4A77D] uppercase tracking-wider mb-0.5 text-center">
+                    <p className="text-[8px] sm:text-[9px] font-bold text-[#C4A77D] uppercase tracking-wider mb-0.5 text-center">
                       {t("landing.bubble5Title")}
                     </p>
-                    <p className="text-[11px] leading-relaxed text-foreground text-center">
+                    <p className="text-[9px] sm:text-[11px] leading-relaxed text-foreground text-center">
                       {t("landing.bubble5Text")}
                     </p>
                   </AgentChatBubble>

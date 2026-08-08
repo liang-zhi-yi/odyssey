@@ -147,7 +147,7 @@ export default function DashboardPage() {
   // ─── Render ──────────────────────────────────────────────
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8 animate-fade-in bg-background">
+    <div className="relative animate-fade-in">
       {/* ── 暖色档案纹理背景 ── */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.35] dark:opacity-[0.18]" aria-hidden="true">
         <svg className="w-full h-full">
@@ -160,7 +160,7 @@ export default function DashboardPage() {
         </svg>
       </div>
 
-      <div className="relative space-y-7">
+      <div className="relative space-y-5 sm:space-y-7">
         {/* ── Hero: Civilization Nexus ───────────────────── */}
         <DashboardHero
           userSkills={userSkills}

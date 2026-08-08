@@ -93,10 +93,10 @@ export default function PathsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+    <div className="space-y-5 sm:space-y-8">
       <div>
-        <h1 className="text-2xl font-bold font-civ-serif text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
-          <QuestScrollIcon name="scroll" size={24} /> {t("paths.title")}
+        <h1 className="text-xl sm:text-2xl font-bold font-civ-serif text-[oklch(0.35_0.12_85)] dark:text-[oklch(0.85_0.04_80)] flex items-center gap-2">
+          <QuestScrollIcon name="scroll" size={22} /> {t("paths.title")}
         </h1>
         <p className="mt-1.5 text-xs italic text-[oklch(0.5_0.02_85)]">
           {t("paths.subtitle")}
@@ -104,20 +104,20 @@ export default function PathsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-double border-[oklch(0.7_0.12_85_/_0.55)] w-full gap-2">
+      <div className="flex border-b border-double border-[oklch(0.7_0.12_85_/_0.55)] w-full gap-1 sm:gap-2 overflow-x-auto scrollbar-hide-mobile">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-t-xl px-5 py-2 text-sm font-bold font-civ-serif transition-all duration-300 relative border-x border-t -mb-[1px] ${
+              className={`flex-shrink-0 rounded-t-xl px-3 sm:px-5 py-2 text-sm font-bold font-civ-serif transition-all duration-300 relative border-x border-t -mb-[1px] ${
                 isActive
                   ? "bg-gradient-to-t from-[oklch(0.99_0.003_95)] to-[oklch(0.975_0.005_92)] dark:from-[oklch(0.22_0.008_85)] dark:to-[oklch(0.2_0.006_85)] text-[oklch(0.35_0.12_85)] border-[oklch(0.7_0.12_85_/_0.55)] shadow-sm"
                   : "text-muted-foreground hover:text-foreground border-transparent hover:bg-secondary/40"
               }`}
             >
-              {tab.id === "my" ? <QuestScrollIcon name="mission" size={14} className="inline-block align-middle" /> : <QuestScrollIcon name="application" size={14} className="inline-block align-middle" />}
+              {tab.id === "my" ? <QuestScrollIcon name="mission" size={14} className="inline-block align-middle mr-1" /> : <QuestScrollIcon name="application" size={14} className="inline-block align-middle mr-1" />}
               {t(tab.key)}
             </button>
           );
