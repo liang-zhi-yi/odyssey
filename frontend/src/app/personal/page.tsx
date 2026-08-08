@@ -157,13 +157,13 @@ export default function PersonalPage() {
     [userSkills]
   );
 
-  // Top 6 buildings
+  // Top 6 buildings (unlocked/active only)
   const topBuildings = useMemo(() => {
     if (!worldData) return [];
     const all: (UserBuilding | UserCompoundBuilding)[] = [
       ...(worldData.buildings ?? []),
       ...(worldData.compound_buildings ?? []),
-    ];
+    ].filter((b) => b.status !== "LOCKED");
     return all.sort((a, b) => b.level - a.level).slice(0, 6);
   }, [worldData]);
 
@@ -188,10 +188,12 @@ export default function PersonalPage() {
     }).filter((g) => g.totalSkills > 0);
   }, [allSkills, userSkills]);
 
-  // Highest building
+  // Highest building (unlocked/active only)
   const highestBuilding = useMemo(() => {
     if (!worldData) return null;
-    const all = [...(worldData.buildings ?? []), ...(worldData.compound_buildings ?? [])];
+    const all = [...(worldData.buildings ?? []), ...(worldData.compound_buildings ?? [])].filter(
+      (b) => b.status !== "LOCKED"
+    );
     if (!all.length) return null;
     const highest = all.reduce((a, b) => (b.level > a.level ? b : a));
     const tpl = (highest as any).template;

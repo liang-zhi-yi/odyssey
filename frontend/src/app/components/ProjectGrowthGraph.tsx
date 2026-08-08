@@ -5,28 +5,31 @@ import { skillDisplayName } from "@/lib/skillNames";
 import type { Project } from "@/types/project";
 import type { UserBuilding } from "@/types/world";
 import type { ReactNode } from "react";
-import { QuestScrollIcon } from "@/app/components/QuestScrollIcon";
+import { QuestScrollIcon, resolveScrollIconName } from "@/app/components/QuestScrollIcon";
+import { CivIcon } from "@/app/components/CivIcon";
+import { BuildingSealIcon, inferSkillId } from "@/app/components/CivArchiveTheme";
 
 interface ProjectGrowthGraphProps {
   project: Project;
   worldBuildings: UserBuilding[];
 }
 
+/** 等级印记配色 — 仅使用暖金/灰褐，禁止蓝色与深绿 */
 const GRADE_STYLE: Record<string, string> = {
-  S: "bg-[#C4A77D]/15 text-[#C4A77D] border-[#C4A77D]/30",
-  A: "bg-[#8B9D83]/15 text-[#8B9D83] border-[#8B9D83]/30",
-  B: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-500/30",
-  C: "bg-[#D4C9BE]/30 text-muted-foreground border-[#D4C9BE]/40",
-  D: "bg-muted/30 text-muted-foreground border-muted/20",
+  S: "bg-[#C89B45]/15 text-[#B07A2E] border-[#C89B45]/45",
+  A: "bg-[#8B9D83]/15 text-[#5F6B52] border-[#8B9D83]/40",
+  B: "bg-[#C4A77D]/15 text-[#8C7650] border-[#C4A77D]/40",
+  C: "bg-[#D4C9BE]/20 text-[#8C7650] border-[#D4C9BE]/45",
+  D: "bg-[#E3DCCF]/25 text-[#A89F90] border-[#E3DCCF]/50",
 };
 
 /**
- * Growth graph for the project detail page — right panel.
+ * 文明演化路径 — 成长科技树。
  *
- * Shows the complete relationship chain:
- *   Project → Quest (grade) → Skill → Building → Learning Path
+ * 展示完整的演化链条（纵向科技树）：
+ *   当前项目 → Quest → 关联技能 → 关联建筑 → 来源学习路径
  *
- * Each step is a connected node in a vertical flow.
+ * 每个节点以「圆形印记」呈现，沿金色脊柱线逐级点亮。
  */
 export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   const { locale } = useLocale();
@@ -39,14 +42,19 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
 
   if (!hasAnyRelation) {
     return (
-      <div className="rounded-xl border border-border/60 bg-card/50 p-6 text-center">
-        <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l6 6M15 12l-6 6" /><path d="M10 5a3 3 0 0 1-3 3l6 6a3 3 0 0 1 3-3l-6-6z" opacity="0.5" /></svg>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {locale === "zh"
-            ? "暂无成长关联数据"
-            : "No growth relations yet"}
+      <div className="relative rounded-lg border border-dashed border-[#C89B45]/40 bg-[#FCF5E7]/60 dark:bg-[oklch(0.20_0.012_70)/0.5] px-6 py-10 text-center">
+        {/* 空态 — 沉睡的演化节点 */}
+        <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
+          <span className="absolute inset-0 rounded-full border border-[#C89B45]/30" />
+          <span className="absolute inset-2 rounded-full border border-dashed border-[#C89B45]/25" />
+          <span className="text-[#A89F90]">
+            <QuestScrollIcon name="path" size={24} strokeWidth={1.3} />
+          </span>
+        </div>
+        <p className="mt-4 font-civ-serif text-sm text-[#8C7650]">
+          {locale === "zh" ? "暂无成长关联数据" : "No growth relations yet"}
         </p>
-        <p className="mt-1 text-xs text-muted-foreground/60">
+        <p className="mt-1 text-xs text-[#A89F90]">
           {locale === "zh"
             ? "完成 Quest 后创建项目，将自动建立关联"
             : "Complete a Quest and create a project to establish relations"}
@@ -60,7 +68,12 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   const score = project.quest_submission?.assessment_score;
   const status = project.quest_submission?.status;
 
-  // Build the chain nodes
+  // 根节点印记 — 从关联技能或项目名称推导唯一图标
+  const rootSealType = inferSkillId(
+    project.related_skill?.name ?? project.title,
+    project.related_skill?.id
+  );
+
   interface ChainNode {
     icon: ReactNode;
     label: string;
@@ -71,9 +84,11 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
 
   const nodes: ChainNode[] = [];
 
-  // 1. Current project (always first)
+  // 1. 当前项目（根节点，始终存在）
   nodes.push({
-    icon: (<svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" /></svg>),
+    icon: (
+      <BuildingSealIcon type={rootSealType} size={30} />
+    ),
     label: locale === "zh" ? "当前项目" : "Current Project",
     detail: project.title,
   });
@@ -90,7 +105,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
           : undefined,
       badge: grade
         ? {
-            text: score !== null ? `${grade} (${score}分)` : grade,
+            text: score !== null ? `${grade} · ${score}分` : grade,
             style: gradeStyle,
           }
         : undefined,
@@ -100,7 +115,7 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 3. Related skill
   if (project.related_skill) {
     nodes.push({
-      icon: <QuestScrollIcon name="reasoning" size={16} />,
+      icon: <QuestScrollIcon name="creation" size={16} />,
       label: locale === "zh" ? "关联技能" : "Related Skill",
       detail: skillDisplayName(project.related_skill.name, undefined, locale),
       detailExtra: project.related_skill.category
@@ -112,7 +127,21 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 4. Related building
   if (project.related_building) {
     nodes.push({
-      icon: <span>{project.related_building.icon}</span>,
+      icon: (
+        <CivIcon
+          type="building"
+          name={project.related_building.name}
+          size={26}
+          alt={project.related_building.name}
+          fallback={
+            <QuestScrollIcon
+              name={resolveScrollIconName(project.related_building.icon)}
+              size={20}
+              strokeWidth={1.4}
+            />
+          }
+        />
+      ),
       label: locale === "zh" ? "关联建筑" : "Related Building",
       detail: `${project.related_building.name} Lv.${project.related_building.level}`,
     });
@@ -121,68 +150,69 @@ export function ProjectGrowthGraph({ project }: ProjectGrowthGraphProps) {
   // 5. Source learning path
   if (project.source_path) {
     nodes.push({
-      icon: <QuestScrollIcon name="checklist" size={16} />,
+      icon: <QuestScrollIcon name="path" size={16} />,
       label: locale === "zh" ? "来源学习路径" : "Source Path",
       detail: project.source_path.title,
     });
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-card">
-      <h3 className="text-sm font-semibold mb-4">
-        {locale === "zh" ? "成长关系图" : "Growth Graph"}
-      </h3>
+    <div className="relative rounded-lg border border-[#D8C29A] dark:border-[oklch(0.26_0.012_75)] bg-[#FCF5E7] dark:bg-[oklch(0.20_0.012_70)] px-5 sm:px-6 py-6 overflow-hidden">
+      {/* 顶部金色线 */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C89B45]/55 to-transparent" />
 
       <div className="relative">
-        {nodes.map((node, idx) => {
-          const isLast = idx === nodes.length - 1;
-          return (
-            <div
-              key={idx}
-              className={`relative pl-8 ${isLast ? "" : "pb-4"}`}
-            >
-              {/* Connector line */}
-              {!isLast && (
-                <div className="absolute left-[13px] top-8 bottom-0 w-0.5 bg-[#8B9D83]/25" />
-              )}
+        {/* 金色脊柱线 */}
+        <div className="absolute left-[26px] top-6 bottom-6 w-px bg-gradient-to-b from-[#C89B45]/70 via-[#C89B45]/30 to-transparent civ-spine-grow" />
 
-              {/* Node circle */}
+        <div className="space-y-0">
+          {nodes.map((node, idx) => {
+            const isLast = idx === nodes.length - 1;
+            const isRoot = idx === 0;
+            return (
               <div
-                className={`absolute left-0 top-1 w-7 h-7 rounded-full flex items-center justify-center text-xs ${
-                  idx === 0
-                    ? "bg-[#8B9D83]/15 ring-2 ring-[#8B9D83]/30"
-                    : "bg-[#C4A77D]/10 ring-1 ring-[#C4A77D]/20"
-                }`}
+                key={idx}
+                className={`civ-node-ignite relative pl-[64px] ${isLast ? "" : "pb-7"}`}
+                style={{ animationDelay: `${300 + idx * 260}ms` }}
               >
-                <span>{node.icon}</span>
-              </div>
+                {/* 节点印记 — 统一 52px，与脊柱线对齐；根节点突出 */}
+                <div
+                  className={`absolute left-0 top-0 flex w-[52px] h-[52px] items-center justify-center rounded-full border ${
+                    isRoot
+                      ? "border-[#C89B45]/65 bg-[#F8F3E8] dark:bg-[oklch(0.22_0.012_75)] text-[#C89B45] civ-archive-breathe civ-node-glow"
+                      : "border-[#C89B45]/35 bg-[#F8F3E8] dark:bg-[oklch(0.22_0.012_75)] text-[#C89B45]"
+                  }`}
+                >
+                  <span className={isRoot ? "" : "opacity-80"}>{node.icon}</span>
+                </div>
 
-              {/* Content */}
-              <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                  {node.label}
-                </p>
-                <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                  <span className="text-sm font-medium truncate">
-                    {node.detail}
-                  </span>
-                  {node.badge && (
-                    <span
-                      className={`inline-flex items-center rounded-full border px-1.5 py-0 text-[10px] font-bold flex-shrink-0 ${node.badge.style}`}
-                    >
-                      {node.badge.text}
+                {/* 内容 */}
+                <div className="min-w-0 pt-1">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#A89F90]">
+                    {node.label}
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap mt-1">
+                    <span className="font-civ-serif text-sm font-semibold text-[#34291F] dark:text-[oklch(0.91_0.018_85)] truncate">
+                      {node.detail}
                     </span>
+                    {node.badge && (
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0 text-[10px] font-bold flex-shrink-0 ${node.badge.style}`}
+                      >
+                        {node.badge.text}
+                      </span>
+                    )}
+                  </div>
+                  {node.detailExtra && (
+                    <p className="text-[11px] text-[#8C7650] mt-0.5">
+                      {node.detailExtra}
+                    </p>
                   )}
                 </div>
-                {node.detailExtra && (
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {node.detailExtra}
-                  </p>
-                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

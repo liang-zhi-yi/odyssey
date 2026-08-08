@@ -128,13 +128,13 @@ export function SkillTreeSidebar({
       .filter((g) => g.skills.length > 0);
   }, [domainGroups, searchQuery]);
 
-  // Compute the highest-level building name
+  // Compute the highest-level building name (only unlocked/active buildings)
   const highestBuildingName = useMemo(() => {
     if (!worldData) return null;
     const allBuildings = [
       ...(worldData.buildings ?? []),
       ...(worldData.compound_buildings ?? []),
-    ];
+    ].filter((b) => b.status !== "LOCKED");
     if (!allBuildings.length) return null;
     const highest = allBuildings.reduce((prev, curr) =>
       curr.level > prev.level ? curr : prev
