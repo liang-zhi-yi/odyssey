@@ -1151,12 +1151,26 @@
       "tierAdvance": "文明晋级",
       "milestoneReached": "里程碑达成",
       "assessmentComplete": "评估完成",
-      "weeklyDigest": "每周摘要"
+      "weeklyDigest": "每周摘要",
+      "buildingUnlock": "建筑解锁",
+      "buildingUpgrade": "建筑升级",
+      "compoundUnlock": "复合建筑解锁",
+      "compoundUpgrade": "复合建筑升级",
+      "regionUnlock": "解锁疆域",
+      "eraAdvance": "时代进阶"
     }
   },
   "achievement": {
     "badgeToastLabel": "文明徽章解锁",
     "credentialToastLabel": "能力证书颁授",
+    "buildingUnlockToastLabel": "文明建筑落成",
+    "compoundUnlockToastLabel": "复合建筑落成",
+    "buildingUpgradeToastLabel": "文明建筑升级",
+    "compoundUpgradeToastLabel": "复合建筑升级",
+    "regionUnlockToastLabel": "解锁新疆域",
+    "milestoneToastLabel": "里程碑达成",
+    "eraToastLabel": "时代进阶",
+    "tierToastLabel": "文明晋级",
     "ariaPrefix": "成就达成"
   },
   "export": {

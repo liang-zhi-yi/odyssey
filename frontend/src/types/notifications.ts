@@ -6,7 +6,13 @@ export type NotificationType =
   | "TIER_ADVANCE"
   | "MILESTONE_REACHED"
   | "ASSESSMENT_COMPLETE"
-  | "WEEKLY_DIGEST";
+  | "WEEKLY_DIGEST"
+  | "BUILDING_UNLOCK"
+  | "BUILDING_UPGRADE"
+  | "COMPOUND_UNLOCK"
+  | "COMPOUND_UPGRADE"
+  | "REGION_UNLOCK"
+  | "ERA_ADVANCE";
 
 export interface Notification {
   id: string;

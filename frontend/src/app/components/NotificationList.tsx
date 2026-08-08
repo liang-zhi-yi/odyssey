@@ -12,6 +12,12 @@ const TYPE_ICONS: Record<string, string> = {
   MILESTONE_REACHED: "\u{1F3C6}",
   ASSESSMENT_COMPLETE: "\u{2705}",
   WEEKLY_DIGEST: "\u{1F4CA}",
+  BUILDING_UNLOCK: "\u{1F3DB}",
+  BUILDING_UPGRADE: "\u{1F3DB}",
+  COMPOUND_UNLOCK: "\u{1F512}",
+  COMPOUND_UPGRADE: "\u{1F3DB}",
+  REGION_UNLOCK: "\u{1F30D}",
+  ERA_ADVANCE: "\u{2728}",
 };
 
 function getTypeKey(type: string): string {
@@ -22,6 +28,12 @@ function getTypeKey(type: string): string {
     MILESTONE_REACHED: "notifications.types.milestoneReached",
     ASSESSMENT_COMPLETE: "notifications.types.assessmentComplete",
     WEEKLY_DIGEST: "notifications.types.weeklyDigest",
+    BUILDING_UNLOCK: "notifications.types.buildingUnlock",
+    BUILDING_UPGRADE: "notifications.types.buildingUpgrade",
+    COMPOUND_UNLOCK: "notifications.types.compoundUnlock",
+    COMPOUND_UPGRADE: "notifications.types.compoundUpgrade",
+    REGION_UNLOCK: "notifications.types.regionUnlock",
+    ERA_ADVANCE: "notifications.types.eraAdvance",
   };
   return map[type] || type;
 }

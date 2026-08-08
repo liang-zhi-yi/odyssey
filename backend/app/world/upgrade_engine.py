@@ -29,6 +29,30 @@ from app.world.milestone_engine import check_and_award_milestones
 logger = logging.getLogger(__name__)
 
 
+def _notify_achievement(
+    db: Session,
+    user_id: UUID,
+    ntype: str,
+    title: str,
+    title_en: str | None = None,
+    body: str | None = None,
+    body_en: str | None = None,
+    link: str = "/world",
+) -> None:
+    """Create an achievement notification (non-fatal on failure).
+
+    Called alongside world events so that signature milestones — building
+    unlock/upgrade, region unlock, compound unlock/upgrade, milestone reached —
+    also surface in the notification system for immediate user feedback.
+    """
+    try:
+        from app.notifications.service import create_notification
+
+        create_notification(db, user_id, ntype, title, title_en, body, body_en, link)
+    except Exception as exc:
+        logger.warning("Achievement notification failed (%s): %s", ntype, exc)
+
+
 def score_to_level(overall_score: int | None) -> int:
     """Map UserSkill overall score → building level (1-10).
 
@@ -216,12 +240,29 @@ def sync_buildings_after_assessment(
             except Exception as exc:
                 logger.warning("Failed to create upgrade event: %s", exc)
 
+            # Notify the user that the building leveled up
+            _notify_achievement(
+                db, user_id, "BUILDING_UPGRADE",
+                title=f"{tpl.name} 升级至 Lv.{target_level}！",
+                title_en=f"{tpl.name_en or tpl.name} upgraded to Lv.{target_level}!",
+                body=f"从 Lv.{old_level} 提升至 Lv.{target_level}",
+                body_en=f"Upgraded from Lv.{old_level} to Lv.{target_level}",
+            )
+
         elif target_level == old_level:
             if ub.status in (BuildingStatus.UPGRADING, BuildingStatus.CONSTRUCTING):
                 ub.status = BuildingStatus.STABLE
             if ub.constructed_at is None and overall > 0:
                 ub.constructed_at = now
                 ub.status = BuildingStatus.CONSTRUCTING
+                # Notify the user that a new building has been established
+                _notify_achievement(
+                    db, user_id, "BUILDING_UNLOCK",
+                    title=f"建筑解锁：{tpl.name}！",
+                    title_en=f"Building Unlocked: {tpl.name_en or tpl.name}!",
+                    body=f"{tpl.name}已在你建立的文明疆域中落成，成为新的文明建筑",
+                    body_en=f"{tpl.name_en or tpl.name} has been established in your civilization territory",
+                )
 
     # Check for region unlocks
     try:
@@ -244,6 +285,13 @@ def sync_buildings_after_assessment(
                 if ub is not None:
                     event_service.event_region_unlock(
                         db, user_id, region, ub.building_template.region_en
+                    )
+                    _notify_achievement(
+                        db, user_id, "REGION_UNLOCK",
+                        title=f"新区块解锁：{region}！",
+                        title_en=f"New Region Unlocked: {ub.building_template.region_en or region}!",
+                        body=f"某建筑达到 Lv.3，{region}正式纳入你的文明疆域",
+                        body_en=f"A building reached Lv.3 — {region} is now part of your civilization territory",
                     )
     except Exception as exc:
         logger.warning("Region unlock event failed (non-fatal): %s", exc)
@@ -270,6 +318,13 @@ def sync_buildings_after_assessment(
                         db, user_id,
                         mdef.name, mdef.name_en,
                         mdef.description, mdef.description_en,
+                    )
+                    _notify_achievement(
+                        db, user_id, "MILESTONE_REACHED",
+                        title=f"里程碑达成：{mdef.name}！",
+                        title_en=f"Milestone Reached: {mdef.name_en or mdef.name}!",
+                        body=mdef.description,
+                        body_en=mdef.description_en,
                     )
             except Exception as exc:
                 logger.warning("Milestone event creation failed: %s", exc)
@@ -369,6 +424,15 @@ def _sync_compound_buildings(
             except Exception as exc:
                 logger.warning("Compound unlock event failed: %s", exc)
 
+            # Notify the user that a compound building was unlocked
+            _notify_achievement(
+                db, user_id, "COMPOUND_UNLOCK",
+                title=f"复合建筑解锁：{ctpl.name}！",
+                title_en=f"Compound Building Unlocked: {ctpl.name_en or ctpl.name}!",
+                body=f"前置技能已满足，{ctpl.name}已解锁",
+                body_en=f"Prerequisite skills met — {ctpl.name_en or ctpl.name} is now unlocked",
+            )
+
         elif target_level > old_level:
             cb.level = target_level
             cb.status = BuildingStatus.UPGRADING
@@ -392,6 +456,15 @@ def _sync_compound_buildings(
                 )
             except Exception as exc:
                 logger.warning("Compound upgrade event failed: %s", exc)
+
+            # Notify the user that a compound building leveled up
+            _notify_achievement(
+                db, user_id, "COMPOUND_UPGRADE",
+                title=f"{ctpl.name} 升级至 Lv.{target_level}！",
+                title_en=f"{ctpl.name_en or ctpl.name} upgraded to Lv.{target_level}!",
+                body=f"复合建筑从 Lv.{old_level} 提升至 Lv.{target_level}",
+                body_en=f"Compound building upgraded from Lv.{old_level} to Lv.{target_level}",
+            )
 
         elif target_level == old_level and not was_locked:
             if cb.status in (BuildingStatus.UPGRADING, BuildingStatus.CONSTRUCTING):

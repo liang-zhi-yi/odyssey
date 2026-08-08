@@ -4,11 +4,42 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { notificationsService } from "@/services/notifications.service";
-import { QuestScrollIcon } from "./QuestScrollIcon";
+import { QuestScrollIcon, type ScrollIconName } from "./QuestScrollIcon";
 import type { Notification } from "@/types/notifications";
 
 /** Types that should surface as an in-app achievement toast. */
-const TOAST_TYPES = new Set(["BADGE_EARNED", "CREDENTIAL_EARNED"]);
+const TOAST_TYPES = new Set([
+  "BADGE_EARNED",
+  "CREDENTIAL_EARNED",
+  "BUILDING_UNLOCK",
+  "COMPOUND_UNLOCK",
+  "BUILDING_UPGRADE",
+  "COMPOUND_UPGRADE",
+  "REGION_UNLOCK",
+  "MILESTONE_REACHED",
+  "ERA_ADVANCE",
+  "TIER_ADVANCE",
+]);
+
+interface ToastMeta {
+  icon: ScrollIconName;
+  labelKey: string;
+  gold: boolean;
+}
+
+/** Per-type toast styling: icon, i18n label key, and accent (gold = milestone). */
+const TOAST_META: Record<string, ToastMeta> = {
+  BADGE_EARNED: { icon: "star", labelKey: "achievement.badgeToastLabel", gold: true },
+  CREDENTIAL_EARNED: { icon: "shield", labelKey: "achievement.credentialToastLabel", gold: false },
+  BUILDING_UNLOCK: { icon: "building-emblem", labelKey: "achievement.buildingUnlockToastLabel", gold: true },
+  COMPOUND_UNLOCK: { icon: "building-emblem", labelKey: "achievement.compoundUnlockToastLabel", gold: true },
+  BUILDING_UPGRADE: { icon: "building-emblem", labelKey: "achievement.buildingUpgradeToastLabel", gold: false },
+  COMPOUND_UPGRADE: { icon: "building-emblem", labelKey: "achievement.compoundUpgradeToastLabel", gold: false },
+  REGION_UNLOCK: { icon: "civilization", labelKey: "achievement.regionUnlockToastLabel", gold: true },
+  MILESTONE_REACHED: { icon: "mission", labelKey: "achievement.milestoneToastLabel", gold: true },
+  ERA_ADVANCE: { icon: "sparkle", labelKey: "achievement.eraToastLabel", gold: true },
+  TIER_ADVANCE: { icon: "star", labelKey: "achievement.tierToastLabel", gold: true },
+};
 
 const SEEN_KEY = "odyssey_achievement_seen";
 const POLL_INTERVAL = 20000; // ms
@@ -126,7 +157,8 @@ export function AchievementToast() {
       aria-live="polite"
     >
       {toasts.map((toast) => {
-        const isBadge = toast.type === "BADGE_EARNED";
+        const meta = TOAST_META[toast.type] || TOAST_META.CREDENTIAL_EARNED;
+        const isBadge = meta.gold;
         return (
           <button
             key={toast.id}
@@ -160,14 +192,14 @@ export function AchievementToast() {
                     : "oklch(0.6_0.12_145 / 0.12)",
                 }}
               >
-                <QuestScrollIcon name={isBadge ? "star" : "shield"} size={18} strokeWidth={1.4} />
+                <QuestScrollIcon name={meta.icon} size={18} strokeWidth={1.4} />
               </span>
               <div className="min-w-0 flex-1">
                 <p
                   className="text-[10px] font-bold uppercase tracking-wider font-civ-serif"
                   style={{ color: isBadge ? "oklch(0.55_0.12_85)" : "oklch(0.48_0.12_145)" }}
                 >
-                  {isBadge ? t("achievement.badgeToastLabel") : t("achievement.credentialToastLabel")}
+                  {t(meta.labelKey)}
                 </p>
                 <p className="mt-0.5 text-sm font-bold font-civ-serif text-[oklch(0.3_0.02_80)] dark:text-[oklch(0.85_0.04_80)] truncate">
                   {locale === "en" ? toast.title_en || toast.title : toast.title}

@@ -1151,13 +1151,27 @@
       "tierAdvance": "Tier Advance",
       "milestoneReached": "Milestone Reached",
       "assessmentComplete": "Assessment Complete",
-      "weeklyDigest": "Weekly Digest"
+      "weeklyDigest": "Weekly Digest",
+      "buildingUnlock": "Building Unlocked",
+      "buildingUpgrade": "Building Upgrade",
+      "compoundUnlock": "Compound Unlocked",
+      "compoundUpgrade": "Compound Upgrade",
+      "regionUnlock": "Region Unlocked",
+      "eraAdvance": "Era Advance"
     }
   },
   "achievement": {
     "badgeToastLabel": "Badge Unlocked",
     "credentialToastLabel": "Credential Awarded",
-    "ariaPrefix": "Achievement"
+    "buildingUnlockToastLabel": "Building Established",
+    "compoundUnlockToastLabel": "Compound Unlocked",
+    "buildingUpgradeToastLabel": "Building Upgraded",
+    "compoundUpgradeToastLabel": "Compound Upgraded",
+    "regionUnlockToastLabel": "Region Unlocked",
+    "milestoneToastLabel": "Milestone Reached",
+    "eraToastLabel": "Era Advanced",
+    "tierToastLabel": "Tier Advanced",
+    "ariaPrefix": "Achievement Reached"
   },
   "export": {
     "title": "Data Export",
