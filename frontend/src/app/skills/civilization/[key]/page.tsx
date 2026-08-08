@@ -351,7 +351,7 @@ export default function CivilizationDetailPage() {
                 return (
                   <Link
                     key={skill.id}
-                    href={`/skills/${skill.id}`}
+                    href={`/skills?skill=${skill.id}`}
                     className="skill-node group relative flex items-center gap-3 bg-[oklch(0.985_0.004_94)] px-4 py-5 transition-colors hover:bg-[oklch(0.95_0.01_90)] dark:bg-[oklch(0.2_0.008_84)] dark:hover:bg-[oklch(0.24_0.01_84)]"
                     style={{ animationDelay: `${0.1 + i * 0.06}s` }}
                   >

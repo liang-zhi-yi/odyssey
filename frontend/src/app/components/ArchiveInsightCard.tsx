@@ -96,11 +96,11 @@ export function ArchiveInsightCard({ insight }: ArchiveInsightCardProps) {
     insight.type === "recommended_focus" && insight.related_skill_id
       ? `/quests?skill=${insight.related_skill_id}`
       : insight.type === "growth_acceleration" && insight.related_skill_id
-        ? `/skills/${insight.related_skill_id}`
+        ? `/skills?skill=${insight.related_skill_id}`
         : insight.type === "plateau_warning" && insight.related_skill_id
           ? `/quests?skill=${insight.related_skill_id}`
           : insight.type === "strength_area" && insight.related_skill_id
-            ? `/skills/${insight.related_skill_id}`
+            ? `/skills?skill=${insight.related_skill_id}`
             : insight.type === "skill_gap" && insight.related_skill_id
               ? `/quests?skill=${insight.related_skill_id}`
               : undefined;

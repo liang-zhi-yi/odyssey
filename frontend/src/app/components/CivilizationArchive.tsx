@@ -170,7 +170,7 @@ function getEnglishSubtitle(insight: AIInsight, userSkills: UserSkill[]): string
 function getActionHref(insight: AIInsight): string | undefined {
   if (!insight.related_skill_id) return undefined;
   if (insight.type === "strength_area" || insight.type === "growth_acceleration") {
-    return `/skills/${insight.related_skill_id}`;
+    return `/skills?skill=${insight.related_skill_id}`;
   }
   return `/quests?skill=${insight.related_skill_id}`;
 }
