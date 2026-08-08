@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocale } from "@/hooks/useLocale";
 import { skillService } from "@/services/skill.service";
@@ -24,13 +24,18 @@ import type { QuestListItem, UserQuest } from "@/types/quest";
  *
  * No infinite card grid. One skill at a time, focus on depth.
  */
-export default function SkillsPage() {
+function SkillsPageContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { t, locale } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const querySkillId = searchParams.get("skill");
 
   // ── State ──────────────────────────────────────────────────────
-  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+  // Deep-link support: /skills?skill=<id> pre-selects that skill
+  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(
+    querySkillId
+  );
   const [searchQuery, setSearchQuery] = useState("");
   // Default: all domains collapsed
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(
@@ -156,6 +161,18 @@ export default function SkillsPage() {
 
   // ── Callbacks ──────────────────────────────────────────────────
 
+  // Auto-expand the domain containing the selected (incl. deep-linked) skill
+  useEffect(() => {
+    if (!selectedSkillId) return;
+    const skill = allSkills.find((s: Skill) => s.id === selectedSkillId);
+    if (skill) {
+      const domainKey = getDomainKey(skill.domain);
+      if (domainKey) {
+        setExpandedDomains((prev) => new Set(prev).add(domainKey));
+      }
+    }
+  }, [selectedSkillId, allSkills]);
+
   const handleSelectSkill = (skillId: string) => {
     setSelectedSkillId(skillId);
     // Auto-expand the domain containing this skill
@@ -226,6 +243,28 @@ export default function SkillsPage() {
         onSelectSkill={handleSelectSkill}
       />
     </div>
+  );
+}
+
+// ── Suspense wrapper (required for useSearchParams) ──────────────
+
+export default function SkillsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-32">
+          <div
+            className="h-10 w-10 animate-spin rounded-full border-[3px] border-t-transparent"
+            style={{
+              borderColor: "oklch(0.7_0.12_85)",
+              borderTopColor: "transparent",
+            }}
+          />
+        </div>
+      }
+    >
+      <SkillsPageContent />
+    </Suspense>
   );
 }
 

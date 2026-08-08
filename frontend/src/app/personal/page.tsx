@@ -57,6 +57,13 @@ const DOMAIN_GROUPS: { key: string; label: string; labelEn: string; icon: string
 
 // ── Page Component ──────────────────────────────────────────────
 
+/** Map a skill's domain to its civilization group key (for the civ-type icon). */
+function civKeyForDomain(domain: string | undefined): string | null {
+  if (!domain) return null;
+  const group = DOMAIN_GROUPS.find((g) => g.domains.includes(domain));
+  return group ? group.key : null;
+}
+
 export default function PersonalPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { t, locale } = useLocale();
@@ -463,11 +470,18 @@ export default function PersonalPage() {
                 const name = skillDef
                   ? skillDisplayName(skillDef.name, skillDef.name_en, locale)
                   : skillDisplayName(us.skill_name, undefined, locale) || us.skill_id;
+                const civKey = skillDef ? civKeyForDomain(skillDef.domain) : null;
                 return (
-                  <Link key={us.skill_id} href={`/skills/${us.skill_id}`} className="group flex flex-col items-center gap-2">
+                  <Link key={us.skill_id} href={`/skills?skill=${us.skill_id}`} className="group flex flex-col items-center gap-2">
                     <span className="relative transition-transform duration-300 group-hover:scale-110" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.08))" }}>
-                      <BuildingSealIcon type={inferSkillId(name, us.skill_id)} size={56} />
-                      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold font-mono" style={{ color: CIV_COLORS.gold }}>
+                      <CivIcon
+                        type="type"
+                        name={civKey}
+                        size={56}
+                        alt={name}
+                        fallback={<BuildingSealIcon type={inferSkillId(name, us.skill_id)} size={56} />}
+                      />
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold font-mono" style={{ borderColor: CIV_COLORS.gold, background: "#FBF4E4", color: CIV_COLORS.darkRed }}>
                         {us.overall}
                       </span>
                     </span>
