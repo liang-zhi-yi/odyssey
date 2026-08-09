@@ -115,7 +115,7 @@ export function CivilizationStatusBanner({
 
         {/* Civilization Tier + Level */}
         <div className="flex items-center gap-2">
-          <span className="text-2xl inline-flex text-[oklch(0.45_0.08_160)]"><QuestScrollIcon name={resolveScrollIconName(tierInfo.icon)} size={24} /></span>
+          <span className="text-2xl inline-flex text-[oklch(0.45_0.12_85)]"><QuestScrollIcon name={resolveScrollIconName(tierInfo.icon)} size={24} /></span>
           <div>
             <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide">
               {locale === "zh" ? "文明等级" : "Civ Level"}
@@ -180,8 +180,8 @@ export function CivilizationStatusBanner({
           <span className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] uppercase tracking-wide flex-shrink-0">
             {locale === "zh" ? "下一目标" : "Next Target"}:
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.20)] px-3 py-1 text-xs font-civ-serif">
-            <span className="inline-flex text-[oklch(0.45_0.08_160)]"><CivIcon type="building" name={nextTarget.building_name} size={14} alt={nextTarget.building_name} fallback={<QuestScrollIcon name={resolveScrollIconName(nextTarget.building_icon)} size={14} />} /></span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[oklch(0.72_0.12_85_/_0.10)] border border-[oklch(0.72_0.12_85_/_0.20)] px-3 py-1 text-xs font-civ-serif">
+            <span className="inline-flex text-[oklch(0.65_0.12_85)]"><CivIcon type="building" name={nextTarget.building_name} size={14} alt={nextTarget.building_name} fallback={<QuestScrollIcon name={resolveScrollIconName(nextTarget.building_icon)} size={14} />} /></span>
             <span className="font-medium text-[oklch(0.35_0.02_70)] dark:text-[oklch(0.85_0.04_80)]">
               {locale === "en" && nextTarget.building_name_en
                 ? nextTarget.building_name_en

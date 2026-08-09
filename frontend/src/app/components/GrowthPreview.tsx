@@ -70,12 +70,12 @@ export function GrowthPreview({
         {/* Pulsing center */}
         <div className="flex flex-col items-center gap-4 py-6">
           <div className="relative">
-            <div className="h-16 w-16 rounded-full bg-[oklch(0.55_0.08_145_/_0.10)] border-2 border-[oklch(0.55_0.08_145_/_0.30)] flex items-center justify-center">
-              <span className="animate-pulse text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.72_0.09_145)]"><QuestScrollIcon name="sparkle" size={28} /></span>
+            <div className="h-16 w-16 rounded-full bg-[oklch(0.72_0.12_85_/_0.10)] border-2 border-[oklch(0.72_0.12_85_/_0.30)] flex items-center justify-center">
+              <span className="animate-pulse text-[oklch(0.55_0.12_85)] dark:text-[oklch(0.82_0.08_85)]"><QuestScrollIcon name="sparkle" size={28} /></span>
             </div>
-            <div className="absolute inset-0 rounded-full border-2 border-[oklch(0.55_0.08_145_/_0.20)] animate-ping" />
+            <div className="absolute inset-0 rounded-full border-2 border-[oklch(0.72_0.12_85_/_0.20)] animate-ping" />
           </div>
-          <p className="text-sm font-medium font-civ-serif italic text-[oklch(0.45_0.06_145)] dark:text-[oklch(0.72_0.08_145)]">
+          <p className="text-sm font-medium font-civ-serif italic text-[oklch(0.55_0.10_85)] dark:text-[oklch(0.82_0.08_85)]">
             {locale === "zh"
               ? "奥德赛正在规划你的文明路线..."
               : "Odyssey is planning your civilization route..."}
@@ -92,7 +92,7 @@ export function GrowthPreview({
                 key={i}
                 className={`flex items-center gap-3 text-xs transition-all duration-500 font-civ-serif ${
                   isActive
-                    ? "text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.75_0.09_145)] font-bold"
+                    ? "text-[oklch(0.55_0.12_85)] dark:text-[oklch(0.85_0.08_85)] font-bold"
                     : isDone
                     ? "text-[oklch(0.50_0.03_75_/_0.5)] dark:text-[oklch(0.62_0.04_80_/_0.5)]"
                     : "text-[oklch(0.50_0.03_75_/_0.3)] dark:text-[oklch(0.62_0.04_80_/_0.3)]"
@@ -102,18 +102,18 @@ export function GrowthPreview({
                 <span>{locale === "en" ? phase.en : phase.zh}</span>
                 {isActive && (
                   <span className="ml-auto flex gap-0.5">
-                    <span className="h-1 w-1 rounded-full bg-[oklch(0.55_0.08_145)] animate-bounce" />
+                    <span className="h-1 w-1 rounded-full bg-[oklch(0.72_0.12_85)] animate-bounce" />
                     <span
-                      className="h-1 w-1 rounded-full bg-[oklch(0.55_0.08_145)] animate-bounce"
+                      className="h-1 w-1 rounded-full bg-[oklch(0.72_0.12_85)] animate-bounce"
                       style={{ animationDelay: "150ms" }}
                     />
                     <span
-                      className="h-1 w-1 rounded-full bg-[oklch(0.55_0.08_145)] animate-bounce"
+                      className="h-1 w-1 rounded-full bg-[oklch(0.72_0.12_85)] animate-bounce"
                       style={{ animationDelay: "300ms" }}
                     />
                   </span>
                 )}
-                {isDone && <svg className="ml-auto text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.72_0.09_145)]" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+                {isDone && <svg className="ml-auto text-[oklch(0.55_0.12_85)] dark:text-[oklch(0.82_0.08_85)]" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
               </div>
             );
           })}
@@ -136,7 +136,7 @@ export function GrowthPreview({
       <div className="relative rounded-xl scroll-fuse ornamental-border p-6 space-y-5 sticky top-6 overflow-hidden">
         <div className="absolute inset-0 parchment-texture pointer-events-none opacity-40" />
         <div className="relative z-10 space-y-5">
-        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.75_0.09_145)] tracking-wide">
+        <h3 className="text-sm font-bold font-civ-serif text-[oklch(0.55_0.12_85)] dark:text-[oklch(0.85_0.08_85)] tracking-wide">
           {locale === "zh" ? "成长路线已生成" : "Growth Route Generated"}
         </h3>
 
@@ -155,7 +155,7 @@ export function GrowthPreview({
               {targetedBuildings.slice(0, 5).map((tb) => (
                 <div
                   key={tb.building_id}
-                  className="flex items-center gap-2 rounded-lg bg-[oklch(0.55_0.08_145_/_0.06)] dark:bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.15)] px-3 py-2"
+                  className="flex items-center gap-2 rounded-lg bg-[oklch(0.72_0.12_85_/_0.06)] dark:bg-[oklch(0.72_0.12_85_/_0.10)] border border-[oklch(0.72_0.12_85_/_0.15)] px-3 py-2"
                 >
                   <span className="text-lg">{tb.building_icon}</span>
                   <div className="flex-1 min-w-0">
@@ -190,8 +190,8 @@ export function GrowthPreview({
               {locale === "zh" ? "文明指数提升" : "Civ Score Boost"}
             </p>
           </div>
-          <div className="rounded-lg bg-[oklch(0.55_0.08_145_/_0.06)] border border-[oklch(0.55_0.08_145_/_0.15)] p-3 text-center">
-            <p className="text-lg font-bold font-civ-serif text-[oklch(0.45_0.08_145)] dark:text-[oklch(0.72_0.09_145)]">
+          <div className="rounded-lg bg-[oklch(0.72_0.12_85_/_0.06)] border border-[oklch(0.72_0.12_85_/_0.15)] p-3 text-center">
+            <p className="text-lg font-bold font-civ-serif text-[oklch(0.55_0.12_85)] dark:text-[oklch(0.82_0.08_85)]">
               {generationResult.estimated_weeks}w
             </p>
             <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mt-1">
@@ -343,7 +343,7 @@ export function GrowthPreview({
 
       {/* If there's an existing direction, show mini direction info */}
       {direction && direction.active_paths.length > 0 && (
-        <div className="rounded-lg bg-[oklch(0.55_0.08_145_/_0.06)] dark:bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.15)] p-3">
+        <div className="rounded-lg bg-[oklch(0.72_0.12_85_/_0.06)] dark:bg-[oklch(0.72_0.12_85_/_0.10)] border border-[oklch(0.72_0.12_85_/_0.15)] p-3">
           <p className="text-[10px] font-civ-serif text-[oklch(0.50_0.03_75)] dark:text-[oklch(0.62_0.04_80)] mb-1 uppercase tracking-wider">
             {locale === "zh" ? "当前方向" : "Current Direction"}
           </p>
@@ -351,7 +351,7 @@ export function GrowthPreview({
             {direction.active_paths.slice(0, 2).map((p) => (
               <span
                 key={p.path_id}
-                className="rounded-full bg-[oklch(0.55_0.08_145_/_0.10)] border border-[oklch(0.55_0.08_145_/_0.15)] px-2 py-0.5 text-[10px] font-medium font-civ-serif text-[oklch(0.40_0.08_145)] dark:text-[oklch(0.72_0.09_145)]"
+                className="rounded-full bg-[oklch(0.72_0.12_85_/_0.10)] border border-[oklch(0.72_0.12_85_/_0.15)] px-2 py-0.5 text-[10px] font-medium font-civ-serif text-[oklch(0.55_0.12_85)] dark:text-[oklch(0.82_0.08_85)]"
               >
                 {p.path_title}
               </span>

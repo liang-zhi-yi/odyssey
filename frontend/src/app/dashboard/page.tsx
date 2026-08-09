@@ -226,6 +226,11 @@ export default function DashboardPage() {
             pathDatasets={pathDatasets}
             pathName={pathGrowth?.path_name}
             isLoading={pathGrowthLoading || allPathsLoading}
+            worldTier={worldTier}
+            worldEra={worldData?.era}
+            buildingCount={buildingCount}
+            questsCompleted={questsCompleted}
+            userSkills={userSkills}
           />
         </section>
 
