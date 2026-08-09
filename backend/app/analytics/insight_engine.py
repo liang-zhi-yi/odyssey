@@ -87,9 +87,11 @@ _INSIGHTS_JSON_SCHEMA = {
 
 
 def generate_insights(user_id: UUID, db: Session) -> list[AIInsight]:
-    """Generate AI-powered insights for a user.
+    """Generate data-driven insights for a user.
 
-    Attempts LLM generation first; falls back to rule-based if it fails.
+    Uses rule-based computation from user skill data for fast dashboard
+    rendering. LLM-powered insights are kept in the codebase for future
+    explicit refresh requests.
 
     Args:
         user_id: UUID of the user.
@@ -108,17 +110,10 @@ def generate_insights(user_id: UUID, db: Session) -> list[AIInsight]:
     if not user_skills:
         return []
 
-    # Build user profile summary for the LLM
-    profile = _build_user_profile(user_id, user_skills, db)
-
-    # Try LLM
-    try:
-        return _llm_insights(profile)
-    except Exception as exc:
-        logger.warning(
-            "LLM insight generation failed, falling back to rules: %s", exc
-        )
-        return _rule_based_insights(user_id, user_skills, db)
+    # Use rule-based insights for dashboard performance.
+    # LLM-powered insights are reserved for explicit refresh requests
+    # to avoid blocking the dashboard on every page load.
+    return _rule_based_insights(user_id, user_skills, db)
 
 
 # ── Data gathering ──────────────────────────────────────────────────────
